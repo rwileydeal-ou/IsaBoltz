@@ -7,6 +7,8 @@ DeltaNeffCommand::DeltaNeffCommand(Connection& connection, Models::Particle& par
 {
     particle_ = particle;
     Models::ParticleEvolution particleEvo;
+    particleEvo.ParticleId = particle.Id;
+    particleEvo.InputId = connection.InputId;
     this -> receiver_ = std::make_shared< EstimateDeltaNeffReceiver >( connection_, particleEvo, particle_, childrenIdPairs );
 }
 // This constructor computes Delta Neff for <enabledKey>

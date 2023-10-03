@@ -166,7 +166,8 @@ void BoltzmannSolverCommand::Execute(){
     }
 
     auto stepperType = boost::numeric::odeint::rosenbrock4< double >();
-    auto stepper = boost::numeric::odeint::make_dense_output(1.e-03, 1.e-03, stepperType);
+    auto stepper = boost::numeric::odeint::make_dense_output(1.e-04, 1.e-03, 0.001, stepperType);
+//    auto stepper = boost::numeric::odeint::make_dense_output(1.e-03, 1.e-03, stepperType);
 
     // delegate building the step to the proper command
     BoltzmannStepBuilderCommand stepSolver(
@@ -195,13 +196,22 @@ void BoltzmannSolverCommand::Execute(){
             stepper.do_step( 
                 make_pair( sys, sysJac )
             );
+
+            stepper.initialize(
+                stepSolver.UpdateInitialConditions(),
+                stepper.current_time(),
+                stepper.current_time_step()
+            );
+
             observer.operator()( stepper.current_state(), stepper.current_time() );
             if ( stepSolver.Exit() ){
                 break;
             }
+
+
         } catch( boost::numeric::ublas::internal_logic& e ){
             ostringstream oss;
-            auto xI = stepper.current_state();
+            auto xI = stepper.previous_state();
             for (auto& x : xI ){
                 oss << x << std::endl;
             }

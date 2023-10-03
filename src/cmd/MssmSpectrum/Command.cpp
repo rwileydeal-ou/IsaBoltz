@@ -4,7 +4,7 @@ MssmSpectrumCommand::MssmSpectrumCommand(Connection& connection) :
     connection_(connection) 
 {
     this -> fortLib_ = std::make_shared< DataRelay >(connection_.Log);
-    this -> receiver_ = std::make_shared< MssmSpectrumReceiver >( connection_.Model, fortLib_, connection_.OutputTree, connection_.Log, connection_.SqlConnectionString, connection_.InputId );
+    this -> receiver_ = std::make_shared< MssmSpectrumReceiver >( connection_, fortLib_ );
     this -> receiver_ -> Calculate();
 }
 

@@ -124,18 +124,18 @@ gU1                 =   0.19595268
 ########################################
 
 NW                  =   2.
-Gravitino.Mass      =   10000.          # Gravitino mass (in GeV)
+Gravitino.Mass      =   30000.          # Gravitino mass (in GeV)
 
 #########################################
 ###       String/Moduli params        ###
 #########################################
 
-Modulus.Mass       =   30000.          # Moduli mass (in GeV)
-Modulus.Amplitude  =   2.4e18          # Moduli initial amplitude of osc. (in GeV)
+Modulus.Mass       =   1.e6          # Moduli mass (in GeV)
+Modulus.Amplitude  =   1.94e18          # Moduli initial amplitude of osc. (in GeV)
 
 #########  Gravitino Couplings  #########
 
-moduli.LambdaG      =   0.1              # coupling to Gravitino
+moduli.LambdaG      =   1.             # coupling to Gravitino
 
 ###########  Gauge Couplings  ###########
 
@@ -145,7 +145,9 @@ moduli.LambdaSU3    =   1.             # coupling to SU(3) superfield
 
 ###########  Higgs Couplings  ###########
 
-moduli.LambdaHiggs  =   1.             # coupling to Higgs superfields (neutral and charged)
+moduli.LambdaHGM    =   1.             # coupling to Giudice-Masiero Higgs superfields (neutral and charged)
+moduli.LambdaHu     =   1.             # coupling to up-type Higgs superfields (neutral and charged)
+moduli.LambdaHd     =   1.             # coupling to down-type Higgs superfields (neutral and charged)
 
 ########  Quark/Squark Couplings  #######
 
@@ -173,14 +175,14 @@ moduli.LambdaE3     =   1.             # coupling to 3rd generation right-hand l
 
 ########  Axionic-Type Couplings  #######
 
-moduli.LambdaAxion  =   1.             # coupling to QCD axionic sector
-moduli.LambdaALP    =   1.             # coupling to ALP, LVS/KKLT ~ 0.816
+moduli.LambdaAxion  =   0.             # coupling to QCD axionic sector
+moduli.LambdaALP    =   0.             # coupling to ALP, LVS/KKLT ~ 0.816
 
 #########################################
 ###     Standard Cosmology params     ###
 #########################################
 
-TReheat             =   1.e11            # Reheat temperature (in GeV)
+TReheat             =   1.e12            # Reheat temperature (in GeV)
 TNeutDecouple       =   0.001           # Neutrino decoupling temperature (in GeV)
 THadronization      =   0.2             # Hadronization temperature (in GeV) - also QCD scale
 TEvolveFinal        =   1.0e4          # Final temperature (in GeV) for Boltzmann eqs to evolve to

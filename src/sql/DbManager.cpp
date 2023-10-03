@@ -24,7 +24,7 @@ void DbManager::Open(){
     while( true ){
         auto result = sqlite3_open(connectionString_.c_str(), &db_);
         if ( result != SQLITE_OK ){
-            if ( result == SQLITE_LOCKED || result == SQLITE_BUSY ){
+            if ( result == SQLITE_LOCKED || result == SQLITE_BUSY || result == SQLITE_CANTOPEN ){
                 std::this_thread::sleep_for(std::chrono::milliseconds(10));
                 continue;
             } 
@@ -53,10 +53,16 @@ void DbManager::executeStatementPtr( std::shared_ptr< Statements::IStatement > s
 
         while(true){
             char *zErrMsg = 0;
+            auto res1 = sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+            if (res1 == SQLITE_LOCKED || res1 == SQLITE_BUSY || res1 == SQLITE_CANTOPEN ){
+                std::this_thread::sleep_for(std::chrono::milliseconds(2));
+                continue;
+            } 
+
             auto result = sqlite3_exec(db, statementStr.c_str(), NULL, NULL, &zErrMsg);
     
             if( result != SQLITE_OK ){
-                if (result == SQLITE_LOCKED || result == SQLITE_BUSY ){
+                if (result == SQLITE_LOCKED || result == SQLITE_BUSY || result == SQLITE_CANTOPEN ){
                     std::this_thread::sleep_for(std::chrono::milliseconds(2));
                     continue;
                 } 
@@ -69,6 +75,7 @@ void DbManager::executeStatementPtr( std::shared_ptr< Statements::IStatement > s
                 sqlite3_close(db);
                 throw_with_trace( exception() );
             }
+            sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
             break;
         }
         sqlite3_close(db);
@@ -88,10 +95,16 @@ void DbManager::executeStatement( Statements::IStatement& statement ){
 
         while(true){
             char *zErrMsg = 0;
+            auto res1 = sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+            if (res1 == SQLITE_LOCKED || res1 == SQLITE_BUSY || res1 == SQLITE_CANTOPEN ){
+                std::this_thread::sleep_for(std::chrono::milliseconds(2));
+                continue;
+            } 
+
             auto result = sqlite3_exec(db, statementStr.c_str(), NULL, NULL, &zErrMsg);
     
             if( result != SQLITE_OK ){
-                if (result == SQLITE_LOCKED || result == SQLITE_BUSY ){
+                if (result == SQLITE_LOCKED || result == SQLITE_BUSY || result == SQLITE_CANTOPEN ){
                     std::this_thread::sleep_for(std::chrono::milliseconds(2));
                     continue;
                 } 
@@ -104,6 +117,7 @@ void DbManager::executeStatement( Statements::IStatement& statement ){
                 sqlite3_close(db);
                 throw_with_trace( exception() );
             }
+            sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
             break;
         }
         sqlite3_close(db);
@@ -123,10 +137,16 @@ void DbManager::executeStatementCallback( Statements::IStatement& statement, int
 
         while(true){
             char *zErrMsg = 0;
+            auto res1 = sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+            if (res1 == SQLITE_LOCKED || res1 == SQLITE_BUSY || res1 == SQLITE_CANTOPEN ){
+                std::this_thread::sleep_for(std::chrono::milliseconds(2));
+                continue;
+            } 
+
             auto result = sqlite3_exec(db, statementStr.c_str(), callback, &callbackReturn, &zErrMsg);
     
             if( result != SQLITE_OK ){
-                if (result == SQLITE_LOCKED || result == SQLITE_BUSY ){
+                if (result == SQLITE_LOCKED || result == SQLITE_BUSY || result == SQLITE_CANTOPEN ){
                     std::this_thread::sleep_for(std::chrono::milliseconds(2));
                     continue;
                 } 
@@ -139,6 +159,7 @@ void DbManager::executeStatementCallback( Statements::IStatement& statement, int
                 sqlite3_close(db);
                 throw_with_trace( exception() );
             }
+            sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
             break;
         }
         sqlite3_close(db);
@@ -171,10 +192,16 @@ void DbManager::executeStatementDeque( std::deque< std::shared_ptr< Statements::
 
         while( true ){
             char *zErrMsg = 0;
+            auto res1 = sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
+            if (res1 == SQLITE_LOCKED || res1 == SQLITE_BUSY || res1 == SQLITE_CANTOPEN ){
+                std::this_thread::sleep_for(std::chrono::milliseconds(2));
+                continue;
+            } 
+
             auto result = sqlite3_exec(db, statementStr.c_str(), NULL, NULL, &zErrMsg);
         
             if( result != SQLITE_OK ){
-                if (result == SQLITE_LOCKED || result == SQLITE_BUSY ){
+                if (result == SQLITE_LOCKED || result == SQLITE_BUSY || result == SQLITE_CANTOPEN ){
                     std::this_thread::sleep_for(std::chrono::milliseconds(2));
                     continue;
                 } 
@@ -187,6 +214,7 @@ void DbManager::executeStatementDeque( std::deque< std::shared_ptr< Statements::
                 sqlite3_close(db);
                 throw_with_trace( exception() );
             }
+            sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
             break;
         }
         sqlite3_close(db);
@@ -240,7 +268,10 @@ void DbManager::Configure(){
 
 string DbManager::create_Input_table(){
     string cmd = "CREATE TABLE Inputs("  \
-    "ID             TEXT    PRIMARY KEY NOT NULL);";
+    "ID             TEXT    PRIMARY KEY NOT NULL," \
+    "ModelParams    TEXT," \
+    "CosmologyParams TEXT);";
+    cmd.append("CREATE INDEX input_id_asc ON Inputs(ID asc);");
     return cmd;
 }
 

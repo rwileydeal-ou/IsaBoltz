@@ -12,8 +12,6 @@
 #include <deque>
 #include <vector>
 #include <memory>
-#define BOOST_ALLOW_DEPRECATED_HEADERS
-#define BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <boost/numeric/odeint.hpp>
 
 #include <boost/numeric/ublas/vector.hpp>
@@ -163,6 +161,7 @@ public:
 
     boost::numeric::ublas::vector<long double> getDxDt();
     boost::numeric::ublas::matrix<long double> getJacobian();
+    boost::numeric::ublas::vector<double> UpdateInitialConditions();
 };
 
 #endif

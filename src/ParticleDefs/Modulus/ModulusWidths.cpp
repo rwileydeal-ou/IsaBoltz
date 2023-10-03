@@ -731,8 +731,8 @@ Models::PartialWidth ModulusWidths::widthDiGravitino(double lambdaG, const Model
     double mG = gravitino.Mass;
     double massRatioSqr = pow( mG / mModulus, 2. );
     // calculate order of magnitude
-//    double prefactor = pow( lambdaG, 2. ) * pow( mModulus, 3. ) / ( 288. * M_PI * pow( mPlanck, 2. ) );
-    double prefactor = pow( lambdaG, 2. ) * pow( mModulus, 3. ) * massRatioSqr / ( 288. * M_PI * pow( mPlanck, 2. ) );
+    double prefactor = pow( lambdaG, 2. ) * pow( mModulus, 3. ) / ( 288. * M_PI * pow( mPlanck, 2. ) );
+//    double prefactor = pow( lambdaG, 2. ) * pow( mModulus, 3. ) * massRatioSqr / ( 288. * M_PI * pow( mPlanck, 2. ) );
 
     // now stitch in the rest of the width
     double width = prefactor * Utility::SqrtLambda(1., massRatioSqr, massRatioSqr);

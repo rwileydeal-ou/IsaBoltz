@@ -59,6 +59,8 @@ void BoltzmannStepBuilderCommand::resetParticleData(){
                 if (particle.ParticleKey == "axion"){
                     particle.TempDependentMass = true;
                     tempDependentMassEnabled_ = true;
+                    double fTheta = pow( log( exp(1.) / (1. - pow(connection_.Model.PQSector.Theta_I / M_PI, 2.) ) ), 7./6. );
+                    particle.Amplitude = 1.2 * connection_.Model.PQSector.Fa / connection_.Model.PQSector.nDW * connection_.Model.PQSector.Theta_I * sqrt(fTheta);
                 }
                 // TODO: THIS IS ALSO A HACK, REVISE...
                 if (particle.ParticleKey == "neutralino1"){
@@ -116,6 +118,40 @@ ParticleData BoltzmannStepBuilderCommand::pullParticleEvolution( std::string par
 
 */
 
+boost::numeric::ublas::vector<double> BoltzmannStepBuilderCommand::UpdateInitialConditions(){
+    boost::numeric::ublas::vector<double> currentState ( 2 * currentParticleData_.size() );
+    for (int index = 0; index < currentParticleData_.size(); ++index){
+        auto p = currentParticleData_[index];        
+
+/*        // update modes marked to be turned off
+        if ( p.TurnOff ){
+            // flip back so won't get ignored if reproduced from other mechanism
+            p.TurnOff = false;
+            currentState( 2 * index ) = 0.;
+            currentState( 2 * index + 1 ) = 0.;
+            continue;
+        }
+*/
+        // update initial conditions for coh.osc. fields with temp-dependent mass
+        if ( p.TempDependentMass && p.ProductionMechanism == ParticleProductionMechanism::COHERENT_OSCILLATION ){
+            // applies to temp dependent coh.osc.masses only
+            if ( !p.IsOscillating ){
+                currentState( 2 * index ) = log( p.Mass * pow( p.Amplitude, 2. ) / 2. / reheatPoint_.Entropy );
+            } else{
+                currentState( 2 * index ) = x_[ 2 * index];
+            }
+            currentState( 2 * index + 1 ) = log( p.Mass / reheatPoint_.Temperature );
+            continue;
+        }
+
+        // if not special condition above, set to expected value
+        currentState( 2 * index ) = x_[ 2 * index];
+        currentState( 2 * index + 1 ) = x_[ 2 * index + 1];
+    }
+    return currentState;
+}
+
+
 
 double BoltzmannStepBuilderCommand::tempRadiation(long double entropy, long double scaleFactor){
     long double X = pow(entropy, 1./3.) / scaleFactor;
@@ -157,7 +193,7 @@ double BoltzmannStepBuilderCommand::tempRadiation(long double entropy, long doub
             );
     }
     if (T1 > reheatPoint_.Temperature){
-        connection_.Log.Warn("Radiation temperature calculated above reheat... Setting to reheat temperature");
+        connection_.Log.Debug("Radiation temperature calculated above reheat... Setting to reheat temperature");
         T1 = reheatPoint_.Temperature;
     }
 
@@ -220,35 +256,13 @@ void BoltzmannStepBuilderCommand::updateParticleMassAndId( ParticleData& particl
         particle.ParticleId = updatedID->second;
     }
 
-    // for coh. osc. axion, need to continually check and update initial conditions if needed
-    if ( 
-        particle.ProductionMechanism == ParticleProductionMechanism::COHERENT_OSCILLATION 
-        && particle.Mass < (6.2e-3) * connection_.Model.PQSector.nDW / connection_.Model.PQSector.Fa
-    ){
-        // dxdN = 1/m * dm/dN = 1/m * dm / d ( log ( R_{i+1} / R_{i} ) )
-        // dxdt = dlog(m)/dN, since m~T^4, parameterize derivative, this is approximate derivative
-        double dSdt = 0.;
-        double dGstrdt = 0.;
-        double dXdt = 4.;
-        if ( currentPoint_.ScaleFactor != previousPoint.ScaleFactor ){
-            dSdt = ( currentPoint_.Entropy - previousPoint.Entropy ) / log( currentPoint_.ScaleFactor / previousPoint.ScaleFactor );
-            dGstrdt = ( currentPoint_.GStarEntropic - previousPoint.GStarEntropic ) / log( currentPoint_.ScaleFactor / previousPoint.ScaleFactor );
-            dXdt -= 4. * dSdt / ( 3. * currentPoint_.Entropy );
-            dXdt += 4. * dGstrdt / ( 3. * currentPoint_.GStarEntropic );
-        }
-
-        // this term only applies before oscillations, then Boltz eq encodes m(T) behavior
-        if (!particle.IsOscillating && !particle.IsActive){
-            dxdt_[ 2*index ] += dXdt;
-        }
-        // the second Boltz eqn ALWAYS has additional term if m is temp/time-dependent
-        dxdt_[ 2*index + 1 ] += dXdt;
-    }
     if (
         particle.ProductionMechanism == ParticleProductionMechanism::COHERENT_OSCILLATION
         && ( particle.IsOscillating || particle.IsActive )
     ){
-        particle.EnergyDensity = particle.NumberDensity * particle.Mass;
+        particle.NumberDensity = reheatPoint_.Entropy * expl( particle.Y1 );
+        // With our defn of Y2 = log( rho / (n*T_R) ), this gives us rho/n so that we can combine with n to get rho
+        particle.EnergyDensity = reheatPoint_.Temperature * expl( particle.Y2 ) * particle.NumberDensity;
     }
 }
 
@@ -308,7 +322,7 @@ void BoltzmannStepBuilderCommand::setRadiationInitialState( ParticleData& radiat
 }
 
 void BoltzmannStepBuilderCommand::setMatterInitialState( ParticleData& matter ){
-    if (!matter.IsActive){
+    if (!matter.IsActive || matter.Y1 == 0. || matter.Y2 == 0. ){
         return;
     }
     
@@ -404,6 +418,16 @@ void BoltzmannStepBuilderCommand::handleTemperatureDependences(){
 }
 
 void BoltzmannStepBuilderCommand::checkTransitions(){
+    if ( 
+        currentPoint_.Temperature == 0. 
+        || std::isnan( currentPoint_.Temperature ) 
+        || std::isinf( currentPoint_.Temperature ) 
+        || currentPoint_.Hubble == 0. 
+        || std::isnan( currentPoint_.Hubble ) 
+        || std::isinf( currentPoint_.Hubble ) 
+    ){
+        return;
+    }
     for (auto& p : currentParticleData_){
         checkOscillationTransition( p );
         checkDecayTransition( p );
@@ -417,9 +441,6 @@ void BoltzmannStepBuilderCommand::checkOscillationTransition( ParticleData& part
         || particle.ProductionMechanism != ParticleProductionMechanism::COHERENT_OSCILLATION 
         || particle.IsOscillating
         || ( 3. * currentPoint_.Hubble >= particle.Mass )
-        || currentPoint_.Temperature == 0.
-        || currentPoint_.Hubble == 0.
-        || std::isnan( currentPoint_.Hubble )
     ){
         return;
     }
@@ -450,7 +471,7 @@ void BoltzmannStepBuilderCommand::checkDecayTransition( ParticleData& particle )
         !particle.IsDecaying
         && particle.EnergyDensity > 0.
         && particle.NumberDensity > 0.
-        &&( particle.TotalWidth * particle.Mass > currentPoint_.Hubble )
+        &&( particle.TotalWidth > currentPoint_.Hubble )
     ){
         particle.IsDecaying = true;
         Models::TempDecay tD( currentPoint_, particle.ParticleId );
@@ -473,14 +494,10 @@ void BoltzmannStepBuilderCommand::checkDecayTransition( ParticleData& particle )
                 rrMin = max( rrMin, log( particle.EnergyDensity / p2.EnergyDensity ) );
             }
         }
-        if (rrMin < -3.){
-            auto key = particle.ParticleKey;
-            key[0] = std::toupper(key[0]);
-            connection_.Log.Info( key + " has completely decayed at T: " + boost::lexical_cast<std::string>(currentPoint_.Temperature) + " GeV");
+        if (rrMin < -7.){
             particle.IsActive = false;
             particle.NumberDensity = 0.;
             particle.EnergyDensity = 0.;
-
         }
     }
 }
@@ -491,7 +508,7 @@ void BoltzmannStepBuilderCommand::addComponents(){
     dxdt_[0] = 0.;
 
     auto rad = currentParticleData_.front();
-    if ( std::strcmp(rad.ParticleKey.c_str(), "photon") != 0 ){
+    if ( rad.ProductionMechanism != ParticleProductionMechanism::RADIATION ){
         throw_with_trace( logic_error("Evolution deque corrupted") );
     }
 
@@ -502,7 +519,7 @@ void BoltzmannStepBuilderCommand::addComponents(){
 
     for( auto& p : currentParticleData_ ){
         // we already set radiation
-        if ( std::strcmp(p.ParticleKey.c_str(), "photon") == 0 ){
+        if ( p.ProductionMechanism == ParticleProductionMechanism::RADIATION ){
             i++;
             continue;
         }

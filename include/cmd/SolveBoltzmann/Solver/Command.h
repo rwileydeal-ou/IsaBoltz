@@ -1,8 +1,6 @@
 #ifndef BoltzmannSolverCommand_h
 #define BoltzmannSolverCommand_h
 
-#define BOOST_ALLOW_DEPRECATED_HEADERS
-#define BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <boost/numeric/odeint.hpp>
 #include <boost/numeric/odeint/stepper/runge_kutta_cash_karp54.hpp>
 #include <boost/numeric/odeint/stepper/runge_kutta4.hpp>

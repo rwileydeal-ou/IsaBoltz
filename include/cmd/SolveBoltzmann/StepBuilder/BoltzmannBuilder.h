@@ -17,8 +17,6 @@
 #include <sql/Filters/Particle.h>
 #include <sql/Callbacks/Particle.h>
 
-#define BOOST_ALLOW_DEPRECATED_HEADERS
-
 struct ComponentBuilder{
     boost::uuids::uuid EvolutionId = boost::uuids::nil_generator()();
     long double NumberDensityEquation = 0.;

@@ -109,6 +109,9 @@ ComponentBuilder BoltzmannBuilder::calculate_annihilation_term( const ParticleDa
             builder.NumberDensityEquation += parent.AnnihilationCrossSection * rad.NumberDensity * ( nEQ1 - n1 ) / ( n1 * data_.CurrentPoint.Hubble * data_.CurrentPoint.GStarEntropic );
             builder.NumberDensityJacobian[ rad.EqnIndex ] += - parent.AnnihilationCrossSection * rad.NumberDensity / ( data_.CurrentPoint.Hubble );
         } else{
+            if (nEQ1 > 0. && abs(pow( nEQ1, 2.) - pow( n1, 2. )) / pow(nEQ1, 2.) <= 0.15){
+                return builder;
+            }
             builder.NumberDensityEquation += parent.AnnihilationCrossSection * ( pow( nEQ1, 2. ) - pow( n1, 2.) ) / ( n1 * data_.CurrentPoint.Hubble );
             builder.NumberDensityJacobian[ parent.EqnIndex ] += - parent.AnnihilationCrossSection * ( pow( nEQ1, 2. ) + pow( n1, 2.) ) / ( n1 * data_.CurrentPoint.Hubble );
         }
@@ -363,21 +366,25 @@ double BoltzmannBuilder::Br_Rodd_to_LSP( const ParticleData& parent, const Parti
         }            
 
         // don't include if 1 R-odd final state and IS tracked separately
-        bool trackedSeparately = false;
+        bool widthTrackedSeparately = false;
         for( auto& p : data_.ParticleDatas ){
             // only look at valid tracked R-odd decays...
             if ( p.ProductionMechanism != ParticleProductionMechanism::THERMAL || p.Charges[0].Value != -1 ){
                 continue;
             }
+            // TODO: FINAL CHECK HERE IS A BUG WORKAROUND WHERE OTHER PARTICLE HAS DECAYED AND IS TURNED OFF BEFORE PARENT HAS BEGUN TO DECAY
+            // TREAT AS RADIATION IF HAS ALREADY DECAYED TO AT LEAST GET ENTROPY PRODUCTION IN CASCADE DECAYS
+            // PROPER SOLUTION IS TO REWRITE EQUATIONS SO NON-SINGULAR WHEN SPECIES IS ENTIRELY DECAYED
 
             // make sure we don't accidentally discard direct parent->LSP decay
             if ( p.ParticleId != daughter.ParticleId 
                 && (p.ParticleId == child1.Id || p.ParticleId == child2.Id)
+//                && p.IsActive
             ){
-                trackedSeparately = true;
+                widthTrackedSeparately = true;
             }
         }
-        if (!trackedSeparately){
+        if (!widthTrackedSeparately){
             br += width.Width / parent.TotalWidth;
         }
     }
@@ -471,7 +478,7 @@ double BoltzmannBuilder::Br_Rodd_to_radiation(const ParticleData& parent, const 
             continue;
         }            
 
-        bool trackedSeparately = false;
+        bool widthTrackedSeparately = false;
         for ( auto& p : data_.ParticleDatas ){
             // only look at valid R-odd decays
             if ( p.ProductionMechanism != ParticleProductionMechanism::THERMAL ){
@@ -481,15 +488,20 @@ double BoltzmannBuilder::Br_Rodd_to_radiation(const ParticleData& parent, const 
             if ( p.ParticleKey == child1.Key ){
                 // we've matched one key as tracked separately, but second key may not necessarily be same as first
                 for ( auto& p2 : data_.ParticleDatas ){
-                    if ( p2.ParticleKey == child2.Key && p.ProductionMechanism != ParticleProductionMechanism::RADIATION ){
+                    // TODO: FINAL CHECK HERE IS A BUG WORKAROUND WHERE OTHER PARTICLE HAS DECAYED AND IS TURNED OFF BEFORE PARENT HAS BEGUN TO DECAY
+                    // TREAT AS RADIATION IF HAS ALREADY DECAYED TO AT LEAST GET ENTROPY PRODUCTION IN CASCADE DECAYS
+                    // PROPER SOLUTION IS TO REWRITE EQUATIONS SO NON-SINGULAR WHEN SPECIES IS ENTIRELY DECAYED
+                    if ( p2.ParticleKey == child2.Key && p.ProductionMechanism != ParticleProductionMechanism::RADIATION 
+//                        && p2.IsActive 
+                    ){
                         // now we've verified both children in width are tracked separately and neither is radiation
-                        trackedSeparately = true;
+                        widthTrackedSeparately = true;
                         break;
                     }
                 }
             }
         }
-        if ( trackedSeparately ){
+        if ( widthTrackedSeparately ){
             br -= width.Width / parent.TotalWidth;
         }
     }
@@ -525,6 +537,11 @@ double BoltzmannBuilder::Br_Reven_to_Reven(const ParticleData& parent, const Par
 double BoltzmannBuilder::Br_Reven_to_radiation(const ParticleData& parent, const ParticleData& daughter){
     double br = 1.;
 
+    // go through all partial widths of the parent
+    // we assume that every cascade decay rapidly thermalizes so total decay can be treated as radiation
+    // if a width matches a tracked key, don't include it since tracked separately
+    // i.e. BR = 1 - species tracked separately
+    // TODO: refactor this and make more efficient...
     auto widths = data_.PartialWidths.find( parent.ParticleKey ) -> second;
     for ( auto& width : widths ){
         if ( width.ChildrenIds.size() != 2 ){
@@ -535,24 +552,26 @@ double BoltzmannBuilder::Br_Reven_to_radiation(const ParticleData& parent, const
         auto cID2 = width.ChildrenIds[1];
         auto child2 = pullParticle( cID2 );
 
-        // we assume that every cascade decay also releases radiation
-        // i.e. BR = 1 - species tracked separately
-        // TODO: refactor this and make more efficient...
-        bool trackedSeparately = false;
+        bool widthTrackedSeparately = false;
         for ( auto& p : data_.ParticleDatas ){
             if ( p.ProductionMechanism != ParticleProductionMechanism::THERMAL ){
                 continue;
             }
             if ( p.ParticleKey == child1.Key ){
                 for ( auto& p2 : data_.ParticleDatas ){
-                    if ( p2.ParticleKey == child2.Key && p2.ProductionMechanism == ParticleProductionMechanism::THERMAL ){
-                        trackedSeparately = true;
+                    // TODO: FINAL CHECK HERE IS A BUG WORKAROUND WHERE OTHER PARTICLE HAS DECAYED AND IS TURNED OFF BEFORE PARENT HAS BEGUN TO DECAY
+                    // TREAT AS RADIATION IF HAS ALREADY DECAYED TO AT LEAST GET ENTROPY PRODUCTION IN CASCADE DECAYS
+                    // PROPER SOLUTION IS TO REWRITE EQUATIONS SO NON-SINGULAR WHEN SPECIES IS ENTIRELY DECAYED
+                    if ( p2.ParticleKey == child2.Key && p2.ProductionMechanism == ParticleProductionMechanism::THERMAL 
+//                        && p2.IsActive 
+                    ){
+                        widthTrackedSeparately = true;
                         break;
                     }
                 }
             }
         }
-        if ( trackedSeparately ){
+        if ( widthTrackedSeparately ){
             br -= width.Width / parent.TotalWidth;
         }
     }
@@ -575,12 +594,17 @@ double BoltzmannBuilder::Br_Reven_to_LSP(const ParticleData& parent, const Parti
         auto cID2 = width.ChildrenIds[1];
         auto child2 = pullParticle( cID2 );
 
+        // TODO: REMOVE THIS - HACK FOR DISS
+        if ( child1.Key.find("higgs") != std::string::npos && child2.Key.find("higgs") != std::string::npos){
+            br += 0.01 * width.Width / parent.TotalWidth;
+        }
+
         // check to make sure both children are R-odd
         if ( (int)child1.Charges[0].Value == 1 || (int)child2.Charges[0].Value == 1 ){
             continue;
         }
 
-        bool trackedSeparately = false;
+        bool widthTrackedSeparately = false;
         for ( auto& p : data_.ParticleDatas ){
             // only look at valid R-odd decays
             if ( p.ProductionMechanism != ParticleProductionMechanism::THERMAL || p.Charges[0].Value != -1 ){
@@ -590,15 +614,20 @@ double BoltzmannBuilder::Br_Reven_to_LSP(const ParticleData& parent, const Parti
             if ( p.ParticleKey == child1.Key && !p.IsLSP ){
                 // we've matched one key as tracked separately, but second key may not necessarily be same as first
                 for ( auto& p2 : data_.ParticleDatas ){
-                    if ( p2.ParticleKey == child2.Key && !p2.IsLSP ){
+                    // TODO: FINAL CHECK HERE IS A BUG WORKAROUND WHERE OTHER PARTICLE HAS DECAYED AND IS TURNED OFF BEFORE PARENT HAS BEGUN TO DECAY
+                    // TREAT AS RADIATION IF HAS ALREADY DECAYED TO AT LEAST GET ENTROPY PRODUCTION IN CASCADE DECAYS
+                    // PROPER SOLUTION IS TO REWRITE EQUATIONS SO NON-SINGULAR WHEN SPECIES IS ENTIRELY DECAYED
+                    if ( p2.ParticleKey == child2.Key && !p2.IsLSP 
+//                        && p2.IsActive 
+                    ){
                         // now we've verified both children in width are tracked separately, and NEITHER is the LSP
-                        trackedSeparately = true;
+                        widthTrackedSeparately = true;
                         break;
                     }
                 }
             }
         }
-        if ( !trackedSeparately ){
+        if ( !widthTrackedSeparately ){
             br += width.Width / parent.TotalWidth;
         }
     }
@@ -633,7 +662,10 @@ double BoltzmannBuilder::Br_Reven_to_Rodd(const ParticleData& parent, const Part
 
 double BoltzmannBuilder::Br(const ParticleData& parent, const ParticleData& daughter){    
     // if the daughter is kinematically inaccessible, no point in continuing - but can't tell other particle, so only look at parent/daughter masses
-    if (parent.Mass <= daughter.Mass){
+    if (
+        parent.Mass <= daughter.Mass 
+//        || !daughter.IsActive
+    ){
         return 0.;
     }
     
@@ -665,114 +697,6 @@ double BoltzmannBuilder::Br(const ParticleData& parent, const ParticleData& daug
         }
     }
 
-    /*
-    if (parent.ParticleKey == "neutralino1"){
-        if ((daughter.ParticleKey == "axino" || daughter.ParticleKey == "photon") && abs(parentMass) > ModelBaseOps::FindConst( model.Particles, "axino").Mass ){
-            return 1.; // assumes most neutralino1 energy goes to radiation -- TODO: make better quantitative measure
-        }
-    } else if (parent.ParticleKey == "saxion"){
-        if (daughter.ParticleKey == "photon"){
-            auto axionBr = find_if( parentBF.DecayWidths.begin(), parentBF.DecayWidths.end(),
-                [&] (DecayWidth const& d) { return (d.Children.size() == 2 && d.Children[0].Key == "axion" && d.Children[1].Key == "axion"); }
-            );
-            auto axinoBr = find_if( parentBF.DecayWidths.begin(), parentBF.DecayWidths.end(),
-                [&] (DecayWidth const& d) { return (d.Children.size() == 2 && d.Children[0].Key == "axino" && d.Children[1].Key == "axino"); }
-            );
-            // TODO: figure out why neutralino contribution commented out in OG code
-            auto neutralinoBr = find_if( parentBF.DecayWidths.begin(), parentBF.DecayWidths.end(),
-                [&] (DecayWidth const& d) { return (d.Children.size() == 2 && d.Children[0].Key == "neutralino1" && d.Children[1].Key == "neutralino1"); }
-            );
-            return (1. - ( ( (*axionBr).Width + (*axinoBr).Width + (*neutralinoBr).Width ) / parentBF.TotalWidth) );
-        } else if (daughter.ParticleKey == "neutralino1"){
-            double rParityOddTotal = 0.;
-            vector<DecayWidth> rparityOddBr;
-            for (auto d = parentBF.DecayWidths.begin(); d != parentBF.DecayWidths.end(); ++d){
-                if ((*d).Children.size() == 2){
-                    auto ch1 = *find_if( (*d).Children[0].Charges.begin(), (*d).Children[0].Charges.end(), 
-                        [&] (Charge const& c) {return (c.Group == GaugeGroup::RParity); });
-                    auto ch2 = *find_if( (*d).Children[1].Charges.begin(), (*d).Children[1].Charges.end(), 
-                        [&] (Charge const& c) {return (c.Group == GaugeGroup::RParity); });
-                    if (ch1.Value == -1. && ch2.Value == -1.){
-                        rparityOddBr.push_back( *d );
-                    }
-                    }
-            }
-            for_each( rparityOddBr.begin(), rparityOddBr.end(), [&] (DecayWidth d){
-                rParityOddTotal += d.Width;
-            });
-            return ( 2. * rParityOddTotal / parentBF.TotalWidth );
-//            return ( rParityOddTotal / parentBF.TotalWidth );
-        } else if (daughter.ParticleKey == "axion" && daughter.ProductionMechanism == ParticleProductionMechanism::THERMAL){
-            auto axionBr = find_if( parentBF.DecayWidths.begin(), parentBF.DecayWidths.end(),
-                [&] (DecayWidth const& d) { return (d.Children.size() == 2 && d.Children[0].Key == "axion" && d.Children[1].Key == "axion"); }
-            );
-            return ( 2. * ((*axionBr).Width / parentBF.TotalWidth) );
-//            return ( (*axionBr).Width / parentBF.TotalWidth );
-        } else if (daughter.ParticleKey == "axino"){
-            auto axinoBr = find_if( parentBF.DecayWidths.begin(), parentBF.DecayWidths.end(),
-                [&] (DecayWidth const& d) { return (d.Children.size() == 2 && d.Children[0].Key == "axino" && d.Children[1].Key == "axino"); }
-            );
-            return ( 2. * ((*axinoBr).Width / parentBF.TotalWidth) );
-//            return ( (*axinoBr).Width / parentBF.TotalWidth );
-        }
-    } else if ( parent.ParticleKey == "axino" ){
-        if (daughter.ParticleKey == "neutralino1" && abs(parentMass) > abs(daughterMass)){
-            return 1.; // Assumes most axino energy goes to radiation -- TODO: make better quantitative measure
-        } else if (daughter.ParticleKey == "photon" && abs(parentMass) > ModelBaseOps::FindConst( model.Particles, "neutralino1" ).Mass){
-            return 1.; // Assumes most axino energy goes to radiation
-        }
-    } else if ( parent.ParticleKey == "gravitino" ){
-        // TODO: revise this! I'm quite sure there's some sketchy behaviour, let alone strong assumptions on primary BRs
-        if ( parentMass > ModelBaseOps::FindConst( model.Particles, "neutralino1" ).Mass ){
-            if ( daughter.ParticleKey == "neutralino1" ){
-                return 1.;
-            } else if ( daughter.ParticleKey == "photon" ){
-                return 1.;  // Assumes gravitinos decay to Z1 if channel is open & most of energy goes to radiation
-            }
-        } else if ( parentMass > ModelBaseOps::FindConst( model.Particles, "axino" ).Mass ){
-            if ( daughter.ParticleKey == "axino" ){
-                return 1.;
-            } else if ( daughter.ParticleKey == "axion" && daughter.ProductionMechanism == ParticleProductionMechanism::THERMAL ){
-                return 1.;
-            }
-        }
-    } else if ( parent.ParticleKey == "modulus" ){
-        if (daughter.ParticleKey == "photon"){
-            return (1.-0.05);
-            auto axionBr = find_if( parentBF.DecayWidths.begin(), parentBF.DecayWidths.end(),
-                [&] (DecayWidth const& d) { return (d.Children.size() == 2 && d.Children[0].Key == "axion" && d.Children[1].Key == "axion"); }
-            );
-            auto axinoBr = find_if( parentBF.DecayWidths.begin(), parentBF.DecayWidths.end(),
-                [&] (DecayWidth const& d) { return (d.Children.size() == 2 && d.Children[0].Key == "axino" && d.Children[1].Key == "axino"); }
-            );
-            // TODO: figure out why neutralino contribution commented out in OG code
-            auto neutralinoBr = find_if( parentBF.DecayWidths.begin(), parentBF.DecayWidths.end(),
-                [&] (DecayWidth const& d) { return (d.Children.size() == 2 && d.Children[0].Key == "neutralino1" && d.Children[1].Key == "neutralino1"); }
-            );
-            return (1. - ( ( (*axionBr).Width + (*axinoBr).Width + (*neutralinoBr).Width ) / parentBF.TotalWidth) );
-        } else if (daughter.ParticleKey == "neutralino1"){
-            return 0.05;
-            double rParityOddTotal = 0.;
-            vector<DecayWidth> rparityOddBr;
-            for (auto d = parentBF.DecayWidths.begin(); d != parentBF.DecayWidths.end(); ++d){
-                if ((*d).Children.size() == 2){
-                    auto ch1 = *find_if( (*d).Children[0].Charges.begin(), (*d).Children[0].Charges.end(), 
-                        [&] (Charge const& c) {return (c.Group == GaugeGroup::RParity); });
-                    auto ch2 = *find_if( (*d).Children[1].Charges.begin(), (*d).Children[1].Charges.end(), 
-                        [&] (Charge const& c) {return (c.Group == GaugeGroup::RParity); });
-                    if (ch1.Value == -1. && ch2.Value == -1.){
-                        rparityOddBr.push_back( *d );
-                    }
-                }
-            }
-            for_each( rparityOddBr.begin(), rparityOddBr.end(), [&] (DecayWidth d){
-                rParityOddTotal += d.Width;
-            });
-            return ( 2. * rParityOddTotal / parentBF.TotalWidth );
-//            return ( rParityOddTotal / parentBF.TotalWidth );
-        }
-    }
-    */
     return 0;
 }
 
@@ -788,7 +712,7 @@ ComponentBuilder BoltzmannBuilder::Build_Particle_Boltzmann_Eqs(const double& t,
     if (!particle.IsActive){
         return builder;
     }
-    
+
     auto expansion = calculate_hubble_contribution(particle);
     builder.NumberDensityEquation += expansion.NumberDensityEquation;
 

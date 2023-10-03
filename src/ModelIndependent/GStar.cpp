@@ -373,7 +373,7 @@ double GStar::Calculate(const std::deque< Models::Particle, boost::pool_allocato
 */
 
     if (std::isnan(gstr)){
-        connection.Log.Warn("Invalid g_{*} calculated at T=" + to_string(T) + " GeV... Setting to maximal g_{*} = 225");
+        connection.Log.Debug("Invalid g_{*} calculated at T=" + to_string(T) + " GeV... Setting to maximal g_{*} = 225");
         gstr = 225.;
     }
 

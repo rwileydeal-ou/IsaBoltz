@@ -186,10 +186,16 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
 
 // This method processes the cmds and writes the results to the boost ptree 
 void ProcessClient::Handle(vector<CommandWithPayload> cmds){
-    std::shared_ptr< Sender > invoker = std::make_shared< Sender >();
+    try{
+        std::shared_ptr< Sender > invoker = std::make_shared< Sender >();
 
-    for (auto& cmd : cmds){
-        handleCmd(cmd, invoker);
+        for (auto& cmd : cmds){
+            handleCmd(cmd, invoker);
+        }
+        connection_.Log.Info("Finished processing");
+    } catch( boost::numeric::ublas::internal_logic& e ){
+        connection_.Log.Error(e.what());
+    } catch( std::logic_error& e ){
+        connection_.Log.Error(e.what());
     }
-    connection_.Log.Info("Finished processing");
 }

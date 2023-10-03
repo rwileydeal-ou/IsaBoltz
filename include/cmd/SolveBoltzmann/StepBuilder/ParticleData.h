@@ -38,12 +38,14 @@ struct ParticleData
     double TotalWidth = 0.;
     double AnnihilationCrossSection = 0.;
     int EqnIndex = -1;
+    double Amplitude = 0.;
 
     // Switches
     bool IsActive;
     bool IsOscillating;
     bool IsDecaying;
     bool IsLSP;
+    bool TurnOff = false;
 
     ParticleData(){
     }
@@ -75,7 +77,9 @@ struct ParticleData
         IsOscillating( particleData.IsOscillating ),
         IsDecaying( particleData.IsDecaying ),
         IsLSP( particleData.IsLSP ),
-        PreviousTempParticleId( particleData.PreviousTempParticleId )
+        TurnOff( particleData.TurnOff ),
+        PreviousTempParticleId( particleData.PreviousTempParticleId ),
+        Amplitude( particleData.Amplitude )
     {
     }
 

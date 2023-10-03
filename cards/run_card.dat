@@ -1,0 +1,29 @@
+#####################################
+#           Run Options             #
+#####################################
+
+Cluster             =   False        # set to True to run on the cluster, set to False to run locally
+#Scheduler           =   Slurm       # currently unused - for future implementation to use with other schedulers/clusters
+CombineFiles        =   True        # set to True to combine multiple scan points to single file
+
+#####################################
+#     Compute Resource Request      #
+#####################################
+
+#Memory              =   1024
+Nodes               =   1           # this sets the number of nodes requested 
+TasksPerNode        =   1          # this controls how many run executions on each node (should be adjusted before Nodes!)
+MemoryPerCpu        =   1Gb         # this requests the memory per processor - requesting more than is used does not result in faster computations!
+CpusPerTask         =   1           # number of processors per task, 4 should be nearly optimal for the amount of parallelization done in IsaBoltz
+Partition           =   normal
+TimeLimit           =   2:00:00    # the time limit of the compute time requested
+Email               =   rwileydeal@ou.edu # email address to receive updates on the run 
+#Notify              =   ALL        # email notification types
+#HomeDirectory       =   /home/<username>/IsaBoltz
+
+#####################################
+#          Logging Config           #
+#####################################
+
+LogLevel            =   debug
+

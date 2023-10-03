@@ -1,0 +1,27 @@
+##########################################
+###          Process Options           ###
+##########################################
+
+MinimizePq      =   False            # Minimize the PQ potential
+Boltzmann       =   False           # Solve the Boltzmann eqns
+SigmaV          =   False            # Compute <sigma.v>
+BranchRatio     =   True            # Compute branching ratios
+
+##########################################
+###       Equation Solver Options      ###
+##########################################
+
+InitialStep     =   0.15             # Initial step size
+AbsError        =   1.0e-5          # Absolute error
+RelError        =   1.0e-3          # Relative error
+
+##########################################
+###        Run IsaTools Options        ###
+##########################################
+
+IsaRed          =   True            # Relic density calculations
+IsaRes          =   True            # Dark matter cross sections
+IsaAmu          =   True            # g_mu - 2
+IsaBsg          =   True            # B -> s gamma 
+IsaBmm          =   True            # B_s -> mu mu (BRBS) and B -> tau tau (BRBD)
+IsaBtn          =   True           # Bu -> tau+nu_tau

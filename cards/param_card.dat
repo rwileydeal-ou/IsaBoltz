@@ -1,0 +1,186 @@
+########################################
+###         Model Guidelines         ###
+########################################
+
+SusyModel           =   3               # Supported models are:
+                                        # 3 = NUHM3
+
+
+#########################################
+###            SUGRA params           ###
+#########################################
+
+sug.M0              =   5000.           # common scalar mass at GUT scale (in GeV)
+sug.MHF             =   1200.           # common gaugino mass at GUT scale (in GeV)
+sug.A0              =   -8000.          # trilinear soft breaking parameter at GUT scale
+sug.TanB            =   10.             # ratio of vacuum expectation values v_1/v_2
+sug.SgnMu           =   1.              # +-1 = sign of Higgsino mass term
+
+#########################################
+###    Non-universal SUGRA options    ###
+#########################################
+
+nusug.Gaugino       =   False           # Use GUT scale gaugino masses 
+nusug.Trilinear     =   False           # Use GUT scale A terms 
+nusug.Higgs         =   False           # Use GUT scale Higgs masses 
+
+########## 1st/2nd generation ###########
+
+nusug.GenOneTwo     =   True           # Use GUT scale 1st/2nd generation masses (e.g. NUHM3)
+nusug.uLGUT         =   10000.          # Mass of uL at GUT scale (in GeV) - unused if GenOneTwo = False
+nusug.dRGUT         =   10000.          # Mass of dR at GUT scale (in GeV) - unused if GenOneTwo = False
+nusug.uRGUT         =   10000.          # Mass of uR at GUT scale (in GeV) - unused if GenOneTwo = False
+nusug.eLGUT         =   10000.          # Mass of eL at GUT scale (in GeV) - unused if GenOneTwo = False
+nusug.eRGUT         =   10000.          # Mass of eR at GUT scale (in GeV) - unused if GenOneTwo = False
+
+############ 3rd generation #############
+
+nusug.GenThree      =   False           # Use GUT scale 3rd generation masses
+nusug.lLGUT         =   5000.          # Mass of lL at GUT scale (in GeV) - unused if GenThree = False
+nusug.lRGUT         =   5000.          # Mass of lR at GUT scale (in GeV) - unused if GenThree = False
+nusug.bRGUT         =   5000.          # Mass of bR at GUT scale (in GeV) - unused if GenThree = False
+nusug.tRGUT         =   5000.          # Mass of tR at GUT scale (in GeV) - unused if GenThree = False
+nusug.tLGUT         =   5000.          # Mass of tL at GUT scale (in GeV) - unused if GenThree = False
+
+########### Weak Scale Inputs ###########
+
+nusug.WeakInput     =   True            # Use mu(M_weak), mA(M_weak) instead of M_H_u, M_H_d
+nusug.MuWeak        =   200.            # weak scale SUSY mu value (in GeV)
+nusug.mAWeak        =   2000.           # weak scale mA value (in GeV)
+
+nusug.RightNeutrino =   False           # Use right handed neutrinos
+
+#########################################
+###        PQ Sector parameters       ###
+#########################################
+
+AxionModel          =   DFSZ
+pq.ThetaI           =   3.113              # Initial misalignment angle
+pq.Fa               =   1.e11           # Fa
+pq.Xi               =   1.              # PQ Effective Coupling
+saxion.Amplitude    =   1.e11           # Saxion CohOsc initial amplitude
+saxion.Mass         =   5000.          # Saxion mass (in GeV)
+axino.Mass          =   5000.          # Axino mass (in GeV)
+
+#################  MSY  #################
+
+#pq.gMSY             =   1.              # Bilinear Higgs coupling (MSY model)
+
+#################  CCK  #################
+
+pq.gCCK             =   0.02             # Bilinear Higgs coupling (CCK model)
+
+#################  SPM  #################
+
+#pq.gSPM             =   1.              # Bilinear Higgs coupling (SPM model)
+
+
+#########################################
+###       Standard Model params       ###
+#########################################
+
+###############  Leptons  ###############
+
+Electron.Mass       =   0.00051         # electron mass (in GeV)
+Muon.Mass           =   0.1056          # muon mass (in GeV)
+Tau.Mass            =   1.77            # tau mass (in GeV)
+
+###############  Quarks  ################
+
+UpQ.Mass            =   0.              # up quark mass (in GeV)
+DownQ.Mass          =   0.              # down quark mass (in GeV)
+StrangeQ.Mass       =   0.              # strange quark mass (in GeV)
+CharmQ.Mass         =   1.3             # charm quark mass (in GeV)
+BottomQ.Mass        =   4.2             # bottom quark mass (in GeV)
+TopQ.Mass           =   173.2           # top quark mass (in GeV)
+
+############  Gauge Bosons  #############
+
+WBoson.Mass         =   80.4            # W mass (in GeV)
+ZBoson.Mass         =   91.19           # Z mass (in GeV)
+
+############  Light Hadrons  ############
+
+Pion0.Mass          =   0.14            # Pion mass (in GeV)
+Eta.Mass            =   0.55            # Eta mass (in GeV)
+Rho0.Mass           =   0.77            # Rho mass (in GeV)
+Omega.Mass          =   0.78            # Omega mass (in GeV)
+Kaon0.Mass          =   0.5             # Kaon mass (in GeV)
+
+############  Mixing Angles  ############
+
+vEW                 =   174.            # Electroweak Vev
+sin2tW              =   0.231           # sin^2(theta_W)
+
+##############  Couplings  ##############
+
+alphaEM		        =   0.00787401574803149
+alphaS              =   0.1             # strong coupling constant
+gSU2                =   0.6523273
+gU1                 =   0.19595268
+
+########################################
+###     Former script parameters     ###
+########################################
+
+NW                  =   2.
+Gravitino.Mass      =   10000.          # Gravitino mass (in GeV)
+
+#########################################
+###       String/Moduli params        ###
+#########################################
+
+Modulus.Mass       =   30000.          # Moduli mass (in GeV)
+Modulus.Amplitude  =   2.4e18          # Moduli initial amplitude of osc. (in GeV)
+
+#########  Gravitino Couplings  #########
+
+moduli.LambdaG      =   0.1              # coupling to Gravitino
+
+###########  Gauge Couplings  ###########
+
+moduli.LambdaU1     =   1.             # coupling to U(1) superfield
+moduli.LambdaSU2    =   1.             # coupling to SU(2) superfield
+moduli.LambdaSU3    =   1.             # coupling to SU(3) superfield
+
+###########  Higgs Couplings  ###########
+
+moduli.LambdaHiggs  =   1.             # coupling to Higgs superfields (neutral and charged)
+
+########  Quark/Squark Couplings  #######
+
+moduli.LambdaUu     =   1.             # coupling to 1st generation up-type left-hand quark/squark components
+moduli.LambdaUc     =   1.             # coupling to 2nd generation up-type left-hand quark/squark components
+moduli.LambdaUt     =   1.             # coupling to 3rd generation up-type left-hand quark/squark components
+
+moduli.LambdaDd     =   1.             # coupling to 1st generation down-type left-hand quark/squark components
+moduli.LambdaDs     =   1.             # coupling to 2nd generation down-type left-hand quark/squark components
+moduli.LambdaDb     =   1.             # coupling to 3rd generation down-type left-hand quark/squark components
+
+moduli.LambdaQ1     =   1.             # coupling to 1st generation right-hand quark/squark components
+moduli.LambdaQ2     =   1.             # coupling to 2nd generation right-hand quark/squark components
+moduli.LambdaQ3     =   1.             # coupling to 3rd generation right-hand quark/squark components
+
+#######  Lepton/Slepton Couplings  ######
+
+moduli.LambdaLe     =   1.             # coupling to 1st generation left-hand lepton/slepton components
+moduli.LambdaLm     =   1.             # coupling to 2nd generation left-hand lepton/slepton components
+moduli.LambdaLt     =   1.             # coupling to 3rd generation left-hand lepton/slepton components
+
+moduli.LambdaE1     =   1.             # coupling to 1st generation right-hand lepton/slepton components
+moduli.LambdaE2     =   1.             # coupling to 2nd generation right-hand lepton/slepton components
+moduli.LambdaE3     =   1.             # coupling to 3rd generation right-hand lepton/slepton components
+
+########  Axionic-Type Couplings  #######
+
+moduli.LambdaAxion  =   1.             # coupling to QCD axionic sector
+moduli.LambdaALP    =   1.             # coupling to ALP, LVS/KKLT ~ 0.816
+
+#########################################
+###     Standard Cosmology params     ###
+#########################################
+
+TReheat             =   1.e11            # Reheat temperature (in GeV)
+TNeutDecouple       =   0.001           # Neutrino decoupling temperature (in GeV)
+THadronization      =   0.2             # Hadronization temperature (in GeV) - also QCD scale
+TEvolveFinal        =   1.0e4          # Final temperature (in GeV) for Boltzmann eqs to evolve to

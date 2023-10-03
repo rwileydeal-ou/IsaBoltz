@@ -1,3 +1,4 @@
 src/fort/libisared.a filter=lfs diff=lfs merge=lfs -text
 work/* filter=lfs diff=lfs merge=lfs -text
 bin/fortLib.so filter=lfs diff=lfs merge=lfs -text
+src/fort/libisajet.a filter=lfs diff=lfs merge=lfs -text

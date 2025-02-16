@@ -15,7 +15,7 @@ OBJ_FILES_LOCAL := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES_LOCAL))
 OBJ_FILES_CLUSTER := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES_CLUSTER))
 
 CXXFLAGS=-I$(INC)
-LIBS=-lboost_system -lboost_filesystem -lboost_log -lboost_thread -ldl -lstdc++ -pthread -std=c++11 -lsqlite3 -DBOOST_LOG_DYN_LINK -DBOOST_STACKTRACE_USE_ADDR2LINE
+LIBS=-lboost_system -lboost_filesystem -lboost_log -lboost_thread -ldl -lstdc++ -pthread -std=c++14 -lsqlite3 -DBOOST_LOG_DYN_LINK -DBOOST_STACKTRACE_USE_ADDR2LINE
 FORTFLAGS=-shared -fPIC --no-gnu-unique
 
 LIST=$(BIN_DIR)/fortLib.so $(BIN_DIR)/isaboltz $(BIN_DIR)/clusterboltz

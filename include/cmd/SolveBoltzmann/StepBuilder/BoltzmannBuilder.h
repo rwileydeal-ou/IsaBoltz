@@ -24,10 +24,12 @@ struct ComponentBuilder{
     long double EnergyDensityEquation = 0.;
     std::deque<long double, boost::pool_allocator<long double>> EnergyDensityJacobian;
     long double EntropyEquation = 0.;
+    std::deque<long double, boost::pool_allocator<long double>> EntropyJacobian;
 
     ComponentBuilder(int size){
         NumberDensityJacobian.resize( size );        
         EnergyDensityJacobian.resize( size );        
+        EntropyJacobian.resize( size );        
     }
 };
 

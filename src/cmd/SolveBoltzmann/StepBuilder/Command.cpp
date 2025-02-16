@@ -530,8 +530,12 @@ void BoltzmannStepBuilderCommand::addComponents(){
         dxdt_[0] += builder.EntropyEquation;
 
         for (int j = 0; j < currentParticleData_.size(); ++j){
-            jac_( 2*i, 2*j ) = builder.NumberDensityJacobian[j];
-            jac_( 2*i+1, 2*j+1 ) = builder.EnergyDensityJacobian[j];
+            jac_( 0, 2*j ) = builder.EntropyJacobian[2*j];
+            jac_( 0, 2*j+1 ) = builder.EntropyJacobian[2*j+1];
+            jac_( 2*i, 2*j ) = builder.NumberDensityJacobian[2*j];
+            jac_( 2*i, 2*j+1 ) = builder.NumberDensityJacobian[2*j+1];
+            jac_( 2*i+1, 2*j+1 ) = builder.EnergyDensityJacobian[2*j];
+            jac_( 2*i+1, 2*j ) = builder.EnergyDensityJacobian[2*j+1];
         }
 
         i++;

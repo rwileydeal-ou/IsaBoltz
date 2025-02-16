@@ -6,25 +6,38 @@ NumberDensityEq::~NumberDensityEq(){}
 double NumberDensityEq::Calculate(double mass, double T, double degF, Models::ParticleStatistics stats){
     double X = T / mass;
     double neq = 0;
-
-   if (X < 0.1){
-        neq = pow(mass, 3.) * pow( X / (2. * M_PI), 3./2.) * exp(-1. / X) * ( 1. + (15. / 8.) * X + (105. / 128.) * pow(X, 2.));
-   }
-   else if (X < 1.5){
-        neq = pow(mass, 3.) * X * boost::math::cyl_bessel_k(2., 1./X) / (2. * pow(M_PI, 2.));
-   }
-   else{
+    double neqNonRelativistic = pow(mass, 3.) * pow( X / (2. * M_PI), 3./2.) * exp(-1. / X) * ( 1. + (15. / 8.) * X + (105. / 128.) * pow(X, 2.));
+    double neqIntermediate = pow(mass, 3.) * X * boost::math::cyl_bessel_k(2., 1./X) / (2. * pow(M_PI, 2.));
+    double neqRelativistic = 0.;
       switch (stats)
       {
          case Models::ParticleStatistics::Boson:
-            neq = boost::math::zeta(3.) * pow(T, 3.) / pow(M_PI, 2.);
+            neqRelativistic = boost::math::zeta(3.) * pow(T, 3.) / pow(M_PI, 2.);
             break;
          case Models::ParticleStatistics::Fermion:
-            neq = (3./4.) * boost::math::zeta(3.) * pow(T, 3.) / pow(M_PI, 2.);
+            neqRelativistic = (3./4.) * boost::math::zeta(3.) * pow(T, 3.) / pow(M_PI, 2.);
             break;            
          default:
             throw_with_trace( std::logic_error("Select valid particle statistics!") );
       }
+
+   if (X < 0.1){
+      neq = neqNonRelativistic;
+   }
+   else if (X >= 0.1 && X <= 0.2){
+      // interpolate further...
+      neq = neqNonRelativistic + ( neqIntermediate - neqNonRelativistic ) / 0.1 * ( X - 0.1 );
+   }
+   else if (X > 0.2 && X < 1.){
+      // intermediate regime
+      neq = neqIntermediate;
+   }
+   else if (X >= 1. && X <= 1.5){
+      // interpolate further...
+      neq = neqIntermediate + ( neqRelativistic - neqIntermediate ) / 0.5 * ( X - 1. );
+   }
+   else{
+      neq = neqRelativistic;
    }
    // TODO: do this better (damn legacy code)
    neq = degF * neq;

@@ -11,12 +11,12 @@ BoltzmannStepBuilderCommand::BoltzmannStepBuilderCommand(
     std::map< std::string, std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > >& partialWidths, 
     std::map< std::string, Models::TotalWidth >& totalWidths
 ) :
-    connection_(connection),
     db_(connection),
+    connection_(connection),
+    reheatPoint_(reheatPoint),
     particles_(particles),
     partialWidths_(partialWidths),
     totalWidths_(totalWidths),
-    reheatPoint_(reheatPoint),
     initialParticleEvolutions_(initialParticleEvolutions)
 {
     fortranInterface_ = fortranInterface;
@@ -83,7 +83,7 @@ Models::ScaleFactorPoint BoltzmannStepBuilderCommand::pullPreviousScaleFactorPoi
     int ord = ordinal;
     for ( auto& s : sqlDataToPost_.ScaleFactors ){
         if ( s.Ordinal == ord ){
-            if (s.ScaleFactor <= currentPoint_.ScaleFactor && !std::isinf(s.Hubble) || ( s.ScaleFactor == 1. && s.Ordinal < 2 )){
+            if ( ( s.ScaleFactor <= currentPoint_.ScaleFactor && !std::isinf(s.Hubble) ) || ( s.ScaleFactor == 1. && s.Ordinal < 2 )){
                 return s;
             } else{
                 currentPoint_.Ordinal -= 1;
@@ -94,6 +94,7 @@ Models::ScaleFactorPoint BoltzmannStepBuilderCommand::pullPreviousScaleFactorPoi
     }
 
     throw_with_trace( std::logic_error("Could not find previous scale factor") );
+    throw std::logic_error("If you see this, something went very wrong...");
 } 
 
 ParticleData BoltzmannStepBuilderCommand::pullParticleEvolution( std::string particleKey, ParticleProductionMechanism productionMechanism, boost::uuids::uuid scaleFactorId ){
@@ -109,6 +110,7 @@ ParticleData BoltzmannStepBuilderCommand::pullParticleEvolution( std::string par
     }
 
     throw_with_trace( std::logic_error("Could not find particle data") );
+    throw std::logic_error("If you see this, something went very wrong...");
 }
 
 

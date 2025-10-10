@@ -1,8 +1,8 @@
 #include <ParticleDefs/Saxion/SaxionWidths.h>
 
 SaxionWidths::SaxionWidths(const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles)
-    : particles_(particles),
-    model_(model)
+    : model_(model),
+    particles_(particles)
 {
     parent_ = ModelBaseOps::FindConst(particles_, "saxion");
     auto axino = ModelBaseOps::FindConst(particles_, "axino");

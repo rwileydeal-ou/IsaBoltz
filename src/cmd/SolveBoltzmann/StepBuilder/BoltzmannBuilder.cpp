@@ -7,8 +7,8 @@ BoltzmannBuilder::BoltzmannBuilder(
     const BoltzmannData& data
 ) : 
     connection_(connection),
-    db_(connection),
-    data_(data)
+    data_(data),
+    db_(connection)
 {
 }
 BoltzmannBuilder::~BoltzmannBuilder(){

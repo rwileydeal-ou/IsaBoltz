@@ -5,8 +5,8 @@ using namespace std;
 IBranchingRatio::IBranchingRatio(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles) 
     : logger_(logger),
     model_(model),
-    particles_(particles),
-    parent_(parent)
+    parent_(parent),
+    particles_(particles)
 {
 
 }

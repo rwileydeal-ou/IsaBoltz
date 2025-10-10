@@ -37,7 +37,7 @@ vector<string> Macro::enabledParticleKeys(vector<string> supportedParticleKeys, 
     return enabledParticleKeys;
 }
 
-vector<string> Macro::cmdInput(vector<string> supportedOptions){
+vector<string> Macro::cmdInput(const vector<string>& supportedOptions){
     // boot up auto-suggestions engine
     AutoSuggestions as; 
     struct AutoSuggestions::TrieNode* root = as.getNode();

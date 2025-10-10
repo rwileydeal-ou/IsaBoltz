@@ -15,6 +15,7 @@ std::shared_ptr< DataRelay > MssmSpectrumCommand::getFortranInterface(){
     if (this -> fortLib_){
         return fortLib_;
     }
+    throw std::logic_error("If you can read this, something went very wrong...");
 }
 
 void MssmSpectrumCommand::Execute(){

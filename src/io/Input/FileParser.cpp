@@ -35,8 +35,10 @@ bool FileParser::ParseBool(string line){
         return true;
     else if (lowString.find("false") != string::npos)
         return false;
-    else 
+    else {
         throw_with_trace( logic_error("Could not parse") );
+        throw logic_error("If you can read this, something went very wrong...");
+    }
 }
 
 void FileParser :: Parse(string infile, Logger& logger){

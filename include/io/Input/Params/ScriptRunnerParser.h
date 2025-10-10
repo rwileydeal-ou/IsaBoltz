@@ -55,6 +55,7 @@ class ScriptRunnerParser : public FileParser
         ScriptRunnerParser(ModelBase defaultInputs, Logger& logger);
         ScriptRunnerParser(Logger& logger);
         ~ScriptRunnerParser();
+        using FileParser::Parse;
         void Parse(std::string script);
         void DivideScriptRuns(std::string scriptInput, ClusterRunParams runParams, std::string outputDirectory, std::string namePrefix);
 };

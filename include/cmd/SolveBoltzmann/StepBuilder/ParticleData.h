@@ -69,17 +69,17 @@ struct ParticleData
         Charges( particleData.Charges ),
         Mass( particleData.Mass ),
         TempDependentMass( particleData.TempDependentMass ),
+        PreviousTempParticleId( particleData.PreviousTempParticleId ),
         Spin( particleData.Spin ),
         TotalWidth( particleData.TotalWidth ),
         AnnihilationCrossSection( particleData.AnnihilationCrossSection ),
         EqnIndex( particleData.EqnIndex ),
+        Amplitude( particleData.Amplitude ),
         IsActive( particleData.IsActive ),
         IsOscillating( particleData.IsOscillating ),
         IsDecaying( particleData.IsDecaying ),
         IsLSP( particleData.IsLSP ),
-        TurnOff( particleData.TurnOff ),
-        PreviousTempParticleId( particleData.PreviousTempParticleId ),
-        Amplitude( particleData.Amplitude )
+        TurnOff( particleData.TurnOff )
     {
     }
 

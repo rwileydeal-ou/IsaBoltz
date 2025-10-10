@@ -67,4 +67,5 @@ SigmaV CrossSectionFromFile::Calculate(const Models::Particle& particle, const M
         inFile.close();
     }
     throw_with_trace( std::logic_error("Could not read correct SigmaV from file at T: " + boost::lexical_cast<std::string>(T)+" GeV") );
+    throw std::logic_error("If you can read this, something went very wrong...");
 }

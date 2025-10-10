@@ -372,7 +372,7 @@ double SaxionWidthsDFSZ::widthCharginoCharginoSameGen(double mSaxion, double mCh
 double SaxionWidthsDFSZ::widthCharginoCharginoDifferentGen(double mSaxion, double mChargino1, double mChargino2, double gSU2, double sigCoupling, double piCoupling){
     double wCC = 0.;
     if (abs(mSaxion) > (abs(mChargino1) + abs(mChargino2))){
-        2. * pow(gSU2, 2.) / (16. * M_PI) * abs(mSaxion) * sqrt( psLamb(1., pow(mChargino1, 2.) / pow(mChargino1, 2.), pow(mChargino2, 2.) / pow(mChargino2, 2.)) ) * ( pow(sigCoupling, 2.) * ( 1. - pow((abs(mChargino1) + abs(mChargino2)) / mSaxion, 2.) ) + pow(piCoupling, 2.) * ( 1. - pow( (abs(mChargino2) - abs(mChargino1)) / mSaxion, 2. ) ) );
+        wCC = 2. * pow(gSU2, 2.) / (16. * M_PI) * abs(mSaxion) * sqrt( psLamb(1., pow(mChargino1, 2.) / pow(mChargino1, 2.), pow(mChargino2, 2.) / pow(mChargino2, 2.)) ) * ( pow(sigCoupling, 2.) * ( 1. - pow((abs(mChargino1) + abs(mChargino2)) / mSaxion, 2.) ) + pow(piCoupling, 2.) * ( 1. - pow( (abs(mChargino2) - abs(mChargino1)) / mSaxion, 2. ) ) );
     }
     return wCC;
 }

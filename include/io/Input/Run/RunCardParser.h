@@ -15,5 +15,6 @@ class RunCardParser : public FileParser
         RunCardParser(Logger& logger);
         ~RunCardParser();
         RunParams Run;
+        using FileParser::Parse;
         void Parse(std::string runCard);
 };

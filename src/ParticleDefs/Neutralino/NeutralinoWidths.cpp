@@ -3,8 +3,8 @@
 using namespace std;
 
 NeutralinoWidths::NeutralinoWidths(const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles) 
-    : particles_(particles),
-    model_(model)
+    : model_(model),
+    particles_(particles)
 {
     auto axino = ModelBaseOps::FindConst(particles_, "axino");
     auto z = ModelBaseOps::FindConst(particles_, "zboson");

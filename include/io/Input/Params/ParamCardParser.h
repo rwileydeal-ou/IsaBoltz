@@ -21,6 +21,7 @@ class ParamCardParser : public FileParser
     public:
         ParamCardParser(Logger& logger);
         ~ParamCardParser();
+        using FileParser::Parse;
         void Parse(std::string paramCard, ModelBase &model);
         void ReadLine(std::string line, ModelBase &model);
         void MatchKey(std::string key, std::string keyVal, ModelBase &model, std::map<std::string, double&> &doubleMap, std::map<std::string, int&> &intMap);

@@ -3,8 +3,8 @@
 using namespace std;
 
 GravitinoWidths::GravitinoWidths(const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles)
-    : particles_(particles),
-    model_(model)
+    : model_(model),
+    particles_(particles)
 {
     parent_ = ModelBaseOps::FindConst(particles_, "gravitino");
 

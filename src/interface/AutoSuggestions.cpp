@@ -162,5 +162,7 @@ int AutoSuggestions::printAutoSuggestions(AutoSuggestions::TrieNode* root, const
         cout << endl;
         return 1;
     } 
+
+    return -1;
 }
 

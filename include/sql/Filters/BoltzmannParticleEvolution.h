@@ -16,7 +16,7 @@ namespace Filters{
     public:
         ParticleEvolution(boost::uuids::uuid particleEvolutionId);
         ParticleEvolution(boost::uuids::uuid particleId, ParticleProductionMechanism productionMechanism, boost::uuids::uuid scaleFactorId);
-        ParticleEvolution(std::string particleKey, ParticleProductionMechanism productionMechanism, boost::uuids::uuid scaleFactorId);
+        ParticleEvolution(std::string particleKey, ParticleProductionMechanism productionMechanism, boost::uuids::uuid uuid, WhereUUID whereUUID);
         ParticleEvolution( ParticleProductionMechanism productionMechanism, boost::uuids::uuid scaleFactorId );
         ~ParticleEvolution();
     };

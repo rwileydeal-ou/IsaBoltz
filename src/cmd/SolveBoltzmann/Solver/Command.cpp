@@ -19,7 +19,7 @@ BoltzmannSolverCommand::~BoltzmannSolverCommand(){
 Models::ParticleEvolution BoltzmannSolverCommand::pullParticleEvolution( DbManager& db, std::string particleKey, ParticleProductionMechanism productionMechanism, boost::uuids::uuid scaleFactorId ){
     Models::ParticleEvolution p;
     auto statement = Statements::BoltzmannParticleEvolution( p, Statements::StatementType::Read );
-    auto filter = Filters::ParticleEvolution( particleKey, productionMechanism, scaleFactorId );
+    auto filter = Filters::ParticleEvolution( particleKey, productionMechanism, scaleFactorId, Filters::WhereUUID::ScaleFactorId );
     statement.AddFilter( filter );
     auto cb = Callbacks::ParticleEvolution();
     db.Execute( statement, cb.Callback, cb.CallbackReturn );
@@ -166,8 +166,8 @@ void BoltzmannSolverCommand::Execute(){
     }
 
     auto stepperType = boost::numeric::odeint::rosenbrock4< double >();
-    auto stepper = boost::numeric::odeint::make_dense_output(1.e-04, 1.e-03, 0.001, stepperType);
-//    auto stepper = boost::numeric::odeint::make_dense_output(1.e-03, 1.e-03, stepperType);
+    auto stepper = boost::numeric::odeint::make_dense_output(1.e-03, 1.e-03, 0.01, stepperType);
+//    auto stepper = boost::numeric::odeint::make_dense_output(1.e-04, 1.e-03, stepperType);
 
     // delegate building the step to the proper command
     BoltzmannStepBuilderCommand stepSolver(
@@ -190,6 +190,7 @@ void BoltzmannSolverCommand::Execute(){
         xInit, 
         T, dT
     );
+
     observer.operator()( stepper.current_state(), stepper.current_time() );
     while (true){
         try{
@@ -207,8 +208,6 @@ void BoltzmannSolverCommand::Execute(){
             if ( stepSolver.Exit() ){
                 break;
             }
-
-
         } catch( boost::numeric::ublas::internal_logic& e ){
             ostringstream oss;
             auto xI = stepper.previous_state();

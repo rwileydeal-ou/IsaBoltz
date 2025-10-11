@@ -21,6 +21,7 @@ map<string, double&> NonUniversalSugra::doubleMap(ModelBase& modelParams){
     pqOpts.insert(pair<string, double&> ("trgut", modelParams.Options.NonUniversalSugra.GenThree.m_tR_GUT));
     pqOpts.insert(pair<string, double&> ("muweak", modelParams.Options.NonUniversalSugra.WeakInput.weakMu));
     pqOpts.insert(pair<string, double&> ("maweak", modelParams.Options.NonUniversalSugra.WeakInput.weakMA));
+    pqOpts.insert(pair<string, double&> ("lambdarpv", modelParams.Options.NonUniversalSugra.LambdaRPV));
     return pqOpts;
 }
 

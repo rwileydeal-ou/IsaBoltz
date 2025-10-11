@@ -69,6 +69,12 @@ void SolveBoltzmannMacro::Execute(){
             key
         );
         dneffCmd.Execute();
+
+        CheckBBNCommand checkBBNCmd(
+            connection_,
+            key
+        );
+        checkBBNCmd.Execute();
     }
     RelicDensityCommand oh2RadCmd(
         connection_, 

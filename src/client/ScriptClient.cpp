@@ -40,7 +40,9 @@ vector< CommandWithPayload > ScriptClient::handleScan(string line, vector< Comma
             }
 
             for (auto& endpoint : endpoints.ScanParams){
-                string scanLine = endpoint.ScanKey + "=" + to_string(endpoint.ScanValues[i]);
+               std::stringstream ss;
+               ss << endpoint.ScanValues[i];
+               string scanLine = endpoint.ScanKey + "=" + ss.str();
                 scanCommands.push_back( 
                     CommandWithPayload(SupportedCommands::PARAMETER_OVERRIDE, scanLine) 
                 );

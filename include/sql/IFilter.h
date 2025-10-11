@@ -12,7 +12,8 @@ namespace Filters{
         LessThan,
         GreaterThan,
         LessThanOrEqual,
-        GreaterThanOrEqual
+        GreaterThanOrEqual,
+        Like
     };
 
     enum SqlDataType{

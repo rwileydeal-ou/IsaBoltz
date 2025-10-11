@@ -46,7 +46,7 @@ RelicDensityCommand::RelicDensityCommand(Connection& connection, std::string ena
     }
 
     auto statementEvo = Statements::BoltzmannParticleEvolution( particleEvo_, Statements::StatementType::Read );
-    auto filterEvo = Filters::ParticleEvolution( particleKey, production, finalScaleFactorPoint_.Id );
+    auto filterEvo = Filters::ParticleEvolution( particleKey, production, finalScaleFactorPoint_.Id, Filters::WhereUUID::ScaleFactorId );
     statementEvo.AddFilter( filterEvo );
     auto cbEvo = Callbacks::ParticleEvolution();
     db.Execute( statementEvo, cbEvo.Callback, cbEvo.CallbackReturn );

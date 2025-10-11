@@ -50,17 +50,19 @@ nusug.mAWeak        =   2000.           # weak scale mA value (in GeV)
 
 nusug.RightNeutrino =   False           # Use right handed neutrinos
 
+nusug.LambdaRPV     =   0.              # R-parity violating coupling
+
 #########################################
 ###        PQ Sector parameters       ###
 #########################################
 
 AxionModel          =   DFSZ
-pq.ThetaI           =   3.113              # Initial misalignment angle
-pq.Fa               =   1.e11           # Fa
+pq.ThetaI           =   1.              # Initial misalignment angle
+pq.Fa               =   1.e16           # Fa
 pq.Xi               =   1.              # PQ Effective Coupling
-saxion.Amplitude    =   1.e11           # Saxion CohOsc initial amplitude
-saxion.Mass         =   5000.          # Saxion mass (in GeV)
-axino.Mass          =   5000.          # Axino mass (in GeV)
+saxion.Amplitude    =   1.e16           # Saxion CohOsc initial amplitude
+saxion.Mass         =   30000.          # Saxion mass (in GeV)
+axino.Mass          =   30000.          # Axino mass (in GeV)
 
 #################  MSY  #################
 
@@ -185,4 +187,4 @@ moduli.LambdaALP    =   0.             # coupling to ALP, LVS/KKLT ~ 0.816
 TReheat             =   1.e12            # Reheat temperature (in GeV)
 TNeutDecouple       =   0.001           # Neutrino decoupling temperature (in GeV)
 THadronization      =   0.2             # Hadronization temperature (in GeV) - also QCD scale
-TEvolveFinal        =   1.0e4          # Final temperature (in GeV) for Boltzmann eqs to evolve to
+TEvolveFinal        =   1.0e-4          # Final temperature (in GeV) for Boltzmann eqs to evolve to

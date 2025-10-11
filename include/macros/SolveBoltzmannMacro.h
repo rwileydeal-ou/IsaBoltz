@@ -11,6 +11,7 @@
 #include <cmd/TempDecay/Command.h>
 #include <cmd/SolveBoltzmann/Solver/Command.h>
 #include <cmd/DeltaNeff/Command.h>
+#include <cmd/CheckBBN/Command.h>
 
 #include <macros/Macro.h>
 #include <macros/BoltzmannInitialConditionsMacro.h>

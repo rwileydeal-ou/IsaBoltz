@@ -24,6 +24,8 @@ string IFilter::sqlComparatorText(SqlComparator sql){
         return "<=";
     case SqlComparator::GreaterThanOrEqual:
         return ">=";
+    case SqlComparator::Like:
+        return " LIKE ";
     default:
         throw NotImplementedException();
     }

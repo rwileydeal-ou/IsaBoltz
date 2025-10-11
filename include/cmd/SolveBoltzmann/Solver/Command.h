@@ -14,7 +14,6 @@
 #include <client/Sender.h>
 #include <cmd/ICommand.h>
 #include <cmd/SolveBoltzmann/StepBuilder/Command.h>
-#include <cmd/SolveBoltzmann/Radau.h>
 
 #include <io/Exceptions/NotImplemented.h>
 #include <Models/ScaleFactor.h>

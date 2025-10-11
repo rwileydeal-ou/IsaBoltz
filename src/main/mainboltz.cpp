@@ -113,6 +113,7 @@ int main(int argc, char *argv[])
     Logger logger("Isaboltz");
     try{
         startUpVersion();
+        auto runParams = ParseRunCard(logger).Run;
 
         // argc > 1 if run in scripting mode (non-interactive)
         // argc == 1 should be interactive (non-scripted)
@@ -132,7 +133,6 @@ int main(int argc, char *argv[])
 
             // now create database
             string connectionString = createDatabase( outputDir, logger );
-            auto runParams = ParseRunCard(logger).Run;
 
             if (runParams.ClusterRun.Cluster){
                 RunHandler scan(logger);

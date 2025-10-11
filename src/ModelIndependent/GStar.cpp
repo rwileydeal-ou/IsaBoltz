@@ -36,6 +36,7 @@ Models::Particle GStar::findParticle( const std::deque< Models::Particle, boost:
         }
     }
     throw_with_trace( logic_error("Could not find particle") );
+    throw logic_error("If you can read this, something went very wrong...");
 }
 
 

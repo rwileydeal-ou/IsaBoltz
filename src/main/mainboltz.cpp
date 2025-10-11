@@ -44,12 +44,12 @@ void startUpVersion(){
 }
 
 // first screen commands
-vector<string> firstOptions_ = {
+static std::vector<std::string> firstOptions_ = {
     "exit",
     "load_model"
 };
 
-vector<string> supportedModels_ = {
+static std::vector<std::string> supportedModels_ = {
     "nuhm2",
     "nuhm3",
     "nuhm2_dfsz",
@@ -59,7 +59,7 @@ vector<string> supportedModels_ = {
 };
 
 // these are the currently supported commands
-vector<string> supportedOptions_ = {
+static std::vector<std::string> supportedOptions_ = {
     "exit", 
     "branching_ratios", 
     "cross_sections", 
@@ -84,9 +84,9 @@ std::string createDatabase( std::string outputPath, Logger& logger ){
 
 void processInteractiveMode(Logger& logger){
     // launch the interactive mode and get commands from user
-    vector<string> cmdsIn = Macro::cmdInput( supportedOptions_ );
+    std::vector<std::string> cmdsIn = Macro::cmdInput( supportedOptions_ );
     vector<CommandWithPayload> cmds = ProcessClient::getCmdsFromString(cmdsIn);
-    if ( cmds[0].Command == SupportedCommands::EXIT ){ 
+    if ( cmds.size() > 0 && cmds[0].Command == SupportedCommands::EXIT ){ 
         return; 
     }
     cmds.push_back( CommandWithPayload(SupportedCommands::LAUNCH, "") );
@@ -100,8 +100,12 @@ void processInteractiveMode(Logger& logger){
     
     boost::uuids::uuid runId = boost::uuids::random_generator()();
 
-    ProcessClient client(true, logger, connectionString, runId);
-    client.Handle(cmds);
+    std::shared_ptr< ProcessClient > client = std::make_shared< ProcessClient> (
+    true, 
+    logger, 
+    connectionString, 
+    runId);
+    client->Handle(cmds);
 }
 
 int main(int argc, char *argv[])
@@ -109,7 +113,6 @@ int main(int argc, char *argv[])
     Logger logger("Isaboltz");
     try{
         startUpVersion();
-        auto runParams = ParseRunCard(logger).Run;
 
         // argc > 1 if run in scripting mode (non-interactive)
         // argc == 1 should be interactive (non-scripted)
@@ -129,6 +132,7 @@ int main(int argc, char *argv[])
 
             // now create database
             string connectionString = createDatabase( outputDir, logger );
+            auto runParams = ParseRunCard(logger).Run;
 
             if (runParams.ClusterRun.Cluster){
                 RunHandler scan(logger);

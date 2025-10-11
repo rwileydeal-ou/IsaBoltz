@@ -84,12 +84,12 @@ public:
     bool Reload(double xF);
 
     // common blocks
-    Sugxin (*sugxin_);
-    Sugmg (*sugmg_);
-    Sugpas (*sugpas_);
-    Sugnu (*sugnu_);
-    Sspar (*sspar_);
-    TrhPars (*trhpars_);
+    Sugxin *sugxin_;
+    Sugmg *sugmg_;
+    Sugpas *sugpas_;
+    Sugnu *sugnu_;
+    Sspar *sspar_;
+    TrhPars *trhpars_;
 
     void Retrieve(ModelBase& model);
     DataRelay(Logger& logger) : 

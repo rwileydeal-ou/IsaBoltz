@@ -17,7 +17,7 @@ protected:
 public:
     Macro(bool interactiveMode);
     ~Macro();
-    static std::vector<std::string> cmdInput(std::vector<std::string> supportedOptions);
+    static std::vector<std::string> cmdInput(const std::vector<std::string>& supportedOptions);
     virtual void Execute() = 0;
 };
 

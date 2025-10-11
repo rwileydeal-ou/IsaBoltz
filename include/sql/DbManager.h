@@ -38,6 +38,7 @@ private:
 
     std::string create_DeltaNeff_table();
     std::string create_RelicDensity_table();
+    std::string create_CheckBBN_table();
 
     void executeStatementPtr( std::shared_ptr< Statements::IStatement > statement );
     void executeStatement( Statements::IStatement& statement );

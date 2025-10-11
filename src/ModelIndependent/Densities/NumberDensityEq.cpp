@@ -41,6 +41,7 @@ double NumberDensityEq::Calculate(double mass, double T, double degF, Models::Pa
    }
    // TODO: do this better (damn legacy code)
    neq = degF * neq;
+   if ( neq < 1.e-50 ){ neq = 0.; }
     return neq;
 
     /* TODO: check this out and fix

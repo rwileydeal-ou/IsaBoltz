@@ -18,9 +18,9 @@ Particle::Particle(boost::uuids::uuid id, WhereUUID whereUUID){
         throw NotImplementedException();
     }
 }
-Particle::Particle(std::string particleKey, boost::uuids::uuid inputId){
+Particle::Particle(std::string particleKey, boost::uuids::uuid inputId, SqlComparator comparison){
     AddFilterStatement( "ParticleKey", particleKey, SqlDataType::TEXT, SqlComparator::Equals );
-    AddFilterStatement( "InputID", boost::lexical_cast<std::string>(inputId), SqlDataType::TEXT, SqlComparator::Equals );
+    AddFilterStatement( "InputID", boost::lexical_cast<std::string>(inputId), SqlDataType::TEXT, comparison );
 }
 
 Particle::Particle(std::string particleKey, boost::uuids::uuid particleId, boost::uuids::uuid inputId){

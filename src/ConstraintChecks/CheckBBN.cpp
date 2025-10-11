@@ -1,10 +1,11 @@
+/*
 #include <ConstraintChecks/CheckBBN.h>
 
-//using namespace std;
+using namespace std;
 
-//  CheckBBN::CheckBBN(/* args */){}
-//  CheckBBN::~CheckBBN(){}
-/*
+CheckBBN::CheckBBN(){}
+CheckBBN::~CheckBBN(){}
+
 vector<vector<double>> CheckBBN::parseBbnData(string infile){
     ifstream file;
     file.open(infile);
@@ -22,7 +23,7 @@ vector<vector<double>> CheckBBN::parseBbnData(string infile){
     return fileData;
 }
 
-double CheckBBN::hadronicBranchingRatio(ScaleFactorParticleProperties particle, ScaleFactorParticleProperties radiation, ModelBase model){
+double CheckBBN::hadronicBranchingRatio(const Models::ParticleEvolution& particle, const Models::ParticleEvolution& radiation, const ModelBase& model){
     double BRhad = 0.;
     if (particle.Particle.Key == "saxion" || particle.Particle.Key == "axino" || particle.Particle.Key == "gravitino"){
         BRhad = 1.;
@@ -54,7 +55,7 @@ double CheckBBN::hadronicBranchingRatio(ScaleFactorParticleProperties particle, 
     return BRhad;
 }
 
-double CheckBBN::radiationPreRelicDensity(ScaleFactorParticleProperties particle, ScaleFactorParticleProperties radiation, ModelBase model){
+double CheckBBN::radiationPreRelicDensity(const Models::ParticleEvolution& particle, const Models::ParticleEvolution& radiation, const ModelBase& model){
     double preRelicDensity = particle.ParticleDensities.PreRelicDensity;
 
     if (particle.Particle.Key == "saxion"){
@@ -109,29 +110,32 @@ CheckBBN::DataElement CheckBBN::findNearestData(string infile, double BRhad, dou
 }
 
 // This is a direct translation from OG code
-int CheckBBN::posNearestBr(double BRhad){
-    // Find closest BRhad:
-    double logBr = log10(BRhad);
-    double DBR = abs(logBr);
+int CheckBBN::posNearestBr(double BrHadronic){
+    double logBrHadronic = log10(BrHadronic);
+    // since BR->had <=1, log10 will be <=0, so take abs - still well defined
+    double absLogBrHadronic = abs(logBrHadronic);
     int posBr = 0;
-    for(int IRI = 0; IRI < 10; ++IRI){
-        double RI = 0. - IRI*0.5;
-        double DBR0 = abs(logBr - RI);
-        if (DBR0 <= DBR){
+    for(int i = 0; i < 10; ++i){
+        // find closest `bin' based on abs(log(br) + n/2)
+        double DBR0 = abs(logBrHadronic + i*0.5);
+        if (DBR0 <= absLogBrHadronic){
             // posBr = position of closest BR value
-            posBr = IRI + 1; 
-            DBR = DBR0;
+            posBr = i + 1;
+            absLogBrHadronic = DBR0;
         }
     }
     return posBr;
 }
 
 double CheckBBN::interpolatedOmega(CheckBBN::DataElement data, double logLifetime){
-    double omega = ((data.UpperOmega-data.LowerOmega)*logLifetime + (data.LowerOmega*data.UpperLifetime - data.UpperOmega*data.LowerLifetime)) / (data.UpperLifetime-data.LowerLifetime);
+    double omega = (
+        (data.UpperOmega-data.LowerOmega)*logLifetime 
+        + (data.LowerOmega*data.UpperLifetime - data.UpperOmega*data.LowerLifetime)
+    ) / (data.UpperLifetime-data.LowerLifetime);
     return omega;
 }
 
-void CheckBBN::bbnOK(ScaleFactorParticleProperties& particle, ScaleFactorParticleProperties radiation, ModelBase model){
+void CheckBBN::bbnOK(Models::ParticleEvolution& particle, const Models::ParticleEvolution& radiation, const ModelBase& model){
     double BRhad = hadronicBranchingRatio(particle, radiation, model);
     double preRelicDensity = radiationPreRelicDensity(particle, radiation, model);
 
@@ -181,7 +185,7 @@ void CheckBBN::bbnOK(ScaleFactorParticleProperties& particle, ScaleFactorParticl
     }
 }
 
-void CheckBBN::CheckConstraint(ModelBase model, ScaleFactor& finalPoint){
+void CheckBBN::CheckConstraint(const ModelBase& model, const ScaleFactor& finalPoint){
     auto radiation = finalPoint.Find(finalPoint.Particle, "photon");
     for (auto& p : finalPoint.Particle){
         if(p.TempDecay > 0. && p.Particle.Key != "photon"){

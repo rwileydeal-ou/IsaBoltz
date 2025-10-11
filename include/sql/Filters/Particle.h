@@ -14,7 +14,7 @@ namespace Filters{
         /* data */
     public:
         Particle(boost::uuids::uuid particleId, WhereUUID whereUUID);
-        Particle(std::string particleKey, boost::uuids::uuid inputId);
+        Particle(std::string particleKey, boost::uuids::uuid inputId, SqlComparator comparison = SqlComparator::Equals);
         Particle(std::string particleKey, boost::uuids::uuid particleId, boost::uuids::uuid inputId);
         ~Particle();
     };

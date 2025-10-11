@@ -191,7 +191,11 @@ void ScriptRunnerParser::handleParameterScan(string line, Overrides& paramOverri
         for (int i=0; i<endpoints.Steps; ++i){
             vector<string> innerParamOverrides;
             for (auto& endpoint : endpoints.ScanParams){
-                string scanLine = endpoint.ScanKey + "=" + to_string(endpoint.ScanValues[i]);
+                std::stringstream ss;
+                ss << endpoint.ScanValues[i];
+                std::string newValue = ss.str();
+                string scanLine = endpoint.ScanKey + "=" + newValue;
+                logger_.Info("Key override: " + scanLine);
                 innerParamOverrides.push_back(scanLine);
             }
             paramOverrides.ScanOverride.push_back(innerParamOverrides);

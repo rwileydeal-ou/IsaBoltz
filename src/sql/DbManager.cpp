@@ -248,6 +248,7 @@ void DbManager::Configure(){
     createTables += create_tempOsc_table();
     createTables += create_DeltaNeff_table();
     createTables += create_RelicDensity_table();
+    createTables += create_CheckBBN_table();
 
     /* Execute SQL statement */
     char *zErrMsg = 0;
@@ -441,5 +442,21 @@ string DbManager::create_RelicDensity_table(){
     "ScaleFactorID  TEXT );";
     cmd.append("CREATE INDEX relicdensity_id_asc ON RelicDensity(ID ASC);");
     cmd.append("CREATE INDEX relicdensity_mult_asc ON RelicDensity(InputID, ParticleID);");
+    return cmd;
+}
+
+string DbManager::create_CheckBBN_table(){
+    string cmd = "CREATE TABLE CheckBBN("  \
+    "ID             TEXT    NOT NULL," \
+    "InputID        TEXT    NOT NULL," \
+    "ParticleID     TEXT    NOT NULL," \
+    "ParticleEvolutionID    TEXT    NOT NULL," \
+    "BrHadronic     REAL    NOT NULL," \
+    "DensityConstraint      REAL    NOT NULL," \
+    "DensityCalculated      REAL    NOT NULL," \
+    "ConstraintSatisfied    INT    NOT NULL," \
+    "ScaleFactorID  TEXT );";
+    cmd.append("CREATE INDEX checkbbn_id_asc ON CheckBBN(ID ASC);");
+    cmd.append("CREATE INDEX checkbbn_mult_asc ON CheckBBN(InputID, ParticleID);");
     return cmd;
 }

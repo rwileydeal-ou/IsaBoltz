@@ -78,7 +78,10 @@ void Inputs::writeModulusParams( boost::property_tree::ptree& pt ){
     pt.put("Model.ModulusParams.Mass", boost::lexical_cast<std::string>( mod.Mass ) );
     pt.put("Model.ModulusParams.Amplitude", boost::lexical_cast<std::string>( mod.CohOscComponents.Amplitude ) );
     pt.put("Model.ModulusParams.LambdaG", boost::lexical_cast<std::string>( connection_.Model.ModulusCouplings.GravitinoCouplings.LambdaG ) );
-    pt.put("Model.ModulusParams.LambdaU1", boost::lexical_cast<std::string>( connection_.Model.ModulusCouplings.GaugeCouplings.LambdaU1 ) );
+    std::stringstream ss;
+    ss << connection_.Model.ModulusCouplings.GaugeCouplings.LambdaU1;
+    std::string testPrecision = ss.str();    
+    pt.put("Model.ModulusParams.LambdaU1", testPrecision );
     pt.put("Model.ModulusParams.LambdaSU2", boost::lexical_cast<std::string>( connection_.Model.ModulusCouplings.GaugeCouplings.LambdaSU2 ) );
     pt.put("Model.ModulusParams.LambdaSU3", boost::lexical_cast<std::string>( connection_.Model.ModulusCouplings.GaugeCouplings.LambdaSU3 ) );
     pt.put("Model.ModulusParams.LambdaHGM", boost::lexical_cast<std::string>( connection_.Model.ModulusCouplings.HiggsCouplings.LambdaGM ) );

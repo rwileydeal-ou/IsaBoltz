@@ -32,4 +32,5 @@ struct NonUniversalSugraOptions{
     GenerationThree GenThree;
     WeakInputs WeakInput;
     bool RightNeutrino;
+    double LambdaRPV;
 };

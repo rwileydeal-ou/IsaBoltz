@@ -1,4 +1,5 @@
 #include <cmd/SolveBoltzmann/StepBuilder/Command.h>
+#include <chrono>
 
 using namespace std;
 
@@ -482,19 +483,25 @@ void BoltzmannStepBuilderCommand::checkDecayTransition( ParticleData& particle )
     }
     // Here's a hacky way to turn off fields so we don't get weird numerical issues
     // Since Hubble rate vs Total Width determines dominant interaction, make sure decay is very dominant
-    if ( particle.TotalWidth > 1000. * currentPoint_.Hubble && particle.IsDecaying ){
+    double numericalCutoff = 1.e-50;
+    if ( ( particle.TotalWidth > 1000. * currentPoint_.Hubble
+          || particle.NumberDensity < numericalCutoff
+          || particle.EnergyDensity < numericalCutoff )
+        && particle.IsDecaying
+    ){
         long double rrMin = -100.;
         for (auto& p2 : currentParticleData_){
             if (
                 p2.ProductionMechanism != ParticleProductionMechanism::RADIATION 
                 && p2.IsActive 
                 && p2.EnergyDensity > 0. 
+                && p2.NumberDensity > 0.
                 && ( p2.ParticleEvolutionId != particle.ParticleEvolutionId )
             ){
                 rrMin = max( rrMin, log( particle.EnergyDensity / p2.EnergyDensity ) );
             }
         }
-        if (rrMin < -7.){
+        if (rrMin < -7. || ( particle.NumberDensity < numericalCutoff && particle.EnergyDensity < numericalCutoff )){
             particle.IsActive = false;
             particle.NumberDensity = 0.;
             particle.EnergyDensity = 0.;
@@ -529,13 +536,38 @@ void BoltzmannStepBuilderCommand::addComponents(){
         dxdt_[ 2*i + 1] += builder.EnergyDensityEquation;
         dxdt_[0] += builder.EntropyEquation;
 
+        double logCutoff = 1.e20;
+        if ( std::abs(dxdt_[2*i]) > logCutoff || std::abs(dxdt_[2*i+1]) > logCutoff || dxdt_[0] > logCutoff ){
+            connection_.Log.Info("BAD POINT for " + p.ParticleKey);
+            connection_.Log.Info("dxdt[2i]: " + boost::lexical_cast<std::string>(dxdt_[2*i]));
+            connection_.Log.Info("dxdt[2i+1]: " + boost::lexical_cast<std::string>(dxdt_[2*i+1]));
+            connection_.Log.Info("dxdt[0]: " + boost::lexical_cast<std::string>(dxdt_[0]));
+
+        }
+
         for (int j = 0; j < currentParticleData_.size(); ++j){
             jac_( 0, 2*j ) = builder.EntropyJacobian[2*j];
             jac_( 0, 2*j+1 ) = builder.EntropyJacobian[2*j+1];
             jac_( 2*i, 2*j ) = builder.NumberDensityJacobian[2*j];
             jac_( 2*i, 2*j+1 ) = builder.NumberDensityJacobian[2*j+1];
-            jac_( 2*i+1, 2*j+1 ) = builder.EnergyDensityJacobian[2*j];
-            jac_( 2*i+1, 2*j ) = builder.EnergyDensityJacobian[2*j+1];
+            jac_( 2*i+1, 2*j+1 ) = builder.EnergyDensityJacobian[2*j+1]; // 2j???
+            jac_( 2*i+1, 2*j ) = builder.EnergyDensityJacobian[2*j]; // 2j+1???
+            
+            if ( std::abs(jac_(0,2*j)) > logCutoff || std::abs(jac_(0,2*j+1)) > logCutoff ){
+                connection_.Log.Info("BAD ENTROPY JACOBIAN for " + p.ParticleKey);
+                connection_.Log.Info("jac(0, 2j): " + boost::lexical_cast<std::string>(jac_(0,2*j)));
+                connection_.Log.Info("jac(0, 2j+1): " + boost::lexical_cast<std::string>(jac_(0,2*j+1)));
+            }
+            if ( std::abs(jac_(2*i,2*j)) > logCutoff || std::abs(jac_(2*i,2*j+1)) > logCutoff ){
+                connection_.Log.Info("BAD NUMBER DENSITY JACOBIAN for " + p.ParticleKey);
+                connection_.Log.Info("jac(2i, 2j): " + boost::lexical_cast<std::string>(jac_(2*i,2*j)));
+                connection_.Log.Info("jac(2i, 2j+1): " + boost::lexical_cast<std::string>(jac_(2*i,2*j+1)));
+            }
+            if ( std::abs(jac_(2*i+1,2*j)) > logCutoff || std::abs(jac_(2*i+1,2*j+1)) > logCutoff ){
+                connection_.Log.Info("BAD ENERGY DENSITY JACOBIAN for " + p.ParticleKey);
+                connection_.Log.Info("jac(2i+1, 2j): " + boost::lexical_cast<std::string>(jac_(2*i+1,2*j)));
+                connection_.Log.Info("jac(2i+1, 2j+1): " + boost::lexical_cast<std::string>(jac_(2*i+1,2*j+1)));
+            }            
         }
 
         i++;
@@ -569,6 +601,7 @@ void BoltzmannStepBuilderCommand::postCrossSection( const ParticleData& particle
 
 void BoltzmannStepBuilderCommand::Execute()
 {
+    auto startTime = std::chrono::steady_clock::now();
     forcePost_ = false;
     // based on results of previous step, set the current point
     currentPoint_ = setCurrentPoint();
@@ -593,8 +626,17 @@ void BoltzmannStepBuilderCommand::Execute()
         sqlDataToPost_.ParticleDatas.push_front( p );
     }
 
+    auto midTimer = std::chrono::steady_clock::now();
+
     // now that all the necessary data for the step is calculated, we can assemble the Boltzmann equations
     addComponents();
+    auto endTimer = std::chrono::steady_clock::now();
+   
+    auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(midTimer - startTime);
+    auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(endTimer - midTimer);
+    
+//    connection_.Log.Info( "start timer: " + std::to_string(duration1.count()) );
+//    connection_.Log.Info( "end timer: " + std::to_string( duration2.count() ) );
 }
 
 bool BoltzmannStepBuilderCommand::Exit(){
@@ -692,6 +734,7 @@ void BoltzmannStepBuilderCommand::Post(){
 }
 
 void BoltzmannStepBuilderCommand::SetResult(){
+    auto startTimer = std::chrono::steady_clock::now();
     cleanScaleFactorData();
     cleanParticleData();
 
@@ -766,6 +809,11 @@ void BoltzmannStepBuilderCommand::SetResult(){
     if (currentPoint_.Ordinal == 0){
         resetParticleData();
     }
+    auto endTimer = std::chrono::steady_clock::now();
+
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTimer - startTimer);
+
+    connection_.Log.Info( "post timer: " + std::to_string(duration.count() ) );
 }
 
 void BoltzmannStepBuilderCommand::UpdateData( const state_type& x, const double& t ){

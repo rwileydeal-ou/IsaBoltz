@@ -25,6 +25,21 @@ NeutralinoWidths::NeutralinoWidths(const ModelBase& model, const std::deque< Mod
     auto widthAxinoZ = widthNeutralinoAxinoZ( neutralino1, axino, z);
     // TODO:  NO DI-TOP QUARK DECAY CHANNEL??????
 
+
+
+    auto upl= ModelBaseOps::FindConst(particles_, "suplsq");
+    auto el = ModelBaseOps::FindConst(particles_, "electron");
+    auto upq = ModelBaseOps::FindConst(particles_, "upq");
+    auto downq = ModelBaseOps::FindConst(particles_, "downq");
+    double alpha = 1.;
+    double lambda = model_.Options.NonUniversalSugra.LambdaRPV;//1.e-7;
+    double widthRPVsketch = (3./128.)*alpha*pow( lambda / M_PI, 2.)*pow( abs( neutralino1.Mass ), 5.) / pow( upl.Mass, 4. );
+    auto widthRPV = Models::PartialWidth( neutralino1, { el, upq, downq }, widthRPVsketch );
+
+
+    Decays.push_back( widthRPV );
+
+
     Decays.push_back( widthAxinoDiElectron );
     Decays.push_back( widthAxinoDiMuon );
     Decays.push_back( widthAxinoDiTau );

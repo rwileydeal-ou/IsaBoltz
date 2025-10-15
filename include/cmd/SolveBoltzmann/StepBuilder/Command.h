@@ -119,8 +119,8 @@ private:
     Models::ScaleFactorPoint setCurrentPoint();
     void calculateHubble();
     void setEvolutionInitialState();
-    void setRadiationInitialState( ParticleData& radiation );
-    void setMatterInitialState( ParticleData& matter );
+    ParticleData setRadiationInitialState( ParticleData& radiation );
+    ParticleData setMatterInitialState( ParticleData& matter, int index );
     void calculateCrossSection( ParticleData& particle );
     void handleTemperatureDependence( ParticleData& particle );
     void handleTemperatureDependences();

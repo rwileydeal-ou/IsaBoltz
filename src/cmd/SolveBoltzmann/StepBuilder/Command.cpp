@@ -122,16 +122,20 @@ ParticleData BoltzmannStepBuilderCommand::pullParticleEvolution( std::string par
 */
 
 boost::numeric::ublas::vector<double> BoltzmannStepBuilderCommand::UpdateInitialConditions(){
-    boost::numeric::ublas::vector<double> currentState ( 2 * currentParticleData_.size() );
-    for (int index = 0; index < currentParticleData_.size(); ++index){
+    boost::numeric::ublas::vector<double> currentState ( 2 * currentParticleData_.size() - 1 );
+    // handle radiation first, always first in list
+    currentState( 0 ) = x_[ 0 ];
+
+    // now handle matter
+    for (int index = 1; index < currentParticleData_.size(); ++index){
         auto p = currentParticleData_[index];        
 
 /*        // update modes marked to be turned off
         if ( p.TurnOff ){
             // flip back so won't get ignored if reproduced from other mechanism
             p.TurnOff = false;
+            currentState( 2 * index - 1 ) = 0.;
             currentState( 2 * index ) = 0.;
-            currentState( 2 * index + 1 ) = 0.;
             continue;
         }
 */
@@ -139,17 +143,17 @@ boost::numeric::ublas::vector<double> BoltzmannStepBuilderCommand::UpdateInitial
         if ( p.TempDependentMass && p.ProductionMechanism == ParticleProductionMechanism::COHERENT_OSCILLATION ){
             // applies to temp dependent coh.osc.masses only
             if ( !p.IsOscillating ){
-                currentState( 2 * index ) = log( p.Mass * pow( p.Amplitude, 2. ) / 2. / reheatPoint_.Entropy );
+                currentState( 2 * index - 1 ) = log( p.Mass * pow( p.Amplitude, 2. ) / 2. / reheatPoint_.Entropy );
             } else{
-                currentState( 2 * index ) = x_[ 2 * index];
+                currentState( 2 * index - 1) = x_[ 2 * index - 1];
             }
-            currentState( 2 * index + 1 ) = log( p.Mass / reheatPoint_.Temperature );
+            currentState( 2 * index ) = log( p.Mass / reheatPoint_.Temperature );
             continue;
         }
 
         // if not special condition above, set to expected value
-        currentState( 2 * index ) = x_[ 2 * index];
-        currentState( 2 * index + 1 ) = x_[ 2 * index + 1];
+        currentState( 2 * index - 1 ) = x_[ 2 * index - 1];
+        currentState( 2 * index ) = x_[ 2 * index ];
     }
     return currentState;
 }
@@ -281,32 +285,22 @@ void BoltzmannStepBuilderCommand::setEvolutionInitialState( ){
     // pull the previous step, then we can pull the associated particle data so we can start this step with any updated data of last step
     Models::ScaleFactorPoint previousPoint = pullPreviousScaleFactorPoint( ordinal_ - 1 );
 
-    for (int index = 0; index < initialParticleEvolutions_.size(); ++index){
-        auto p = initialParticleEvolutions_[index];        
+    // handle radiation, always first element
+    auto initialRadiationEvo = initialParticleEvolutions_[0];
+    auto prevRadEvo = pullParticleEvolution( 
+        initialRadiationEvo.ParticleKey, 
+        initialRadiationEvo.ProductionMechanism, 
+        previousPoint.Id 
+    );    
+    auto nextRadEvo = setRadiationInitialState( prevRadEvo );
+    currentParticleData_.push_back(nextRadEvo);
+    
+    // now handle all matter fields
+    for (int index = 1; index < initialParticleEvolutions_.size(); ++index){
+        auto p = initialParticleEvolutions_[index];
         // we need to pull the previous evo to determine if this evo should start out active or not
         auto prevP = pullParticleEvolution( p.ParticleKey, p.ProductionMechanism, previousPoint.Id );
-        ParticleData nextP(prevP);
-        nextP.ParticleEvolutionId = boost::uuids::random_generator()();
-        nextP.ScaleFactorId = currentPoint_.Id;
-        nextP.EqnIndex = index;
-        nextP.Y1 = x_[ 2 * index ];
-        nextP.Y2 = x_[ 2 * index + 1 ];
-
-        // set initial dxdt to 0, add components after other quantities computed
-        dxdt_[ 2 * index ] = 0.;
-        dxdt_[ 2 * index + 1 ] = 0.;
-
-        for( int j = 0; j < 2 * initialParticleEvolutions_.size(); ++j ){
-            jac_( 2 * index, j ) = 0.;
-            jac_( 2 * index + 1, j ) = 0.;
-        }
-
-        if (nextP.ProductionMechanism == ParticleProductionMechanism::RADIATION){
-            setRadiationInitialState( nextP );
-        } else{
-            setMatterInitialState( nextP );
-        }
-
+        auto nextP = setMatterInitialState( prevP, index );
         updateParticleMassAndId( nextP, resetKeys, index, prevP, previousPoint );
 
         // finally calculate cross sections
@@ -315,30 +309,65 @@ void BoltzmannStepBuilderCommand::setEvolutionInitialState( ){
     }
 }
 
-void BoltzmannStepBuilderCommand::setRadiationInitialState( ParticleData& radiation ){
-    radiation.IsActive = true;
+ParticleData BoltzmannStepBuilderCommand::setRadiationInitialState( ParticleData& previousRadiation ){
+    ParticleData nextRadiation(previousRadiation);
+    nextRadiation.ParticleEvolutionId = boost::uuids::random_generator()();
+    nextRadiation.ScaleFactorId = currentPoint_.Id;
+    nextRadiation.EqnIndex = 0;
+
+    // set initial dxdt to 0, add components after other quantities computed
+    dxdt_[ 0 ] = 0.;
+
+    jac_( 0, 0 ) = 0.;
+    for( int j = 1; j < initialParticleEvolutions_.size(); ++j ){
+        jac_( 0, 2 * j - 1 ) = 0.;
+        jac_( 0, 2 * j ) = 0.;
+    }
+
+    nextRadiation.Y1 = x_[ 0 ];
+    nextRadiation.IsActive = true;
     long double n = boost::math::zeta(3.) * currentPoint_.GStarEntropic * pow(currentPoint_.Temperature, 3.) / pow(M_PI, 2.);
-    radiation.NumberDensity = n;
-    radiation.EquilibriumNumberDensity = 0.;
+    nextRadiation.NumberDensity = n;
+    nextRadiation.EquilibriumNumberDensity = 0.;
     long double rho = pow(M_PI, 2.) * currentPoint_.GStar * pow(currentPoint_.Temperature, 4.) / 30.;
-    radiation.EnergyDensity = rho;
+    nextRadiation.EnergyDensity = rho;
+    return nextRadiation;
 }
 
-void BoltzmannStepBuilderCommand::setMatterInitialState( ParticleData& matter ){
-    if (!matter.IsActive || matter.Y1 == 0. || matter.Y2 == 0. ){
-        return;
+ParticleData BoltzmannStepBuilderCommand::setMatterInitialState( ParticleData& previousMatter, int index ){
+    ParticleData nextMatter(previousMatter);
+    nextMatter.ParticleEvolutionId = boost::uuids::random_generator()();
+    nextMatter.ScaleFactorId = currentPoint_.Id;
+    nextMatter.EqnIndex = index;
+
+    // set initial dxdt to 0, add components after other quantities computed
+    dxdt_[ 2 * index - 1 ] = 0.;
+    dxdt_[ 2 * index ] = 0.;
+
+    for( int j = 1; j < initialParticleEvolutions_.size(); ++j ){
+        jac_( 2 * index - 1, 2 * j - 1 ) = 0.;
+        jac_( 2 * index, 2 * j - 1 ) = 0.;
+        jac_( 2 * index - 1, 2 * j ) = 0.;
+        jac_( 2 * index, 2 * j ) = 0.;
+    }
+
+    nextMatter.Y1 = x_[ 2 * index - 1 ];
+    nextMatter.Y2 = x_[ 2 * index ];
+    if (!nextMatter.IsActive || nextMatter.Y1 == 0. || nextMatter.Y2 == 0. ){
+        return nextMatter;
     }
     
     // With our defn of Y1 = log(n/s0), just gets rid of initial entropy to recover n (Entropy / Comoving Volume = entropy density)
-    matter.NumberDensity = reheatPoint_.Entropy * expl( matter.Y1 );
+    nextMatter.NumberDensity = reheatPoint_.Entropy * expl( nextMatter.Y1 );
     // With our defn of Y2 = log( rho / (n*T_R) ), this gives us rho/n so that we can combine with n to get rho
-    matter.EnergyDensity = reheatPoint_.Temperature * expl( matter.Y2 ) * matter.NumberDensity;
+    nextMatter.EnergyDensity = reheatPoint_.Temperature * expl( nextMatter.Y2 ) * nextMatter.NumberDensity;
 
-    if ( matter.ProductionMechanism == ParticleProductionMechanism::THERMAL ){
+    if ( nextMatter.ProductionMechanism == ParticleProductionMechanism::THERMAL ){
         // quickly calculate the degrees of freedom
-        int degF =  ( (int)std::round(2. * matter.Spin) ) + 1;
-        matter.EquilibriumNumberDensity = NumberDensityEq::Calculate( matter.Mass, currentPoint_.Temperature, degF, matter.Statistics );
+        int degF =  ( (int)std::round(2. * nextMatter.Spin) ) + 1;
+        nextMatter.EquilibriumNumberDensity = NumberDensityEq::Calculate( nextMatter.Mass, currentPoint_.Temperature, degF, nextMatter.Statistics );
     }
+    return nextMatter;
 }
 
 void BoltzmannStepBuilderCommand::calculateCrossSection( ParticleData& particle ){
@@ -514,8 +543,6 @@ void BoltzmannStepBuilderCommand::checkDecayTransition( ParticleData& particle )
 // This method adds up the RHS of the relevant terms in the Boltzmann equations, and gives the state vector dxdt
 // The numerical integrator then solves the dxdt for the given step
 void BoltzmannStepBuilderCommand::addComponents(){
-    dxdt_[0] = 0.;
-
     auto rad = currentParticleData_.front();
     if ( rad.ProductionMechanism != ParticleProductionMechanism::RADIATION ){
         throw_with_trace( logic_error("Evolution deque corrupted") );
@@ -529,47 +556,25 @@ void BoltzmannStepBuilderCommand::addComponents(){
     for( auto& p : currentParticleData_ ){
         // we already set radiation
         if ( p.ProductionMechanism == ParticleProductionMechanism::RADIATION ){
-            i++;
+            i++; // assumes radiation is always first in list (it is), but should enforce this...
             continue;
         }
 
         auto builder = b.Build_Particle_Boltzmann_Eqs( t_, p, rad );
-        dxdt_[ 2*i ] += builder.NumberDensityEquation;
-        dxdt_[ 2*i + 1] += builder.EnergyDensityEquation;
+        dxdt_[ 2*i - 1 ] += builder.NumberDensityEquation;
+        dxdt_[ 2*i ] += builder.EnergyDensityEquation;
         dxdt_[0] += builder.EntropyEquation;
+        jac_( 0, 0 ) += builder.EntropyJacobian[0];
+        jac_( 0, 2*i-1 ) = builder.EntropyJacobian[2*i];
+        jac_( 0, 2*i ) = builder.EntropyJacobian[2*i+1];
 
-        double logCutoff = 1.e20;
-        if ( std::abs(dxdt_[2*i]) > logCutoff || std::abs(dxdt_[2*i+1]) > logCutoff || dxdt_[0] > logCutoff ){
-            connection_.Log.Info("BAD POINT for " + p.ParticleKey);
-            connection_.Log.Info("dxdt[2i]: " + boost::lexical_cast<std::string>(dxdt_[2*i]));
-            connection_.Log.Info("dxdt[2i+1]: " + boost::lexical_cast<std::string>(dxdt_[2*i+1]));
-            connection_.Log.Info("dxdt[0]: " + boost::lexical_cast<std::string>(dxdt_[0]));
+        // note: jacobian for (i, 0) is always 0
 
-        }
-
-        for (int j = 0; j < currentParticleData_.size(); ++j){
-            jac_( 0, 2*j ) = builder.EntropyJacobian[2*j];
-            jac_( 0, 2*j+1 ) = builder.EntropyJacobian[2*j+1];
-            jac_( 2*i, 2*j ) = builder.NumberDensityJacobian[2*j];
-            jac_( 2*i, 2*j+1 ) = builder.NumberDensityJacobian[2*j+1];
-            jac_( 2*i+1, 2*j+1 ) = builder.EnergyDensityJacobian[2*j+1]; // 2j???
-            jac_( 2*i+1, 2*j ) = builder.EnergyDensityJacobian[2*j]; // 2j+1???
-            
-            if ( std::abs(jac_(0,2*j)) > logCutoff || std::abs(jac_(0,2*j+1)) > logCutoff ){
-                connection_.Log.Info("BAD ENTROPY JACOBIAN for " + p.ParticleKey);
-                connection_.Log.Info("jac(0, 2j): " + boost::lexical_cast<std::string>(jac_(0,2*j)));
-                connection_.Log.Info("jac(0, 2j+1): " + boost::lexical_cast<std::string>(jac_(0,2*j+1)));
-            }
-            if ( std::abs(jac_(2*i,2*j)) > logCutoff || std::abs(jac_(2*i,2*j+1)) > logCutoff ){
-                connection_.Log.Info("BAD NUMBER DENSITY JACOBIAN for " + p.ParticleKey);
-                connection_.Log.Info("jac(2i, 2j): " + boost::lexical_cast<std::string>(jac_(2*i,2*j)));
-                connection_.Log.Info("jac(2i, 2j+1): " + boost::lexical_cast<std::string>(jac_(2*i,2*j+1)));
-            }
-            if ( std::abs(jac_(2*i+1,2*j)) > logCutoff || std::abs(jac_(2*i+1,2*j+1)) > logCutoff ){
-                connection_.Log.Info("BAD ENERGY DENSITY JACOBIAN for " + p.ParticleKey);
-                connection_.Log.Info("jac(2i+1, 2j): " + boost::lexical_cast<std::string>(jac_(2*i+1,2*j)));
-                connection_.Log.Info("jac(2i+1, 2j+1): " + boost::lexical_cast<std::string>(jac_(2*i+1,2*j+1)));
-            }            
+        for (int j = 1; j < currentParticleData_.size(); ++j){
+            jac_( 2*i - 1, 2*j - 1 ) = builder.NumberDensityJacobian[ 2*j - 1 ];
+            jac_( 2*i - 1, 2*j ) = builder.NumberDensityJacobian[ 2*j ];
+            jac_( 2*i, 2*j - 1 ) = builder.EnergyDensityJacobian[ 2*j - 1 ];
+            jac_( 2*i, 2*j ) = builder.EnergyDensityJacobian[ 2*j ];
         }
 
         i++;
@@ -603,7 +608,6 @@ void BoltzmannStepBuilderCommand::postCrossSection( const ParticleData& particle
 
 void BoltzmannStepBuilderCommand::Execute()
 {
-    auto startTime = std::chrono::steady_clock::now();
     forcePost_ = false;
     // based on results of previous step, set the current point
     currentPoint_ = setCurrentPoint();
@@ -628,17 +632,8 @@ void BoltzmannStepBuilderCommand::Execute()
         sqlDataToPost_.ParticleDatas.push_front( p );
     }
 
-    auto midTimer = std::chrono::steady_clock::now();
-
     // now that all the necessary data for the step is calculated, we can assemble the Boltzmann equations
     addComponents();
-    auto endTimer = std::chrono::steady_clock::now();
-   
-    auto duration1 = std::chrono::duration_cast<std::chrono::milliseconds>(midTimer - startTime);
-    auto duration2 = std::chrono::duration_cast<std::chrono::milliseconds>(endTimer - midTimer);
-    
-//    connection_.Log.Info( "start timer: " + std::to_string(duration1.count()) );
-//    connection_.Log.Info( "end timer: " + std::to_string( duration2.count() ) );
 }
 
 bool BoltzmannStepBuilderCommand::Exit(){
@@ -736,7 +731,6 @@ void BoltzmannStepBuilderCommand::Post(){
 }
 
 void BoltzmannStepBuilderCommand::SetResult(){
-    auto startTimer = std::chrono::steady_clock::now();
     cleanScaleFactorData();
     cleanParticleData();
 
@@ -811,11 +805,6 @@ void BoltzmannStepBuilderCommand::SetResult(){
     if (currentPoint_.Ordinal == 0){
         resetParticleData();
     }
-    auto endTimer = std::chrono::steady_clock::now();
-
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTimer - startTimer);
-
-    connection_.Log.Info( "post timer: " + std::to_string(duration.count() ) );
 }
 
 void BoltzmannStepBuilderCommand::UpdateData( const state_type& x, const double& t ){

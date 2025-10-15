@@ -159,14 +159,15 @@ void BoltzmannSolverCommand::Execute(){
     auto totalWidths = pullTotalWidths( particleEvolutions );
 
     // setting initial conditions here
-    boost::numeric::ublas::vector< double> xInit(2 * particleEvolutions.size());
-    for (int i = 0; i < particleEvolutions.size(); ++i){
-        xInit (2*i) = particleEvolutions[i].Y1;
-        xInit (2*i+1) = particleEvolutions[i].Y2;
+    boost::numeric::ublas::vector< double> xInit(2 * particleEvolutions.size()-1);
+    xInit(0) = particleEvolutions[0].Y1; // radiation is always the first element, regardless of input ordering
+    for (size_t i = 1; i < particleEvolutions.size(); ++i){
+        xInit (2*i-1) = particleEvolutions[i].Y1;
+        xInit (2*i) = particleEvolutions[i].Y2;
     }
 
     auto stepperType = boost::numeric::odeint::rosenbrock4< double >();
-    auto stepper = boost::numeric::odeint::make_dense_output(1.e-03, 1.e-03, 0.01, stepperType);
+    auto stepper = boost::numeric::odeint::make_dense_output(1.e-03, 1.e-03, 0.1, stepperType);
 //    auto stepper = boost::numeric::odeint::make_dense_output(1.e-04, 1.e-03, stepperType);
 
     // delegate building the step to the proper command

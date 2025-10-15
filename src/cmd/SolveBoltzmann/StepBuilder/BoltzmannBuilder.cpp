@@ -45,7 +45,7 @@ double BoltzmannBuilder::getPN(double r, double m){
     if (r < rT) {
         double rm = r/m;
         double F1 = (2./3.) * ( rm - 1.);
-        for (int i =0; i<A.size(); ++i){
+        for (size_t i =0; i<A.size(); ++i){
             F1 += A[i] * pow( rm - 1., i+2);
         }
         double F2 = r / 3.;
@@ -362,43 +362,24 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const Partic
         builder.NumberDensityEquation += widthXmass2 * n2 / ( hubble * rhoN2 * n1 );
         builder.EnergyDensityEquation += widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( hubble * parent.EnergyDensity );
     
- 
-        builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * rhoN2 * n1 );     
-        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex ] += widthXmass2 * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * rhoN2 * n1 );
+        builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * n2 / ( hubble * rhoN2 * n1 );
+        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex ] += widthXmass2 * n2 / ( hubble * rhoN2 * n1 );
+        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * n2 / ( hubble * rhoN2 * n1 );
+        // dH / drho term may affect things (?)
 
-//        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - 1./3.* widthXmass2 * n2 * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * hubble * hubble * 2. * n1 * 5.95e36 );                              //  dH/drho?
+        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( hubble * parent.EnergyDensity );
+        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( hubble * parent.EnergyDensity );
+        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - widthXmass2 * n2 * 0.5 / ( hubble * parent.EnergyDensity );
+        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += widthXmass2 * n2 * ( rhoN1 / rhoN2 ) / ( hubble * parent.EnergyDensity );
 
-// maybe need to keep this one in if child (parent) becomes relativistic
-//        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += widthXmass2 * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * rhoN2 * n1 );
 
-
-
-//        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * rhoN2 * n1 );
-
- 
-//       builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * rhoN2 * n1 );
-//        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex ] += widthXmass2 * 2. * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * rhoN2 * n1 );
-//        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += widthXmass2 * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * rhoN2 * n1 );
-//        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * 3. * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * rhoN2 * n1 );
-
-        // dH / drho?    
+//        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - 1./3.* widthXmass2 * n2 * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * hubble * hubble * 2. * n1 * 5.95e36 );                              
+//  dH/drho?
 /*        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - 1./3. * daughter.EnergyDensity * widthXmass2 * ( 0.5 - (rhoN1/rhoN2)) * ( n2 - daughter.EquilibriumNumberDensity ) / (hubble * hubble * hubble * 2. * parent.EnergyDensity * 5.95e36 );                             
         builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - 1./3. * widthXmass2 * ( 0.5 - (rhoN1/rhoN2)) * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * hubble * hubble * 2. * 5.95e36 );
 */        
-//        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 /* -1? */ ] += - widthXmass2 * ( 0.5 - ( rhoN1 / rhoN2 ) ) * (n2 - daughter.EquilibriumNumberDensity) / ( hubble * parent.EnergyDensity );
-//        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 /* -1? */ ] += - widthXmass2 * ( 0.5 - ( rhoN1 / rhoN2 ) ) * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * parent.EnergyDensity );
-//        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex /* + 1 */ ] += 0.;
-//        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex /* + 1  */ ] += widthXmass2 * ( 0.5 - ( rhoN1 / rhoN2 ) ) * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * parent.EnergyDensity );
 
     }
-
-
-//        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * ( 0.5 + ( rhoN1 / rhoN2 ) ) * (n2 - daughter.EquilibriumNumberDensity) / ( hubble * parent.EnergyDensity );
-//        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += - widthXmass2 * ( 0.5 - 3. * ( rhoN1 / rhoN2 ) ) * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * parent.EnergyDensity );
-//        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += widthXmass2 *( rhoN1 / rhoN2 ) * (n2 - daughter.EquilibriumNumberDensity) / ( hubble * parent.EnergyDensity );
-//        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += widthXmass2 * ( 0.5 - 2. * ( rhoN1 / rhoN2 ) ) * ( n2 - daughter.EquilibriumNumberDensity ) / ( hubble * parent.EnergyDensity );
-
-
 
     return builder;
 }
@@ -821,7 +802,7 @@ ComponentBuilder BoltzmannBuilder::Build_Particle_Boltzmann_Eqs(const double& t,
 
             auto decay = calculate_decay_terms(particle);
             builder.NumberDensityEquation += decay.NumberDensityEquation;
-            for (int j = 0; j < decay.NumberDensityJacobian.size(); ++j){
+            for (size_t j = 0; j < decay.NumberDensityJacobian.size(); ++j){
                 builder.NumberDensityJacobian[j] += decay.NumberDensityJacobian[j];
                 builder.EnergyDensityJacobian[j] += decay.EnergyDensityJacobian[j];
             }
@@ -840,7 +821,7 @@ ComponentBuilder BoltzmannBuilder::Build_Particle_Boltzmann_Eqs(const double& t,
             builder.EnergyDensityEquation += pressure.EnergyDensityEquation;
 
             // handle the jacobians here
-            for (int j = 0; j < builder.NumberDensityJacobian.size(); ++j){
+            for (size_t j = 0; j < builder.NumberDensityJacobian.size(); ++j){
                 builder.NumberDensityJacobian[j] += annihilations.NumberDensityJacobian[j];
                 builder.EnergyDensityJacobian[j] += annihilations.EnergyDensityJacobian[j];
                 builder.NumberDensityJacobian[j] += injections.NumberDensityJacobian[j];

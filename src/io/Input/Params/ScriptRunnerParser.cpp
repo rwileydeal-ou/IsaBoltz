@@ -171,6 +171,9 @@ vector<string> ScriptRunnerParser::scanPredicate(string line){
     vector<string> predicates;
     for (auto& pred : splitPredicate){
         boost::to_lower(pred);
+        if (pred.empty()){
+            continue;
+        }
         // remove any leading commas - makes sure to split correctly
         if (pred.front() == ','){
             pred.erase(0,1);

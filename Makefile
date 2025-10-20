@@ -23,10 +23,10 @@ LIST=$(BIN_DIR)/fortLib.so $(BIN_DIR)/isaboltz $(BIN_DIR)/clusterboltz
 all: $(LIST)
 
 $(BIN_DIR)/isaboltz: $(OBJ_FILES_LOCAL)
-	$(CC) $(LDFLAGS) -Wall -Wpedantic -O1 -g -o $@ $^ $(LIBS) -fsanitize=address,undefined 
+	$(CC) $(LDFLAGS) -Wall -Wpedantic -O3 -g -o $@ $^ $(LIBS) -fsanitize=address,undefined 
 
 $(BIN_DIR)/clusterboltz: $(OBJ_FILES_CLUSTER)
-	$(CC) $(LDFLAGS) -Wall -Wpedantic -O1 -g -o $@ $^ $(LIBS) -fsanitize=address,undefined 
+	$(CC) $(LDFLAGS) -Wall -Wpedantic -O3 -g -o $@ $^ $(LIBS) -fsanitize=address,undefined 
 
 $(BIN_DIR)/fortLib.so:
 	$(CC) -fPIC $(LDFLAGS) -c $(SRC_DIR)/fort/BoostInterface.cpp -o $(SRC_DIR)/fort/BoostInterface.o $(LIBS)
@@ -34,7 +34,7 @@ $(BIN_DIR)/fortLib.so:
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
-	$(CC) $(CXXFLAGS) $(LDFLAGS) -Wall -Wpedantic -O1 -g -c -o $@ $< $(LIBS) -fsanitize=address,undefined 
+	$(CC) $(CXXFLAGS) $(LDFLAGS) -Wall -Wpedantic -O3 -g -c -o $@ $< $(LIBS) -fsanitize=address,undefined 
 
 .PHONY : clean 
 clean: 

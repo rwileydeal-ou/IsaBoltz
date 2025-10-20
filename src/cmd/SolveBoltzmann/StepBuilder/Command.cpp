@@ -127,7 +127,7 @@ boost::numeric::ublas::vector<double> BoltzmannStepBuilderCommand::UpdateInitial
     currentState( 0 ) = x_[ 0 ];
 
     // now handle matter
-    for (int index = 1; index < currentParticleData_.size(); ++index){
+    for (size_t index = 1; index < currentParticleData_.size(); ++index){
         auto p = currentParticleData_[index];        
 
 /*        // update modes marked to be turned off
@@ -296,7 +296,7 @@ void BoltzmannStepBuilderCommand::setEvolutionInitialState( ){
     currentParticleData_.push_back(nextRadEvo);
     
     // now handle all matter fields
-    for (int index = 1; index < initialParticleEvolutions_.size(); ++index){
+    for (size_t index = 1; index < initialParticleEvolutions_.size(); ++index){
         auto p = initialParticleEvolutions_[index];
         // we need to pull the previous evo to determine if this evo should start out active or not
         auto prevP = pullParticleEvolution( p.ParticleKey, p.ProductionMechanism, previousPoint.Id );
@@ -319,7 +319,7 @@ ParticleData BoltzmannStepBuilderCommand::setRadiationInitialState( ParticleData
     dxdt_[ 0 ] = 0.;
 
     jac_( 0, 0 ) = 0.;
-    for( int j = 1; j < initialParticleEvolutions_.size(); ++j ){
+    for( size_t j = 1; j < initialParticleEvolutions_.size(); ++j ){
         jac_( 0, 2 * j - 1 ) = 0.;
         jac_( 0, 2 * j ) = 0.;
     }
@@ -344,7 +344,7 @@ ParticleData BoltzmannStepBuilderCommand::setMatterInitialState( ParticleData& p
     dxdt_[ 2 * index - 1 ] = 0.;
     dxdt_[ 2 * index ] = 0.;
 
-    for( int j = 1; j < initialParticleEvolutions_.size(); ++j ){
+    for( size_t j = 1; j < initialParticleEvolutions_.size(); ++j ){
         jac_( 2 * index - 1, 2 * j - 1 ) = 0.;
         jac_( 2 * index, 2 * j - 1 ) = 0.;
         jac_( 2 * index - 1, 2 * j ) = 0.;
@@ -570,7 +570,7 @@ void BoltzmannStepBuilderCommand::addComponents(){
 
         // note: jacobian for (i, 0) is always 0
 
-        for (int j = 1; j < currentParticleData_.size(); ++j){
+        for (size_t j = 1; j < currentParticleData_.size(); ++j){
             jac_( 2*i - 1, 2*j - 1 ) = builder.NumberDensityJacobian[ 2*j - 1 ];
             jac_( 2*i - 1, 2*j ) = builder.NumberDensityJacobian[ 2*j ];
             jac_( 2*i, 2*j - 1 ) = builder.EnergyDensityJacobian[ 2*j - 1 ];

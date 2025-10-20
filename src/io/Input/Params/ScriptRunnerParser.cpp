@@ -100,7 +100,7 @@ vector<vector<string>> ScriptRunnerParser::getDirectives( string script, int nFi
                             } else{
                                 auto a = FileIO::Split(line, ",");
                                 string reassembled;
-                                for (int j = 0; j < a.size() - 1; ++j){
+                                for (size_t j = 0; j < a.size() - 1; ++j){
                                     reassembled += a[j] + ",";
                                 }
                                 // now process steps
@@ -135,7 +135,7 @@ void ScriptRunnerParser::DivideScriptRuns(string scriptInput, ClusterRunParams r
         
         auto directives = getDirectives(scriptInput, nFiles);
 
-        for (int i=0; i<nFiles; ++i){
+        for (size_t i=0; i<nFiles; ++i){
             fileOuts[i].open(outputDirectory + namePrefix + to_string(i) + ".dat");
             if (i < directives.size()){
                 for (auto& line : directives[i]){
@@ -230,7 +230,7 @@ ScanDetails ScriptRunnerParser::setScanDetails(string line){
         // TODO: enforce the syntax better - assume that for N parameters to be scanned, number of scan points is the N+1 element
         allEndpoints.Steps = atoi(predicate[keys.size()].c_str());
 
-        for (int i = 0; i < keys.size(); ++i){
+        for (size_t i = 0; i < keys.size(); ++i){
             ScanParamDetails param;
             string scanBounds = predicate[i];
             auto parsedScanBounds = FileIO::Split(scanBounds,",;:");
@@ -269,7 +269,7 @@ ScanParamDetails ScriptRunnerParser::handleExplicitBounds(vector<string> parsedS
     double scanStart = atof(parsedScanBounds[0].c_str());
     double scanEnd = atof(parsedScanBounds[1].c_str());
 
-    for (int j = 2; j<parsedScanBounds.size(); ++j){
+    for (size_t j = 2; j<parsedScanBounds.size(); ++j){
         string scanArg = parsedScanBounds[j];
         auto drawArgs = FileIO::Split(scanArg, "~");
         if (drawArgs[0] == "rand" || drawArgs[0] == "r" || drawArgs[0] == "random"){

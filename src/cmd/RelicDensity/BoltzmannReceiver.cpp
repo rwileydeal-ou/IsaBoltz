@@ -64,7 +64,7 @@ double BoltzmannRelicDensityReceiver::getRhoNf(double mass, double rhoN, double 
                     dydx[0] = F2;
                 } else{
                     double F1 = -2. * (r - 1.);
-                    for (int i =0; i<A.size(); ++i){
+                    for (size_t i =0; i<A.size(); ++i){
                         F1 += 3. * A[i] * pow(r - 1., i+2);
                     }
                     dydx[0] = std::max( F1, F2 );

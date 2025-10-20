@@ -81,9 +81,6 @@ CheckBBNCommand::CheckBBNCommand(Connection& connection, std::string enabledKey)
 
         if ( totalWidth.Width * particleEvolution.EnergyDensity / ( scaleFactor.Hubble * particle_.Mass * particleEvolution.NumberDensity) < 2. ){
             // we found it.  
-            connection_.Log.Info("w/H: " + to_string(totalWidth.Width / scaleFactor.Hubble));
-            connection_.Log.Info("rho/mn: " + to_string(particleEvolution.EnergyDensity / ( particle_.Mass * particleEvolution.NumberDensity )));
-            connection_.Log.Info("Energy Density: " + to_string(particleEvolution.EnergyDensity));
             break;
         }
     }

@@ -135,7 +135,7 @@ Models::CheckBBN CheckBBNReceiver::getCheckBBN(){
 
 double CheckBBNReceiver::hadronicBranchingRatio(){
     double BRhad = 0.;
-    if (particle_.Key == "saxion" || particle_.Key == "axino" || particle_.Key == "gravitino"){
+    if (particle_.Key == "saxion" || particle_.Key == "axino" || particle_.Key == "gravitino" || particle_.Key == "modulus"){
         BRhad = 1.;
     } else if (particle_.Key == "neutralino1"){
         return 1.; // TODO: REMOVE THIS HACK. THIS WORKS FOR RPV FOR NOW

@@ -76,6 +76,7 @@ vector<string> Macro::cmdInput(const vector<string>& supportedOptions){
             }
         }
         if (commands.size() > 0){
+            as.deleteTrie(root);
             return commands;
         }
     }

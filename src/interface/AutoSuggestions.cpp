@@ -20,7 +20,7 @@ AutoSuggestions::~AutoSuggestions()
 // trie node
 struct AutoSuggestions::TrieNode
 {
-    struct AutoSuggestions::TrieNode *children[ALPHABET_SIZE];
+    AutoSuggestions::TrieNode *children[ALPHABET_SIZE];
  
     // isWordEnd is true if the node represents
     // end of a word
@@ -28,9 +28,9 @@ struct AutoSuggestions::TrieNode
 };
  
 // Returns new trie node (initialized to NULLs)
-struct AutoSuggestions::TrieNode *AutoSuggestions::getNode(void)
+AutoSuggestions::TrieNode *AutoSuggestions::getNode()
 {
-    struct AutoSuggestions::TrieNode *pNode = new AutoSuggestions::TrieNode;
+    AutoSuggestions::TrieNode *pNode = new AutoSuggestions::TrieNode;
     pNode->isWordEnd = false;
  
     for (int i = 0; i < ALPHABET_SIZE; i++)
@@ -41,11 +41,11 @@ struct AutoSuggestions::TrieNode *AutoSuggestions::getNode(void)
  
 // If not present, inserts key into trie.  If the
 // key is prefix of trie node, just marks leaf node
-void AutoSuggestions::insert(struct AutoSuggestions::TrieNode *root,  const string key)
+void AutoSuggestions::insert(AutoSuggestions::TrieNode *root,  const string key)
 {
-    struct AutoSuggestions::TrieNode *pCrawl = root;
+    AutoSuggestions::TrieNode *pCrawl = root;
  
-    for (int level = 0; level < key.length(); level++)
+    for (size_t level = 0; level < key.length(); level++)
     {
         int index = CHAR_TO_INDEX(key[level]);
         if (!pCrawl->children[index])
@@ -58,11 +58,22 @@ void AutoSuggestions::insert(struct AutoSuggestions::TrieNode *root,  const stri
     pCrawl->isWordEnd = true;
 }
  
+
+// Recursive function to delete all nodes in the trie
+void AutoSuggestions::deleteTrie(TrieNode* node) {
+    if (!node) return;
+    for (int i = 0; i < ALPHABET_SIZE; i++) {
+        if (node->children[i])
+            deleteTrie(node->children[i]);
+    }
+    delete node;
+}
+
 // Returns true if key presents in trie, else false
-bool AutoSuggestions::search(struct TrieNode *root, const string key)
+bool AutoSuggestions::search(TrieNode *root, const string key)
 {
     int length = key.length();
-    struct AutoSuggestions::TrieNode *pCrawl = root;
+    AutoSuggestions::TrieNode *pCrawl = root;
     for (int level = 0; level < length; level++)
     {
         int index = CHAR_TO_INDEX(key[level]);
@@ -78,7 +89,7 @@ bool AutoSuggestions::search(struct TrieNode *root, const string key)
  
 // Returns 0 if current node has a child
 // If all children are NULL, return 1.
-bool AutoSuggestions::isLastNode(struct AutoSuggestions::TrieNode* root)
+bool AutoSuggestions::isLastNode(AutoSuggestions::TrieNode* root)
 {
     for (int i = 0; i < ALPHABET_SIZE; i++)
         if (root->children[i])
@@ -88,7 +99,7 @@ bool AutoSuggestions::isLastNode(struct AutoSuggestions::TrieNode* root)
  
 // Recursive function to print auto-suggestions for given
 // node.
-void AutoSuggestions::suggestionsRec(struct AutoSuggestions::TrieNode* root, string currPrefix)
+void AutoSuggestions::suggestionsRec(AutoSuggestions::TrieNode* root, string currPrefix)
 {
     // found a string in Trie with the given prefix
     if (root->isWordEnd)
@@ -118,7 +129,7 @@ void AutoSuggestions::suggestionsRec(struct AutoSuggestions::TrieNode* root, str
 // print suggestions for given query prefix.
 int AutoSuggestions::printAutoSuggestions(AutoSuggestions::TrieNode* root, const string query)
 {
-    struct AutoSuggestions::TrieNode* pCrawl = root;
+    AutoSuggestions::TrieNode* pCrawl = root;
  
     // Check if prefix is present and find the
     // the node (of last level) with last character

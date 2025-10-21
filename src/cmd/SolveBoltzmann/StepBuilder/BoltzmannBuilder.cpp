@@ -179,21 +179,18 @@ ComponentBuilder BoltzmannBuilder::calculate_thermal_particle_decays(const Parti
     // This is just the Gamma*mass*n/rho*H term
     builder.NumberDensityEquation += - parent.TotalWidth * relativisticFactor / hubble;
     
-    builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += 0.;
-    builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += 0.;
-
     builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += parent.TotalWidth * parent.EnergyDensity /  (6. * hubble * hubble * hubble * 5.95e36 ) ; 
     builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += parent.TotalWidth * parent.EnergyDensity /  (6. * hubble * hubble * hubble * 5.95e36 ) ; 
     
     // this term is only significant until the particle becomes non-relativistic, after which it goes to zero
     double relativisticLimit = parent.TotalWidth * relativisticFactor / hubble;
-    double relativisticCutoff = 1.;
-    if ( relativisticFactor <= relativisticCutoff ){
+    double relativisticCutoff = 1.5;
+//    if ( relativisticFactor <= relativisticCutoff ){
         builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += relativisticLimit;
-    } else{
-        // interpolate between the limits
-        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += ( relativisticLimit - 0.) / ( relativisticCutoff - 1. ) * ( relativisticFactor - 1. );
-    }
+//    } else{
+//        // interpolate between the limits
+//        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += ( relativisticLimit - 0.) / ( relativisticCutoff - 1. ) * ( relativisticFactor - 1. );
+//    }
 
     // new dH / drho term???
 //    builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += parent.TotalWidth * relativisticFactor * parent.EnergyDensity * ( 1. / 3.) /  (2. * hubble * hubble * hubble * 5.95e36 ) ;
@@ -397,27 +394,27 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const Partic
         double relativisticDGDN = widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( hubble * parent.EnergyDensity );
         double relativisticDG2DN = - widthXmass2 * n2 * 0.5 / ( hubble * parent.EnergyDensity );
         double relativisticDG3DN = widthXmass2 * n2 * ( rhoN1 / rhoN2 ) / ( hubble * parent.EnergyDensity );
-        double relativisticCutoff = 1.;
+        double relativisticCutoff = 1.5;
         double daughterRelativisticFactor = daughter.Mass * daughter.NumberDensity / daughter.EnergyDensity;
         double parentRelativisticFactor = parent.Mass * parent.NumberDensity / parent.EnergyDensity;
-        if ( daughterRelativisticFactor <= relativisticCutoff ){
+//        if ( daughterRelativisticFactor <= relativisticCutoff ){
             builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += relativisticDFDN;
-        } else{
+//        } else{
             // interpolate between the limits
-            builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += ( relativisticDFDN - 0.) / ( relativisticCutoff - 1. ) * ( daughterRelativisticFactor - 1. );
-        }
+//            builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += ( relativisticDFDN - 0.) / ( relativisticCutoff - 1. ) * ( daughterRelativisticFactor - 1. );
+//        }
 
-        if ( parentRelativisticFactor <= relativisticCutoff ){
+//        if ( parentRelativisticFactor <= relativisticCutoff ){
             builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += - relativisticDGDN;
             builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += relativisticDGDN;
             builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += relativisticDG2DN;
             builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += relativisticDG3DN;
-        } else{
-            builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += ( -relativisticDGDN - 0.) / ( relativisticCutoff - 1. ) * ( daughterRelativisticFactor - 1. );
-            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += ( relativisticDGDN - 0.) / ( relativisticCutoff - 1. ) * ( daughterRelativisticFactor - 1. );
-            builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += ( relativisticDG2DN - 0.) / ( relativisticCutoff - 1. ) * ( daughterRelativisticFactor - 1. );
-            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += ( relativisticDG3DN - 0.) / ( relativisticCutoff - 1. ) * ( daughterRelativisticFactor - 1. );
-        }
+//        } else{
+//            builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += ( -relativisticDGDN - 0.) / ( relativisticCutoff - 1. ) * ( daughterRelativisticFactor - 1. );
+//            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += ( relativisticDGDN - 0.) / ( relativisticCutoff - 1. ) * ( daughterRelativisticFactor - 1. );
+//            builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += ( relativisticDG2DN - 0.) / ( relativisticCutoff - 1. ) * ( daughterRelativisticFactor - 1. );
+//            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += ( relativisticDG3DN - 0.) / ( relativisticCutoff - 1. ) * ( daughterRelativisticFactor - 1. );
+//        }
 
         // dH / drho term may affect things (?)
         builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * n2 * parent.EnergyDensity / ( 6. * hubble * hubble * hubble * rhoN2 * n1 * 5.95e36 );

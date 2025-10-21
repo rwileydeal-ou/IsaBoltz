@@ -15,7 +15,7 @@ void WriteSBatch::WriteTmp(string submissionScript, string baseDir, string logDi
     submitScript << "#\n###########################################\n\n";
     submitScript << "module load parallel\n";
     submitScript << "module load Boost\n";
-    submitScript << "module load SQLite\n";
+//    submitScript << "module load SQLite\n";
     submitScript << "srun=\"srun --exclusive -N1 -n1 & \"\n";
     submitScript << "parallel=\"parallel --delay 0.2 -j $SLURM_NTASKS --joblog " + baseDir + "runtask.log --resume\"\n";
     submitScript << "$parallel \"$srun ./bin/clusterboltz ";

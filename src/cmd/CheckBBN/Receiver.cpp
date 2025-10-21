@@ -51,7 +51,7 @@ std::deque< Models::PartialWidth > CheckBBNReceiver::pullPartialWidths(){
     db.Execute( statement, cb.Callback, cb.CallbackReturn );
     db.Close();
 
-    for (auto i=0; i < cb.CallbackReturn.PartialWidths.size(); ++i){
+    for (size_t i=0; i < cb.CallbackReturn.PartialWidths.size(); ++i){
         children.push_back( cb.CallbackReturn.PartialWidths[i] );
     }
 
@@ -73,7 +73,7 @@ std::deque< Models::Particle > CheckBBNReceiver::pullHadrons(){
     db.Execute( statement, cb.Callback, cb.CallbackReturn );
     db.Close();
 
-    for (auto i=0; i < cb.CallbackReturn.Particles.size(); ++i){
+    for (size_t i=0; i < cb.CallbackReturn.Particles.size(); ++i){
         auto p = cb.CallbackReturn.Particles[i];
         // TODO: find why top quark is excluded (should be kinematically allowed for Z1 >~ 350 GeV)
         if (p.Key == "upq" || p.Key == "downq" || p.Key == "strangeq" || p.Key == "charmq" || p.Key == "bottomq"){
@@ -145,7 +145,7 @@ double CheckBBNReceiver::hadronicBranchingRatio(){
                 continue;
             }
             bool isHadronicDecay = false;
-            for (auto i=0; i < w.ChildrenIds.size(); ++i){ 
+            for (size_t i=0; i < w.ChildrenIds.size(); ++i){ 
                 auto childId = w.ChildrenIds[i];
                 auto hadDecay = find_if(
                     hadrons_.begin(),
@@ -180,7 +180,7 @@ std::deque<std::deque<double>> CheckBBNReceiver::parseBbnData(std::string infile
     while(getline(file, line)){
         auto split = FileIO::Split(line, " =\t\0");
         std::deque<double> lineData;
-        for (int i = 0; i < split.size(); ++i){
+        for (size_t i = 0; i < split.size(); ++i){
             double parsedData = FileParser::ParseDouble(split[i]);
             lineData.push_back( parsedData );
         }

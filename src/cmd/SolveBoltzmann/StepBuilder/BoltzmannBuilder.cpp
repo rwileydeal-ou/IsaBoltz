@@ -187,7 +187,7 @@ ComponentBuilder BoltzmannBuilder::calculate_thermal_particle_decays(const Parti
     
     // this term is only significant until the particle becomes non-relativistic, after which it goes to zero
     double relativisticLimit = parent.TotalWidth * relativisticFactor / hubble;
-    double relativisticCutoff = 0.1;
+    double relativisticCutoff = 1.;
     if ( relativisticFactor <= relativisticCutoff ){
         builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += relativisticLimit;
     } else{
@@ -397,7 +397,7 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const Partic
         double relativisticDGDN = widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( hubble * parent.EnergyDensity );
         double relativisticDG2DN = - widthXmass2 * n2 * 0.5 / ( hubble * parent.EnergyDensity );
         double relativisticDG3DN = widthXmass2 * n2 * ( rhoN1 / rhoN2 ) / ( hubble * parent.EnergyDensity );
-        double relativisticCutoff = 0.1;
+        double relativisticCutoff = 1.;
         double daughterRelativisticFactor = daughter.Mass * daughter.NumberDensity / daughter.EnergyDensity;
         double parentRelativisticFactor = parent.Mass * parent.NumberDensity / parent.EnergyDensity;
         if ( daughterRelativisticFactor <= relativisticCutoff ){

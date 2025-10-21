@@ -75,7 +75,7 @@ string IStatement::processUpdate(){
     statement.append( TableName() );
 
     statement.append(" SET ");
-    for (int i = 0; i < ColumnNames().size(); ++i){
+    for (size_t i = 0; i < ColumnNames().size(); ++i){
         statement.append( ColumnNames()[i] );
         statement.append( " = " );
         statement.append( ColumnData()[i] );

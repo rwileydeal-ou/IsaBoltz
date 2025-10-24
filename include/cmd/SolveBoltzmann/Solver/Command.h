@@ -6,6 +6,8 @@
 #include <boost/numeric/odeint/stepper/runge_kutta4.hpp>
 #include <boost/numeric/odeint/stepper/rosenbrock4.hpp>
 
+#include <cmd/SolveBoltzmann/Solver/RadauDense.hpp>
+
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 

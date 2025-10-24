@@ -166,8 +166,12 @@ void BoltzmannSolverCommand::Execute(){
         xInit (2*i) = particleEvolutions[i].Y2;
     }
 
+    boost::numeric::odeint::radau5_dense_ext< double, boost::numeric::ublas::vector<double>, boost::numeric::ublas::vector<double>, double >
+    baseStepper( /* rtol */ 1e-03, /* atol */ 1e-06 );
+
+    auto stepper = boost::numeric::odeint::make_dense_output( 1e-03, 1e-04, baseStepper );
     auto stepperType = boost::numeric::odeint::rosenbrock4< double >();
-    auto stepper = boost::numeric::odeint::make_dense_output(1.e-03, 1.e-03, 0.1, stepperType);
+//    auto stepper = boost::numeric::odeint::make_dense_output(1.e-03, 1.e-03, 0.1, stepperType);
 //    auto stepper = boost::numeric::odeint::make_dense_output(1.e-04, 1.e-03, stepperType);
 
     // delegate building the step to the proper command
@@ -196,7 +200,9 @@ void BoltzmannSolverCommand::Execute(){
     while (true){
         try{
             stepper.do_step( 
-                make_pair( sys, sysJac )
+//                make_pair( 
+                    sys, sysJac 
+//                )
             );
 
             stepper.initialize(

@@ -175,6 +175,9 @@ ComponentBuilder BoltzmannBuilder::calculate_decay_terms(const ParticleData& par
 ComponentBuilder BoltzmannBuilder::calculate_thermal_particle_decays(const ParticleData& parent, const long double& hubble ){
     ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
     double relativisticFactor = parent.Mass * parent.NumberDensity / parent.EnergyDensity;
+    if (parent.EnergyDensity == 0.){
+        relativisticFactor = 1.;
+    }
     // Decay contribution
     // This is just the Gamma*mass*n/rho*H term
     builder.NumberDensityEquation += - parent.TotalWidth * relativisticFactor / hubble;
@@ -327,6 +330,9 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const Partic
     long double rhoN1 = parent.EnergyDensity / parent.NumberDensity;
     long double n2 = daughter.NumberDensity;
     long double rhoN2 = daughter.EnergyDensity / daughter.NumberDensity;
+
+    if (parent.NumberDensity==0.) rhoN1 = parent.Mass;
+    if (daughter.NumberDensity==0.) rhoN2 = daughter.Mass;
 
     long double widthXmass2 = Br( daughter, parent ) * daughter.TotalWidth * daughter.Mass;
     // if "parent" is R-even, assume 2 identical particles in final state so need to multiply n and rho by 2
@@ -878,5 +884,20 @@ ComponentBuilder BoltzmannBuilder::Build_Particle_Boltzmann_Eqs(const double& t,
             }
         }
     }
+    for (size_t j = 0; j < builder.NumberDensityJacobian.size(); ++j){
+        if (!std::isfinite( builder.NumberDensityJacobian[j] )){
+            connection_.Log.Warn("Non-finite entry in number density jacobian for particle " + particle.ParticleKey);
+        }
+        if (!std::isfinite( builder.EnergyDensityJacobian[j] )){
+            connection_.Log.Warn("Non-finite entry in energy density jacobian for particle " + particle.ParticleKey);
+        }
+    }
+    if (!std::isfinite( builder.NumberDensityEquation )){
+        connection_.Log.Warn("Non-finite entry in number density eqn for particle " + particle.ParticleKey);
+    }
+    if (!std::isfinite( builder.EnergyDensityEquation )){
+        connection_.Log.Warn("Non-finite entry in energy density eqn for particle " + particle.ParticleKey);
+    }
+
     return builder;
 }

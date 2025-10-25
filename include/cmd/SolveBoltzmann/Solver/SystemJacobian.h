@@ -28,7 +28,11 @@ public:
         J = command_.getJacobian();
 
     }
-
+    void operator() (const state_type &x, matrix_type &J, const double& t)
+    {
+        state_type dummy(x.size());
+        this->operator()(x, J, t, dummy);
+    }
 };
 
 #endif

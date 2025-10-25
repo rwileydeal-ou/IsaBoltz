@@ -147,7 +147,7 @@ std::map< std::string, Models::TotalWidth > BoltzmannSolverCommand::pullTotalWid
 }
 
 void BoltzmannSolverCommand::Execute(){
-    StepInfo step( 0., 37., 0.01, 1.0e-8, 1.0e-6 );
+    StepInfo step( 0., 37., 1.e-5, 1.0e-8, 1.0e-6 );
 
     // make sure we have correct reheat object 
     reheatPoint_ = pullReheatScaleFactorPoint( reheatPoint_.Id );
@@ -166,7 +166,7 @@ void BoltzmannSolverCommand::Execute(){
         xInit (2*i) = particleEvolutions[i].Y2;
     }
 
-    boost::numeric::odeint::radau5_dense_ext< double, boost::numeric::ublas::vector<double>, boost::numeric::ublas::vector<double>, double >
+    boost::numeric::odeint::radau5_dense_ext< double, boost::numeric::ublas::vector<double>, boost::numeric::ublas::matrix<double> >
     baseStepper( /* rtol */ 1e-03, /* atol */ 1e-06 );
 
     auto stepper = boost::numeric::odeint::make_dense_output( 1e-03, 1e-04, baseStepper );

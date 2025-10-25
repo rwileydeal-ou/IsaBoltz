@@ -84,7 +84,7 @@ Models::ScaleFactorPoint BoltzmannStepBuilderCommand::pullPreviousScaleFactorPoi
     int ord = ordinal;
     for ( auto& s : sqlDataToPost_.ScaleFactors ){
         if ( s.Ordinal == ord ){
-            if ( ( s.ScaleFactor <= currentPoint_.ScaleFactor && !std::isinf(s.Hubble) ) || ( s.ScaleFactor == 1. && s.Ordinal < 2 )){
+            if ( !std::isinf(s.Hubble) || ( s.ScaleFactor <= currentPoint_.ScaleFactor && !std::isinf(s.Hubble) ) || ( s.ScaleFactor == 1. && s.Ordinal < 2 )){
                 return s;
             } else{
                 currentPoint_.Ordinal -= 1;

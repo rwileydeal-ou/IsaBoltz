@@ -122,8 +122,7 @@ public:
         const value_type dt_min = 1e-16;
         const int max_retries = 5;
         const int max_newton = 7;
-        const value_type newton_tol = 1e-5;
-        const value_type eps_reg = 1e-12;
+        const value_type newton_tol = 1e-4;
         const value_type max_dt = 1.0;
 
         // Radau IIA coefficients
@@ -154,6 +153,7 @@ public:
             
             state_type f0(n);
             system(x, f0, t);
+            value_type eps_reg = std::max(1e-12, 1e-3 * dt);
 
             // Initialize stages to previous solution
             for(int i=0; i<3; ++i){

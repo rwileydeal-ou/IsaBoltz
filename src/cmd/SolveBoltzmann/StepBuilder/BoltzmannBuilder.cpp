@@ -135,9 +135,14 @@ ComponentBuilder BoltzmannBuilder::calculate_annihilation_term( const ParticleDa
             if (nEQ1 > 0. && abs( 1. - pow( n1 / nEQ1, 2. )) <= 0.15){
                 return builder;
             }
-            builder.NumberDensityEquation += parent.AnnihilationCrossSection * ( ( pow( nEQ1, 2. ) / n1 ) - n1 ) / ( data_.CurrentPoint.Hubble );
-            long double equilLimit = parent.AnnihilationCrossSection * ( ( pow( nEQ1, 2. ) / n1 ) - n1 ) / ( data_.CurrentPoint.Hubble );
-            long double nonEquilLimit = parent.AnnihilationCrossSection * ( -( pow( nEQ1, 2. ) / n1 ) - n1 ) / ( data_.CurrentPoint.Hubble );
+            long double eqTerm = ( pow( nEQ1, 2. ) / n1 );
+            if (!std::isfinite(eqTerm)){
+                connection_.Log.Warn("Overflow detected in annihilation term");
+                eqTerm = 0.;
+            }
+            builder.NumberDensityEquation += parent.AnnihilationCrossSection * ( eqTerm - n1 ) / ( data_.CurrentPoint.Hubble );
+            long double equilLimit = parent.AnnihilationCrossSection * ( nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
+            long double nonEquilLimit = parent.AnnihilationCrossSection * ( -nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
             double equilCutoff = 0.5;
             double nonEquilCutoff = 0.1;
             if ( nEQ1/n1 >= equilCutoff || data_.CurrentPoint.Temperature > parent.Mass ){
@@ -151,8 +156,8 @@ ComponentBuilder BoltzmannBuilder::calculate_annihilation_term( const ParticleDa
             
 //            builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - parent.AnnihilationCrossSection * ( ( pow( nEQ1, 2. ) / n1 ) - n1 ) / ( data_.CurrentPoint.Hubble );
             // dH / drho? 
-            builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - parent.AnnihilationCrossSection * parent.EnergyDensity * ( ( pow( nEQ1, 2. ) / n1 ) - n1 ) / ( 6. * pow(data_.CurrentPoint.Hubble, 3.) * 5.95e36 );
-            builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - parent.AnnihilationCrossSection * parent.EnergyDensity * ( ( pow( nEQ1, 2. ) / n1 ) - n1 ) / ( 6. * pow(data_.CurrentPoint.Hubble, 3.) * 5.95e36 );
+            builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - parent.AnnihilationCrossSection * parent.EnergyDensity * ( nEQ1 - n1 ) / ( 6. * pow(data_.CurrentPoint.Hubble, 3.) * 5.95e36 );
+            builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - parent.AnnihilationCrossSection * parent.EnergyDensity * ( nEQ1 - n1 ) / ( 6. * pow(data_.CurrentPoint.Hubble, 3.) * 5.95e36 );
         }
     }
 
@@ -189,7 +194,7 @@ ComponentBuilder BoltzmannBuilder::calculate_thermal_particle_decays(const Parti
     double relativisticLimit = parent.TotalWidth * relativisticFactor / hubble;
     double relativisticCutoff = 1.5;
 //    if ( relativisticFactor <= relativisticCutoff ){
-        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += relativisticLimit;
+//        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += relativisticLimit;
 //    } else{
 //        // interpolate between the limits
 //        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += ( relativisticLimit - 0.) / ( relativisticCutoff - 1. ) * ( relativisticFactor - 1. );
@@ -883,20 +888,6 @@ ComponentBuilder BoltzmannBuilder::Build_Particle_Boltzmann_Eqs(const double& t,
                 builder.EnergyDensityJacobian[j] += pressure.EnergyDensityJacobian[j];
             }
         }
-    }
-    for (size_t j = 0; j < builder.NumberDensityJacobian.size(); ++j){
-        if (!std::isfinite( builder.NumberDensityJacobian[j] )){
-            connection_.Log.Warn("Non-finite entry in number density jacobian for particle " + particle.ParticleKey);
-        }
-        if (!std::isfinite( builder.EnergyDensityJacobian[j] )){
-            connection_.Log.Warn("Non-finite entry in energy density jacobian for particle " + particle.ParticleKey);
-        }
-    }
-    if (!std::isfinite( builder.NumberDensityEquation )){
-        connection_.Log.Warn("Non-finite entry in number density eqn for particle " + particle.ParticleKey);
-    }
-    if (!std::isfinite( builder.EnergyDensityEquation )){
-        connection_.Log.Warn("Non-finite entry in energy density eqn for particle " + particle.ParticleKey);
     }
 
     return builder;

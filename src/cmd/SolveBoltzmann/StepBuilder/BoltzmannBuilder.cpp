@@ -142,17 +142,17 @@ ComponentBuilder BoltzmannBuilder::calculate_annihilation_term( const ParticleDa
             }
             builder.NumberDensityEquation += parent.AnnihilationCrossSection * ( eqTerm - n1 ) / ( data_.CurrentPoint.Hubble );
             long double equilLimit = parent.AnnihilationCrossSection * ( nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
-            long double nonEquilLimit = parent.AnnihilationCrossSection * ( -nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
-            double equilCutoff = 0.5;
-            double nonEquilCutoff = 0.1;
-            if ( nEQ1/n1 >= equilCutoff || data_.CurrentPoint.Temperature > parent.Mass ){
+//            long double nonEquilLimit = parent.AnnihilationCrossSection * ( -nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
+//            double equilCutoff = 0.5;
+//            double nonEquilCutoff = 0.1;
+//            if ( nEQ1/n1 >= equilCutoff || data_.CurrentPoint.Temperature > parent.Mass ){
                 builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += equilLimit;
-            } else if ( nEQ1/n1 >= nonEquilCutoff && nEQ1/n1 < equilCutoff ){
+//            } else if ( nEQ1/n1 >= nonEquilCutoff && nEQ1/n1 < equilCutoff ){
                 // interpolate between the limits
-                builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += ( equilLimit - nonEquilLimit) / ( equilCutoff - nonEquilCutoff ) * ( nEQ1/n1 - nonEquilCutoff ) + nonEquilLimit;
-            } else{
-                builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += nonEquilLimit;
-            }
+//                builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += ( equilLimit - nonEquilLimit) / ( equilCutoff - nonEquilCutoff ) * ( nEQ1/n1 - nonEquilCutoff ) + nonEquilLimit;
+//            } else{
+//                builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += nonEquilLimit;
+//            }
             
 //            builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - parent.AnnihilationCrossSection * ( ( pow( nEQ1, 2. ) / n1 ) - n1 ) / ( data_.CurrentPoint.Hubble );
             // dH / drho? 

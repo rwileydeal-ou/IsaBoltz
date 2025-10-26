@@ -141,7 +141,7 @@ ComponentBuilder BoltzmannBuilder::calculate_annihilation_term( const ParticleDa
                 eqTerm = 0.;
             }
             builder.NumberDensityEquation += parent.AnnihilationCrossSection * ( eqTerm - n1 ) / ( data_.CurrentPoint.Hubble );
-            long double equilLimit = parent.AnnihilationCrossSection * ( nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
+            long double equilLimit = parent.AnnihilationCrossSection * ( eqTerm - n1 ) / ( data_.CurrentPoint.Hubble );
 //            long double nonEquilLimit = parent.AnnihilationCrossSection * ( -nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
 //            double equilCutoff = 0.5;
 //            double nonEquilCutoff = 0.1;

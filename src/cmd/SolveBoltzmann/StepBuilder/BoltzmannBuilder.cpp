@@ -58,7 +58,7 @@ double BoltzmannBuilder::getPN(double r, double m){
 // This method builds the contribution from a particle to the entropy Boltzmann equation, d(log(S/S0))/dx
 // See e.g. arXiv 1406.4138 Eq. 2.8 (recast from dS/dt -> d(log(S/S0))/dx)
 ComponentBuilder BoltzmannBuilder::calculate_particle_entropy(const double& t, const ParticleData& particle, const ParticleData& rad){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     
     long double widthXmass = Br(particle, rad) * particle.TotalWidth * particle.Mass;
 
@@ -92,7 +92,7 @@ ComponentBuilder BoltzmannBuilder::calculate_particle_entropy(const double& t, c
 
 // This method computes the "hubble dilution" term in the number density equation
 ComponentBuilder BoltzmannBuilder::calculate_hubble_contribution(const ParticleData &particle){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     // This is the Hubble expansion term (dividing by n_i H)
     builder.NumberDensityEquation = -3.; 
     return builder;
@@ -100,7 +100,7 @@ ComponentBuilder BoltzmannBuilder::calculate_hubble_contribution(const ParticleD
 
 // This method computes the "pressure" term in the energy density equation
 ComponentBuilder BoltzmannBuilder::calculate_pressure_term(const ParticleData& parent){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     long double rhoN1 = parent.EnergyDensity / parent.NumberDensity;
 
     // This is first term on RHS in e.g. Eq 2.6 from arXiv 1406.4138
@@ -115,65 +115,55 @@ ComponentBuilder BoltzmannBuilder::calculate_pressure_term(const ParticleData& p
 
 // This method builds the contribution from the annihilation terms from the specified particle
 ComponentBuilder BoltzmannBuilder::calculate_annihilation_term( const ParticleData& parent, const ParticleData& rad ){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     long double n1 = parent.NumberDensity;
     long double nEQ1 = parent.EquilibriumNumberDensity;
+    long double nRegularizer = 1e-100L;  // regularization constant
+    long double nRatio = n1 / (nEQ1 + nRegularizer);
+    long double sigma_damp = 2.L;  // tuning parameter for damping term
+    long double damp = 1.0L - expl(-pow( fabsl(logl(nRatio)) / sigma_damp, 2.0L));
+
 
     // We put this approximation in since this term is an attractor
     // Very noisy and lengthy if approximation isn't in, but final results are identical
-    if (abs(n1 / nEQ1 - 1.) > 0.01 || nEQ1 == 0.){
-        if ( parent.ParticleKey == "axion" || parent.ParticleKey == "saxion" || parent.ParticleKey == "axino" ){
-            // for the PQ sector, have <sig.v>_{ij} dominated by i != j, and j can be treated as radiation 
-            // we also divide by g_{*S} here, since the radiation number density involves all g_{*S} DOF, but the annihilation cross section only involves ~1 DOF
-            if (nEQ1 > 0. && abs( 1. - pow( n1 / nEQ1, 2. )) <= 0.15){
-                return builder;
-            }
-            builder.NumberDensityEquation += parent.AnnihilationCrossSection * rad.NumberDensity * ( ( nEQ1 / n1 ) - 1. ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.GStarEntropic );
-            builder.NumberDensityJacobian[ 2 * rad.EqnIndex ] += parent.AnnihilationCrossSection * rad.NumberDensity * ( ( nEQ1 / n1 ) - 1. ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.GStarEntropic );
-            builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - parent.AnnihilationCrossSection * rad.NumberDensity * ( ( nEQ1 / n1 ) - 1. ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.GStarEntropic );
-        } else{
-            long double tiny = 1e-100L;  // regularization constant
+    if ( parent.ParticleKey == "axion" || parent.ParticleKey == "saxion" || parent.ParticleKey == "axino" ){
+        // for the PQ sector, have <sig.v>_{ij} dominated by i != j, and j can be treated as radiation 
+        // we also divide by g_{*S} here, since the radiation number density involves all g_{*S} DOF, but the annihilation cross section only involves ~1 DOF
+        long double annihilationTerm = parent.AnnihilationCrossSection * rad.NumberDensity * ( ( nEQ1 / n1 ) - 1. ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.GStarEntropic );
+        long double jacobianTerm = parent.AnnihilationCrossSection * rad.NumberDensity * ( ( nEQ1 / n1 ) - 1. ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.GStarEntropic );
+        builder.NumberDensityEquation += annihilationTerm * damp;
+        builder.NumberDensityJacobian[ 2 * rad.EqnIndex ] += jacobianTerm * damp;
+        builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - jacobianTerm * damp;
+    } else{
+        // Regularized eqTerm
+        long double eqTerm = (nEQ1 * nEQ1) / (n1 + nRegularizer);
 
-            // Compute ratio safely
-            long double ratio = n1 / (nEQ1 + tiny);
+        // Main annihilation term
+        long double annihilationTerm = parent.AnnihilationCrossSection * (eqTerm - n1) / (data_.CurrentPoint.Hubble);
 
-            // Regularized eqTerm
-            long double eqTerm = (nEQ1 * nEQ1) / (n1 + tiny);
+        // Smooth transition between regimes
+        long double equilCutoff = 0.5L;
+        long double nonEquilCutoff = 0.1L;
+        long double k_smooth = 20.0L;  // controls how sharp the transition is
 
-            // Main annihilation term
-            long double rhs_term = parent.AnnihilationCrossSection * (eqTerm - n1) / (data_.CurrentPoint.Hubble);
+        long double w_equil = 1./(1. + expl(-k_smooth) * ( nRatio - equilCutoff ));
+        long double w_nonEquil = 1./(1. + expl(-k_smooth) * ( nRatio - nonEquilCutoff ));
+        long double w = w_nonEquil * (1.0L - w_equil);  // middle transition window
 
-            // Smooth transition between regimes
-            long double equilCutoff = 0.5L;
-            long double nonEquilCutoff = 0.1L;
-            long double k_smooth = 20.0L;  // controls how sharp the transition is
+        // Equilibrium and non-equilibrium limits
+        long double equilLimit    = parent.AnnihilationCrossSection * ( nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
+        long double nonEquilLimit = parent.AnnihilationCrossSection * ( -eqTerm - n1 ) / ( data_.CurrentPoint.Hubble );
 
-            long double w_equil = 1./(1. + expl(-k_smooth) * ( ratio - equilCutoff ));
-            long double w_nonEquil = 1./(1. + expl(-k_smooth) * ( ratio - nonEquilCutoff ));
-            long double w = w_nonEquil * (1.0L - w_equil);  // middle transition window
+        // Smoothly blend the Jacobian contribution
+        long double jacobianTerm =
+            (1.0L - w_nonEquil) * nonEquilLimit
+            + w * (0.5L * (equilLimit + nonEquilLimit))
+            + w_equil * equilLimit;
 
-            // Equilibrium and non-equilibrium limits
-            long double equilLimit    = parent.AnnihilationCrossSection * ( nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
-            long double nonEquilLimit = parent.AnnihilationCrossSection * ( -eqTerm - n1 ) / ( data_.CurrentPoint.Hubble );
-
-            // Smoothly blend the Jacobian contribution
-            long double J_term =
-                (1.0L - w_nonEquil) * nonEquilLimit
-                + w * (0.5L * (equilLimit + nonEquilLimit))
-                + w_equil * equilLimit;
-
-            // Build final contributions
-            long double dev = fabsl(1.0L - pow(ratio, 2.0L));
-            long double damp = 1. - exp(-pow(dev / 5.L, 2.0L));  // Gaussian smoothing
-            builder.NumberDensityEquation += rhs_term * damp;
-            builder.NumberDensityJacobian[2 * parent.EqnIndex] += J_term * damp;
-
-            
-//            builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - parent.AnnihilationCrossSection * ( ( pow( nEQ1, 2. ) / n1 ) - n1 ) / ( data_.CurrentPoint.Hubble );
-            // dH / drho? 
-//            builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - parent.AnnihilationCrossSection * parent.EnergyDensity * ( eqTerm - n1 ) / ( 6. * pow(data_.CurrentPoint.Hubble, 3.) * 5.95e36 );
-//            builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - parent.AnnihilationCrossSection * parent.EnergyDensity * ( eqTerm - n1 ) / ( 6. * pow(data_.CurrentPoint.Hubble, 3.) * 5.95e36 );
-        }
+        // Build final contributions
+        builder.NumberDensityEquation += annihilationTerm * damp;
+        builder.NumberDensityJacobian[2 * parent.EqnIndex] += jacobianTerm * damp;
+        
     }
 
     return builder;
@@ -181,7 +171,7 @@ ComponentBuilder BoltzmannBuilder::calculate_annihilation_term( const ParticleDa
 
 // This method calculates the decay terms from the specified parent 
 ComponentBuilder BoltzmannBuilder::calculate_decay_terms(const ParticleData& parent){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     if (parent.ProductionMechanism == ParticleProductionMechanism::COHERENT_OSCILLATION){
         builder = calculate_cohOsc_field_decay(parent, data_.CurrentPoint.Hubble);
     } else if (parent.ProductionMechanism == ParticleProductionMechanism::THERMAL){
@@ -193,7 +183,7 @@ ComponentBuilder BoltzmannBuilder::calculate_decay_terms(const ParticleData& par
 // This method is a helper function to calculate the decays of thermally produced particles
 // called in the calculate_decay_terms method for the appropriate parent types
 ComponentBuilder BoltzmannBuilder::calculate_thermal_particle_decays(const ParticleData& parent, const long double& hubble ){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     double relativisticFactor = parent.Mass * parent.NumberDensity / parent.EnergyDensity;
     if (parent.EnergyDensity == 0.){
         relativisticFactor = 1.;
@@ -222,7 +212,7 @@ ComponentBuilder BoltzmannBuilder::calculate_thermal_particle_decays(const Parti
 }
 
 ComponentBuilder BoltzmannBuilder::calculate_inverse_decay(const ParticleData& parent, const ParticleData& daughter, const long double& hubble){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     long double nRatioDaughters = 0.;
     
     if ( daughter.ProductionMechanism == ParticleProductionMechanism::THERMAL ){
@@ -277,7 +267,7 @@ ComponentBuilder BoltzmannBuilder::calculate_inverse_decay(const ParticleData& p
 // This method is a helper function to calculate the decays of coherently oscillating fields
 // called in the calculate_decay_terms method for the appropriate parent types
 ComponentBuilder BoltzmannBuilder::calculate_cohOsc_field_decay(const ParticleData& parent, const long double& hubble ){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     // For coh. osc. fields, have normal decay piece, but no inverse decays
     // This is then just the Gamma*mass*n / rho*H term, but rho=n*m
     builder.NumberDensityEquation += - parent.TotalWidth / hubble;
@@ -290,7 +280,7 @@ ComponentBuilder BoltzmannBuilder::calculate_cohOsc_field_decay(const ParticleDa
 // This method computes the "injection" terms in number & energy density eqns 
 // i.e. for species "i", decay of "a" produces "i" - applies only to thermal/radiation-type species "i"
 ComponentBuilder BoltzmannBuilder::calculate_injection_terms(const ParticleData& parent){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
 
     // injection contribution
     for (auto& daughter : data_.ParticleDatas){
@@ -328,7 +318,7 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_terms(const ParticleData&
 // THE CONVENTION IN THIS METHOD IS WEIRD, HAVE THE DAUGHTER DECAY INTO PARENT...
 // TODO: SHOULD REDO THIS SO LESS CONFUSING...
 ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const ParticleData& parent, const ParticleData& daughter, const long double& hubble){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     long double n1 = parent.NumberDensity;
     long double rhoN1 = parent.EnergyDensity / parent.NumberDensity;
     long double n2 = daughter.NumberDensity;
@@ -822,7 +812,7 @@ double BoltzmannBuilder::Br(const ParticleData& parent, const ParticleData& daug
 // This method assembles a particle's number density and energy density Boltzmann equations
 // This method also adds the particle's contribution to the entropy equation
 ComponentBuilder BoltzmannBuilder::Build_Particle_Boltzmann_Eqs(const double& t, const ParticleData &particle, const ParticleData &rad){
-    ComponentBuilder builder( 2. * data_.ParticleDatas.size() );
+    ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     builder.EvolutionId = particle.ParticleEvolutionId;
     // also if not active (already decayed, or coh. osc. modes not oscillating), don't calculate equations
     // for coh. osc. modes, densities are frozen until start oscillating

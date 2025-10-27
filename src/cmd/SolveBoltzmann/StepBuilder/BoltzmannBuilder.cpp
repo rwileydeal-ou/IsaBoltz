@@ -132,28 +132,41 @@ ComponentBuilder BoltzmannBuilder::calculate_annihilation_term( const ParticleDa
             builder.NumberDensityJacobian[ 2 * rad.EqnIndex ] += parent.AnnihilationCrossSection * rad.NumberDensity * ( ( nEQ1 / n1 ) - 1. ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.GStarEntropic );
             builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - parent.AnnihilationCrossSection * rad.NumberDensity * ( ( nEQ1 / n1 ) - 1. ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.GStarEntropic );
         } else{
-            if (nEQ1 > 0. && abs( 1. - pow( n1 / nEQ1, 2. )) <= 0.15){
-                return builder;
-            }
-            long double eqTerm = ( pow( nEQ1, 2. ) / n1 );
-            if (!std::isfinite(eqTerm)){
-                connection_.Log.Warn("Overflow detected in annihilation term");
-                eqTerm = 0.;
-            }
-            builder.NumberDensityEquation += parent.AnnihilationCrossSection * ( eqTerm - n1 ) / ( data_.CurrentPoint.Hubble );
+            long double tiny = 1e-100L;  // regularization constant
 
-            long double equilLimit = parent.AnnihilationCrossSection * ( nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
+            // Compute ratio safely
+            long double ratio = n1 / (nEQ1 + tiny);
+
+            // Regularized eqTerm
+            long double eqTerm = (nEQ1 * nEQ1) / (n1 + tiny);
+
+            // Main annihilation term
+            long double rhs_term = parent.AnnihilationCrossSection * (eqTerm - n1) / (data_.CurrentPoint.Hubble);
+
+            // Smooth transition between regimes
+            long double equilCutoff = 0.5L;
+            long double nonEquilCutoff = 0.1L;
+            long double k_smooth = 20.0L;  // controls how sharp the transition is
+
+            long double w_equil = 1./(1. + expl(-k_smooth) * ( ratio - equilCutoff ));
+            long double w_nonEquil = 1./(1. + expl(-k_smooth) * ( ratio - nonEquilCutoff ));
+            long double w = w_nonEquil * (1.0L - w_equil);  // middle transition window
+
+            // Equilibrium and non-equilibrium limits
+            long double equilLimit    = parent.AnnihilationCrossSection * ( nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
             long double nonEquilLimit = parent.AnnihilationCrossSection * ( -eqTerm - n1 ) / ( data_.CurrentPoint.Hubble );
-            double equilCutoff = 0.5;
-            double nonEquilCutoff = 0.1;
-            if ( nEQ1/n1 >= equilCutoff || data_.CurrentPoint.Temperature > parent.Mass ){
-                builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += equilLimit;
-            } else if ( nEQ1/n1 >= nonEquilCutoff && nEQ1/n1 < equilCutoff ){
-                // interpolate between the limits
-                builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += ( equilLimit - nonEquilLimit) / ( equilCutoff - nonEquilCutoff ) * ( nEQ1/n1 - nonEquilCutoff ) + nonEquilLimit;
-            } else{
-                builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += nonEquilLimit;
-            }
+
+            // Smoothly blend the Jacobian contribution
+            long double J_term =
+                (1.0L - w_nonEquil) * nonEquilLimit
+                + w * (0.5L * (equilLimit + nonEquilLimit))
+                + w_equil * equilLimit;
+
+            // Build final contributions
+            long double dev = fabsl(1.0L - pow(ratio, 2.0L));
+            long double damp = 1. - exp(-pow(dev / 5.L, 2.0L));  // Gaussian smoothing
+            builder.NumberDensityEquation += rhs_term * damp;
+            builder.NumberDensityJacobian[2 * parent.EqnIndex] += J_term * damp;
 
             
 //            builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - parent.AnnihilationCrossSection * ( ( pow( nEQ1, 2. ) / n1 ) - n1 ) / ( data_.CurrentPoint.Hubble );

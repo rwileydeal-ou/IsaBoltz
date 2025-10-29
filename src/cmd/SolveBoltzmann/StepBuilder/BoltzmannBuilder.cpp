@@ -395,7 +395,7 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const Partic
         double relativisticCutoff = 0.5;
 //        double daughterRelativisticFactor = daughter.Mass * daughter.NumberDensity / daughter.EnergyDensity;
         double parentRelativisticFactor = parent.Mass * parent.NumberDensity / ( parent.EnergyDensity + nRegularizer_ );
-        double sigma = 50.;
+        double sigma = 100.;
         double dampFactor = ( expl( - sigma * pow( parentRelativisticFactor, 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) );
         
 //        if ( parentRelativisticFactor <= relativisticCutoff ){

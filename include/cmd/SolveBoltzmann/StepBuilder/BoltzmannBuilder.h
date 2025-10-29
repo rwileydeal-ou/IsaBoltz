@@ -40,6 +40,8 @@ private:
     const BoltzmannData& data_;
     DbManager db_;
 
+    long double nRegularizer_ = 1e-100L;
+
     template <typename T>
     static T handleOverflow(T input, Logger& logger);
     double getPN(double r, double m);

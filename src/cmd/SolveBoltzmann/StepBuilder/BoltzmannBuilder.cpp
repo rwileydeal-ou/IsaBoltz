@@ -150,7 +150,7 @@ ComponentBuilder BoltzmannBuilder::calculate_annihilation_term( const ParticleDa
         long double w = w_nonEquil * (1.0L - w_equil);  // middle transition window
 
         // Equilibrium and non-equilibrium limits
-        long double equilLimit    = parent.AnnihilationCrossSection * ( nEQ1 - n1 ) / ( data_.CurrentPoint.Hubble );
+        long double equilLimit    = parent.AnnihilationCrossSection * ( eqTerm - n1 ) / ( data_.CurrentPoint.Hubble );
         long double nonEquilLimit = parent.AnnihilationCrossSection * ( -eqTerm - n1 ) / ( data_.CurrentPoint.Hubble );
 
         // Smoothly blend the Jacobian contribution
@@ -385,37 +385,41 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const Partic
         builder.NumberDensityEquation += widthXmass2 * n2 / ( hubble * rhoN2 * ( n1 + nRegularizer_ ) );
         builder.EnergyDensityEquation += widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
 
+        double relativisticCutoff = 0.5;
+        double daughterRelativisticFactor = daughter.Mass * daughter.NumberDensity / daughter.EnergyDensity;
+        double parentRelativisticFactor = parent.Mass * parent.NumberDensity / ( parent.EnergyDensity + nRegularizer_ );
+        double sigma = 1.;
+        double dampFactor = std::max(0.L, ( expl( - sigma * pow( 0.5 - rhoN1 / rhoN2, 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) ) );
+        double dampFactor2 = ( expl( - sigma * pow( parentRelativisticFactor, 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) );
+        double dampFactor3 = ( expl( - sigma * pow( daughterRelativisticFactor, 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) );
+
         builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * n2 / ( hubble * rhoN2 * ( n1 + nRegularizer_ ) );
         builder.NumberDensityJacobian[ 2 * daughter.EqnIndex ] += widthXmass2 * n2 / ( hubble * rhoN2 * ( n1 + nRegularizer_ ) );
         // this term is only significant until the particle becomes non-relativistic, after which it goes to zero
-        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * n2 / ( hubble * rhoN2 * ( n1 + nRegularizer_ ) );
+        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * n2 / ( hubble * rhoN2 * ( n1 + nRegularizer_ ) ) * dampFactor3;
+
         double relativisticDGDN = widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
         double relativisticDG2DN = - widthXmass2 * n2 * 0.5 / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
         double relativisticDG3DN = widthXmass2 * n2 * ( rhoN1 / rhoN2 ) / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
-        double relativisticCutoff = 0.5;
-//        double daughterRelativisticFactor = daughter.Mass * daughter.NumberDensity / daughter.EnergyDensity;
-        double parentRelativisticFactor = parent.Mass * parent.NumberDensity / ( parent.EnergyDensity + nRegularizer_ );
-        double sigma = 100.;
-        double dampFactor = ( expl( - sigma * pow( parentRelativisticFactor, 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) );
         
 //        if ( parentRelativisticFactor <= relativisticCutoff ){
             builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += - relativisticDGDN * dampFactor;
-            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += relativisticDGDN * dampFactor;
+            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += relativisticDGDN * dampFactor * dampFactor2;
             builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += relativisticDG2DN * dampFactor;
-            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += relativisticDG3DN * dampFactor;
+            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += relativisticDG3DN * dampFactor * dampFactor2 * dampFactor3;
 //        }
 
         // dH / drho term may affect things (?)
         builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * n2 * parent.Mass / ( 6. * pow(hubble, 3.) * daughter.Mass * 5.95e36 );
-        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - widthXmass2 * n2 * parent.Mass / ( 6. * pow(hubble, 3.) * daughter.Mass * 5.95e36 );
+        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - widthXmass2 * n2 * parent.Mass / ( 6. * pow(hubble, 3.) * daughter.Mass * 5.95e36 ) * dampFactor2;
         builder.NumberDensityJacobian[ 2 * daughter.EqnIndex ] += - widthXmass2 * n2 * daughter.EnergyDensity / ( 6. * pow(hubble, 3.) * daughter.Mass * ( n1 + nRegularizer_ ) * 5.95e36 );
-        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * n2 * daughter.EnergyDensity / ( 6. * pow(hubble, 3.) * daughter.Mass * ( n1 + nRegularizer_ ) * 5.95e36 );
+        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * n2 * daughter.EnergyDensity / ( 6. * pow(hubble, 3.) * daughter.Mass * ( n1 + nRegularizer_ ) * 5.95e36 ) * dampFactor2 * dampFactor3;
 //        if ( parentRelativisticFactor <= relativisticCutoff ){
         double baseJacobianHubble = widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( 6. * pow(hubble, 3.) * 5.95e36 );
             builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += - baseJacobianHubble * dampFactor;
-            builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - baseJacobianHubble * dampFactor;
+            builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - baseJacobianHubble * dampFactor * dampFactor2;
             builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += - baseJacobianHubble * daughter.EnergyDensity / ( parent.EnergyDensity + nRegularizer_ ) * dampFactor;
-            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - baseJacobianHubble * daughter.EnergyDensity / ( parent.EnergyDensity + nRegularizer_ ) * dampFactor;
+            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - baseJacobianHubble * daughter.EnergyDensity / ( parent.EnergyDensity + nRegularizer_ ) * dampFactor * dampFactor2 * dampFactor3;
 //        }
     }
 

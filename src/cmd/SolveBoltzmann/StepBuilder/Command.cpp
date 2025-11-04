@@ -566,15 +566,15 @@ void BoltzmannStepBuilderCommand::addComponents(){
         dxdt_[0] += builder.EntropyEquation;
         jac_( 0, 0 ) += builder.EntropyJacobian[0];
         jac_( 0, 2*i-1 ) = builder.EntropyJacobian[2*i];
-        jac_( 0, 2*i ) = builder.EntropyJacobian[2*i+1];
+        jac_( 0, 2*i ) = builder.EntropyJacobian[ 2*i + 1 ];
 
         // note: jacobian for (i, 0) is always 0
 
         for (size_t j = 1; j < currentParticleData_.size(); ++j){
-            jac_( 2*i - 1, 2*j - 1 ) = builder.NumberDensityJacobian[ 2*j - 1 ];
-            jac_( 2*i - 1, 2*j ) = builder.NumberDensityJacobian[ 2*j ];
-            jac_( 2*i, 2*j - 1 ) = builder.EnergyDensityJacobian[ 2*j - 1 ];
-            jac_( 2*i, 2*j ) = builder.EnergyDensityJacobian[ 2*j ];
+            jac_( 2*i - 1, 2*j - 1 ) = builder.NumberDensityJacobian[ 2*j ];
+            jac_( 2*i - 1, 2*j ) = builder.NumberDensityJacobian[ 2*j + 1 ];
+            jac_( 2*i, 2*j - 1 ) = builder.EnergyDensityJacobian[ 2*j ];
+            jac_( 2*i, 2*j ) = builder.EnergyDensityJacobian[ 2*j + 1 ];
         }
 
         i++;
@@ -685,6 +685,7 @@ void BoltzmannStepBuilderCommand::cleanScaleFactorData(){
 }
 
 void BoltzmannStepBuilderCommand::cleanParticleData(){
+    connection_.Log.Info("Size of particle data: " + to_string( sqlDataToPost_.ParticleDatas.size() ));
     sqlDataToPost_.ParticleDatas.erase( 
         std::remove_if(
             sqlDataToPost_.ParticleDatas.begin(),

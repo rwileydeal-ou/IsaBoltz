@@ -119,8 +119,18 @@ ComponentBuilder BoltzmannBuilder::calculate_annihilation_term( const ParticleDa
     long double n1 = parent.NumberDensity;
     long double nEQ1 = parent.EquilibriumNumberDensity;
     long double nRatio = n1 / (nEQ1 + nRegularizer_);
-    long double sigma_damp = 2.L;  // tuning parameter for damping term
-    long double damp = 1.0L - expl(-pow( fabsl(logl(nRatio)) / sigma_damp, 2.0L));
+
+    long double eps_damp = 0L;//1e-7L;
+    long double p = 8.0L;              // smoothness exponent
+    long double sigma_damp = 0.15L;    // fractional width around equilibrium
+
+    long double x = fabsl(nRatio - 1.0L) / sigma_damp;
+
+    long double damp = eps_damp + (1.0L - eps_damp) * (1.0L - expl(-powl(x, p)));
+
+
+//    long double sigma_damp = 20.L;  // tuning parameter for damping term
+//    long double damp = 1.0L - expl(-pow( fabsl(logl(nRatio)) / sigma_damp, 2.0L));
 
 
     // We put this approximation in since this term is an attractor
@@ -191,8 +201,13 @@ ComponentBuilder BoltzmannBuilder::calculate_thermal_particle_decays(const Parti
     // This is just the Gamma*mass*n/rho*H term
     builder.NumberDensityEquation += - parent.TotalWidth * relativisticFactor / hubble;
     
-    builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += parent.TotalWidth * parent.EnergyDensity /  (6. * pow(hubble, 3.) * 5.95e36 ) ; 
-    builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += parent.TotalWidth * parent.EnergyDensity /  (6. * pow(hubble, 3.) * 5.95e36 ) ; 
+    double sigma = 200.;
+    double dampFactor = expl( - sigma * pow( relativisticFactor, 2. ) );
+//    builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += parent.TotalWidth * relativisticFactor * dampFactor / hubble;
+//    builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += parent.TotalWidth * relativisticFactor * dampFactor / hubble;
+
+//    builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += parent.TotalWidth * parent.Mass * parent.NumberDensity /  (6. * pow(hubble, 3.) * 5.95e36 ) ; 
+//    builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += parent.TotalWidth * parent.Mass * parent.NumberDensity /  (6. * pow(hubble, 3.) * 5.95e36 ) * dampFactor; 
      
     // These are inverse decay contributions
     for ( auto& daughter : data_.ParticleDatas ){
@@ -270,8 +285,8 @@ ComponentBuilder BoltzmannBuilder::calculate_cohOsc_field_decay(const ParticleDa
     // For coh. osc. fields, have normal decay piece, but no inverse decays
     // This is then just the Gamma*mass*n / rho*H term, but rho=n*m
     builder.NumberDensityEquation += - parent.TotalWidth / hubble;
-    builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += parent.TotalWidth * parent.EnergyDensity /  (6. * pow(hubble, 3.) * 5.95e36 ) ; 
-    builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += parent.TotalWidth * parent.EnergyDensity /  (6. * pow(hubble, 3.) * 5.95e36 ) ; 
+//    builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += parent.TotalWidth * parent.EnergyDensity /  (6. * pow(hubble, 3.) * 5.95e36 ) ; 
+//    builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += parent.TotalWidth * parent.EnergyDensity /  (6. * pow(hubble, 3.) * 5.95e36 ) ; 
 
     return builder;
 }
@@ -382,45 +397,48 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const Partic
     } else{
         // these are the cases where neq = 0, so no "inverse decay" injections
         // applies to coh. osc. fields, and to fields with neq=0 -> effectively "frozen out" so inverse injection should be negligible
-        builder.NumberDensityEquation += widthXmass2 * n2 / ( hubble * rhoN2 * ( n1 + nRegularizer_ ) );
-        builder.EnergyDensityEquation += widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
 
-        double relativisticCutoff = 0.5;
-        double daughterRelativisticFactor = daughter.Mass * daughter.NumberDensity / daughter.EnergyDensity;
+        double nEOM = widthXmass2 * n2 / ( hubble * rhoN2 * ( n1 + nRegularizer_ ) );
+        double rhoEOM = widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
+        builder.NumberDensityEquation += nEOM;
+        builder.EnergyDensityEquation += rhoEOM;
+
+        double daughterRelativisticFactor = daughter.Mass * daughter.NumberDensity / ( daughter.EnergyDensity + nRegularizer_ );
         double parentRelativisticFactor = parent.Mass * parent.NumberDensity / ( parent.EnergyDensity + nRegularizer_ );
-        double sigma = 1.;
-        double dampFactor = std::max(0.L, ( expl( - sigma * pow( 0.5 - rhoN1 / rhoN2, 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) ) );
-        double dampFactor2 = ( expl( - sigma * pow( parentRelativisticFactor, 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) );
-        double dampFactor3 = ( expl( - sigma * pow( daughterRelativisticFactor, 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) );
 
-        builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * n2 / ( hubble * rhoN2 * ( n1 + nRegularizer_ ) );
-        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex ] += widthXmass2 * n2 / ( hubble * rhoN2 * ( n1 + nRegularizer_ ) );
+        double sigma = 200.;
+        double dampFactor = ( 1. - expl( - sigma * pow( 0.5 - rhoN1 / rhoN2, 2. ) ) ) / ( 1. - expl( - sigma * 0.25 ) );
+        double dampFactor2 = ( expl( - sigma * pow( std::min(parentRelativisticFactor, 1.), 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) );
+        double dampFactor3 = ( expl( - sigma * pow( std::min(daughterRelativisticFactor, 1.), 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) );
+        if (daughter.ProductionMechanism == ParticleProductionMechanism::COHERENT_OSCILLATION){
+            dampFactor3 = 0.;
+        }
+
+        builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - nEOM;
+        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex ] += nEOM;
         // this term is only significant until the particle becomes non-relativistic, after which it goes to zero
-        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * n2 / ( hubble * rhoN2 * ( n1 + nRegularizer_ ) ) * dampFactor3;
+//        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - nEOM * dampFactor3;
 
-        double relativisticDGDN = widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
+        double relativisticDGDN = rhoEOM;
         double relativisticDG2DN = - widthXmass2 * n2 * 0.5 / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
         double relativisticDG3DN = widthXmass2 * n2 * ( rhoN1 / rhoN2 ) / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
         
-//        if ( parentRelativisticFactor <= relativisticCutoff ){
-            builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += - relativisticDGDN * dampFactor;
-            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += relativisticDGDN * dampFactor * dampFactor2;
-            builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += relativisticDG2DN * dampFactor;
-            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += relativisticDG3DN * dampFactor * dampFactor2 * dampFactor3;
-//        }
+        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += - relativisticDGDN * dampFactor;
+        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += relativisticDGDN * dampFactor * dampFactor2;
+        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += relativisticDG2DN * dampFactor;
+        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += relativisticDG3DN * dampFactor * dampFactor2 * dampFactor3;
 
-        // dH / drho term may affect things (?)
-        builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * n2 * parent.Mass / ( 6. * pow(hubble, 3.) * daughter.Mass * 5.95e36 );
-        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - widthXmass2 * n2 * parent.Mass / ( 6. * pow(hubble, 3.) * daughter.Mass * 5.95e36 ) * dampFactor2;
-        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex ] += - widthXmass2 * n2 * daughter.EnergyDensity / ( 6. * pow(hubble, 3.) * daughter.Mass * ( n1 + nRegularizer_ ) * 5.95e36 );
-        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * n2 * daughter.EnergyDensity / ( 6. * pow(hubble, 3.) * daughter.Mass * ( n1 + nRegularizer_ ) * 5.95e36 ) * dampFactor2 * dampFactor3;
-//        if ( parentRelativisticFactor <= relativisticCutoff ){
+        // here are dH / drho terms
+//        builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - widthXmass2 * n2 * parent.Mass / ( 6. * pow(hubble, 3.) * daughter.Mass * 5.95e36 );
+//        builder.NumberDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - widthXmass2 * n2 * parent.Mass / ( 6. * pow(hubble, 3.) * daughter.Mass * 5.95e36 ) * dampFactor2;
+//        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex ] += - widthXmass2 * n2 * daughter.EnergyDensity / ( 6. * pow(hubble, 3.) * daughter.Mass * ( n1 + nRegularizer_ ) * 5.95e36 );
+//        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * n2 * daughter.EnergyDensity / ( 6. * pow(hubble, 3.) * daughter.Mass * ( n1 + nRegularizer_ ) * 5.95e36 ) * dampFactor2 * dampFactor3;
+
         double baseJacobianHubble = widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( 6. * pow(hubble, 3.) * 5.95e36 );
-            builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += - baseJacobianHubble * dampFactor;
-            builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - baseJacobianHubble * dampFactor * dampFactor2;
-            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += - baseJacobianHubble * daughter.EnergyDensity / ( parent.EnergyDensity + nRegularizer_ ) * dampFactor;
-            builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - baseJacobianHubble * daughter.EnergyDensity / ( parent.EnergyDensity + nRegularizer_ ) * dampFactor * dampFactor2 * dampFactor3;
-//        }
+//        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += - baseJacobianHubble * dampFactor;
+//        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - baseJacobianHubble * dampFactor * dampFactor2;
+//        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += - baseJacobianHubble * daughter.EnergyDensity / ( parent.EnergyDensity + nRegularizer_ ) * dampFactor;
+//        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - baseJacobianHubble * daughter.EnergyDensity / ( parent.EnergyDensity + nRegularizer_ ) * dampFactor * dampFactor2 * dampFactor3;
     }
 
     return builder;

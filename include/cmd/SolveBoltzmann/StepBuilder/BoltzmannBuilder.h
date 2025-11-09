@@ -2,6 +2,7 @@
 #define BoltzmannBuilder_h
 
 #include <deque>
+#include <unordered_map>
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/pool/pool_alloc.hpp>
 #include <Models/ScaleFactor.h>
@@ -41,6 +42,11 @@ private:
     DbManager db_;
 
     long double nRegularizer_ = 1e-100L;
+    mutable std::unordered_map<
+        boost::uuids::uuid,
+        Models::Particle,
+        boost::hash<boost::uuids::uuid>
+    > particleCache_;
 
     template <typename T>
     static T handleOverflow(T input, Logger& logger);
@@ -73,7 +79,7 @@ private:
 
     ComponentBuilder calculate_particle_entropy(const double& t, const ParticleData& particle, const ParticleData& rad);
 
-    Models::Particle pullParticle( boost::uuids::uuid particleId );
+    const Models::Particle& pullParticle( const boost::uuids::uuid& particleId );
 public:
     ComponentBuilder Build_Particle_Boltzmann_Eqs(const double& t, const ParticleData& particle, const ParticleData &rad);
     BoltzmannBuilder( Connection& connection, const BoltzmannData& data );

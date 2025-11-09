@@ -444,40 +444,48 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const Partic
     return builder;
 }
 
-Models::Particle BoltzmannBuilder::pullParticle( boost::uuids::uuid particleId ){
-    auto r = std::find_if( 
-        data_.Particles.begin(), data_.Particles.end(), 
-        [&particleId, this](const Models::Particle& part){ 
-            return part.Id == particleId; 
-        } 
-    );
-
-    if (r != data_.Particles.end()){
-        return *r;
+const Models::Particle& BoltzmannBuilder::pullParticle(const boost::uuids::uuid& particleId) {
+    // ---- 1. Check in-memory cache ----
+    auto it = particleCache_.find(particleId);
+    if (it != particleCache_.end()) {
+        return it->second;
     }
 
+    // ---- 2. Search in already-loaded particles ----
+    auto r = std::find_if(
+        data_.Particles.begin(), data_.Particles.end(),
+        [&particleId](const Models::Particle& part) {
+            return part.Id == particleId;
+        });
+
+    if (r != data_.Particles.end()) {
+        const auto& inserted = particleCache_.emplace(particleId, *r).first->second;
+        return inserted;
+    }
+
+    // ---- 3. Fallback to DB (should happen only once per unknown particle) ----
     db_.Open();
     Models::Particle p;
-    auto statement = Statements::Particle( p, Statements::StatementType::Read );
-    auto filter = Filters::Particle( particleId, Filters::WhereUUID::Id );
-    statement.AddFilter( filter );
+    auto statement = Statements::Particle(p, Statements::StatementType::Read);
+    auto filter = Filters::Particle(particleId, Filters::WhereUUID::Id);
+    statement.AddFilter(filter);
     auto cb = Callbacks::Particle();
-    db_.Execute( statement, cb.Callback, cb.CallbackReturn );
+    db_.Execute(statement, cb.Callback, cb.CallbackReturn);
     db_.Close();
 
-    if (cb.CallbackReturn.Particles.size() != 1){
-        throw logic_error("Could not pull unique particle");
-    }
-    p = cb.CallbackReturn.Particles.front();
+    if (cb.CallbackReturn.Particles.size() != 1)
+        throw std::logic_error("Could not pull unique particle");
 
-    return p;
+    const auto& loaded = cb.CallbackReturn.Particles.front();
+    const auto& inserted = particleCache_.emplace(particleId, loaded).first->second;
+    return inserted;
 }
 
 // this helper function computes R-odd to the LSP, assuming 2-body cascade decay to R-odd+R-even ends in 1 LSP
 // excludes species tracked separately
 double BoltzmannBuilder::Br_Rodd_to_LSP( const ParticleData& parent, const ParticleData& daughter ){
     double br = 0.;
-    auto widths = data_.PartialWidths.find( parent.ParticleKey ) -> second;
+    const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
         // if not 2-body decay, continue 
         // TODO: handle higher body decays
@@ -526,7 +534,7 @@ double BoltzmannBuilder::Br_Rodd_to_LSP( const ParticleData& parent, const Parti
 // this helper function computes R-odd to R-odd where the daughter is NOT the LSP and is tracked separately
 double BoltzmannBuilder::Br_Rodd_to_Rodd(const ParticleData& parent, const ParticleData& daughter){
     double br = 0.;
-    auto widths = data_.PartialWidths.find( parent.ParticleKey ) -> second;
+    const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
         // if not 2-body, or if NEITHER width ID corresponds to the daughter, keep going
         if ( width.ChildrenIds.size() != 2 || ( width.ChildrenIds[0] != daughter.ParticleId && width.ChildrenIds[1] != daughter.ParticleId ) ){
@@ -556,7 +564,7 @@ double BoltzmannBuilder::Br_Rodd_to_Rodd(const ParticleData& parent, const Parti
 
 double BoltzmannBuilder::Br_Rodd_to_Reven(const ParticleData& parent, const ParticleData& daughter){
     double br = 0.;
-    auto widths = data_.PartialWidths.find( parent.ParticleKey ) -> second;
+    const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
         // if not 2-body, or if NEITHER width ID corresponds to the daughter, keep going
         if ( width.ChildrenIds.size() != 2 || ( width.ChildrenIds[0] != daughter.ParticleId && width.ChildrenIds[1] != daughter.ParticleId ) ){
@@ -590,7 +598,7 @@ double BoltzmannBuilder::Br_Rodd_to_radiation(const ParticleData& parent, const 
     double br = 1.;
 
     // check to make sure we don't include things tracked separately
-    auto widths = data_.PartialWidths.find( parent.ParticleKey ) -> second;
+    const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
         // only 2-body decays
         if ( width.ChildrenIds.size() != 2 ){
@@ -643,7 +651,7 @@ double BoltzmannBuilder::Br_Rodd_to_radiation(const ParticleData& parent, const 
 double BoltzmannBuilder::Br_Reven_to_Reven(const ParticleData& parent, const ParticleData& daughter){
     double br = 0.;
 
-    auto widths = data_.PartialWidths.find( parent.ParticleKey ) -> second;
+    const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
         if ( width.ChildrenIds.size() != 2 ){
             continue;
@@ -674,7 +682,7 @@ double BoltzmannBuilder::Br_Reven_to_radiation(const ParticleData& parent, const
     // if a width matches a tracked key, don't include it since tracked separately
     // i.e. BR = 1 - species tracked separately
     // TODO: refactor this and make more efficient...
-    auto widths = data_.PartialWidths.find( parent.ParticleKey ) -> second;
+    const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
         if ( width.ChildrenIds.size() != 2 ){
             continue;
@@ -715,7 +723,7 @@ double BoltzmannBuilder::Br_Reven_to_radiation(const ParticleData& parent, const
 double BoltzmannBuilder::Br_Reven_to_LSP(const ParticleData& parent, const ParticleData& daughter){
     double br = 0.;
 
-    auto widths = data_.PartialWidths.find( parent.ParticleKey ) -> second;
+    const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
         // only continue if 2-body decay
         if ( width.ChildrenIds.size() != 2 ){
@@ -769,7 +777,7 @@ double BoltzmannBuilder::Br_Reven_to_LSP(const ParticleData& parent, const Parti
 double BoltzmannBuilder::Br_Reven_to_Rodd(const ParticleData& parent, const ParticleData& daughter){
     double br = 0.;
 
-    auto widths = data_.PartialWidths.find( parent.ParticleKey ) -> second;
+    const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
         if ( width.ChildrenIds.size() != 2 ){
             continue;
@@ -847,6 +855,9 @@ ComponentBuilder BoltzmannBuilder::Build_Particle_Boltzmann_Eqs(const double& t,
 
     auto expansion = calculate_hubble_contribution(particle);
     builder.NumberDensityEquation += expansion.NumberDensityEquation;
+    for (size_t j = 0; j < expansion.NumberDensityJacobian.size(); ++j){
+        builder.NumberDensityJacobian[j] += expansion.NumberDensityJacobian[j];
+    }
 
     // only continue if we have "valid" densities - solver adapts, no point in continuing if bad
     if (

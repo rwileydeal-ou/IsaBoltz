@@ -45,34 +45,39 @@ BoltzmannStepBuilderCommand::~BoltzmannStepBuilderCommand(){
 */
 
 void BoltzmannStepBuilderCommand::resetParticleData(){
+    std::unordered_map<std::string, Models::Particle*> particleMap;
+    particleMap.reserve(particles_.size());
+    for (auto& part : particles_)
+        particleMap[part.Key] = &part;
+
     for (auto& p : initialParticleEvolutions_){
-        ParticleData particle( p );
-        for (auto& part : particles_){
-            if ( part.Id == p.ParticleId ){
-                particle.Spin = part.Spin;
-                particle.Statistics = part.Statistics;
-                particle.Charges = part.Charges;
-                particle.Mass = part.Mass;
-                particle.PdgCode = part.PdgCode;
-                particle.IsLSP = false;
-                
-                // TODO: THIS IS A HACK.  SHOULD REFACTOR AND PUT IN CONFIG, AND MAKE A SETTING/STORE IN DB
-                if (particle.ParticleKey == "axion"){
-                    particle.TempDependentMass = true;
-                    tempDependentMassEnabled_ = true;
-                    double fTheta = pow( log( exp(1.) / (1. - pow(connection_.Model.PQSector.Theta_I / M_PI, 2.) ) ), 7./6. );
-                    particle.Amplitude = 1.2 * connection_.Model.PQSector.Fa / connection_.Model.PQSector.nDW * connection_.Model.PQSector.Theta_I * sqrt(fTheta);
-                }
-                // TODO: THIS IS ALSO A HACK, REVISE...
-                if (particle.ParticleKey == "neutralino1"){
-                    particle.IsLSP = true;
-                }
-                break;
+        ParticleData particle(p);
+
+        auto it = particleMap.find(p.ParticleKey);
+        if (it != particleMap.end()) {
+            auto& part = *(it->second);
+            particle.Spin = part.Spin;
+            particle.Statistics = part.Statistics;
+            particle.Charges = part.Charges;
+            particle.Mass = part.Mass;
+            particle.PdgCode = part.PdgCode;
+            particle.IsLSP = false;
+
+            if (particle.ParticleKey == "axion"){
+                particle.TempDependentMass = true;
+                tempDependentMassEnabled_ = true;
+                double fTheta = pow(log(exp(1.) /
+                    (1. - pow(connection_.Model.PQSector.Theta_I / M_PI, 2.))), 7./6.);
+                particle.Amplitude = 1.2 * connection_.Model.PQSector.Fa /
+                    connection_.Model.PQSector.nDW *
+                    connection_.Model.PQSector.Theta_I * sqrt(fTheta);
+            }
+            if (particle.ParticleKey == "neutralino1"){
+                particle.IsLSP = true;
             }
         }
-
-        particle.TotalWidth = (totalWidths_.find( particle.ParticleKey )->second).Width;
-        sqlDataToPost_.ParticleDatas.push_front( particle );
+        particle.TotalWidth = (totalWidths_.find(particle.ParticleKey)->second).Width;
+        sqlDataToPost_.ParticleDatas.push_front(particle);
     }
 }
 
@@ -183,16 +188,23 @@ double BoltzmannStepBuilderCommand::tempRadiation(long double entropy, long doub
     double T1 = 0.;
     double DT = 0.;
 
-    while(abs(T0-T1) / T0 > 0.01){
-        double gstr = GStar::CalculateEntropic(particles_, connection_, T0);
-        T1 = X * pow( 45. / ( 2. * gstr * pow(M_PI, 2.) ), 1./3.);
-        if( abs(T0-T1) == DT ){
-            T0 = (T0 + T1) / 2.;
+    static std::map<double, double> gstarCache;
+    int maxIter = 10;
+    int iter = 0;
+
+    while (abs(T0 - T1) / T0 > 0.01 && iter++ < maxIter) {
+        double gstr;
+        auto it = gstarCache.lower_bound(T0);
+        if (it != gstarCache.end() && abs(it->first - T0) < 1e-3)
+            gstr = it->second;
+        else {
+            gstr = GStar::CalculateEntropic(particles_, connection_, T0);
+            gstarCache[T0] = gstr;
         }
-        else{
-            DT = abs( T0 - T1);
-            T0 = T1;
-        }
+
+        T1 = X * pow(45. / (2. * gstr * pow(M_PI, 2.)), 1./3.);
+        if (fabs(T0 - T1) < 1e-10) break; // prevent infinite loop
+        T0 = (T0 + T1) / 2.;
     }
     if (std::isnan(T1)){
         connection_.Log.Info(
@@ -204,7 +216,6 @@ double BoltzmannStepBuilderCommand::tempRadiation(long double entropy, long doub
         T1 = reheatPoint_.Temperature;
     }
 
-    connection_.Log.Trace("Fitting Radiation Temperature to T=" + to_string(T1));
     return T1;
 }
 
@@ -281,6 +292,7 @@ void BoltzmannStepBuilderCommand::setEvolutionInitialState( ){
 
     // since we're calculating the step's initial state, easiest to just clear previous evolutions
     currentParticleData_.clear();
+    currentParticleData_.reserve(initialParticleEvolutions_.size());
 
     // pull the previous step, then we can pull the associated particle data so we can start this step with any updated data of last step
     Models::ScaleFactorPoint previousPoint = pullPreviousScaleFactorPoint( ordinal_ - 1 );

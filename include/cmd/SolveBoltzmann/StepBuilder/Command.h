@@ -2,6 +2,7 @@
 #define BoltzmannStepBuilderCommand_h
 
 #include <cmath>
+#include <unordered_map>
 #include <math.h>
 #include <map>
 #include <chrono>

@@ -7,7 +7,7 @@
 class ModulusBr : public IBranchingRatio
 {
 public:
-    ModulusBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles);
+    ModulusBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
     ~ModulusBr();
     BranchingFraction Calculate() override;
 };

@@ -1,6 +1,6 @@
 #include <ParticleDefs/Saxion/SaxionWidths.h>
 
-SaxionWidths::SaxionWidths(const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles)
+SaxionWidths::SaxionWidths(const ModelBase& model, const std::deque< Models::Particle >& particles)
     : model_(model),
     particles_(particles)
 {

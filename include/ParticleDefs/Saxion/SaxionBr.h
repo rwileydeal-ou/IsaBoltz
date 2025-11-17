@@ -7,9 +7,9 @@
 class SaxionBr : public IBranchingRatio
 {
 private:
-    std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> handleDFSZ();
+    std::deque<Models::PartialWidth> handleDFSZ();
 public:
-    SaxionBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles);
+    SaxionBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
     ~SaxionBr();
     BranchingFraction Calculate() override;
 };

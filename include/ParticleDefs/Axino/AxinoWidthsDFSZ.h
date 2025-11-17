@@ -23,14 +23,14 @@ private:
     double widthNeutralinoHiggsHADFSZ(double mNeutralino, double mAxino, double mHA, double alpha, double beta, double zMix0, double zMix1, double zMix2, double zMix3, double gU1, double gSU2, double vPQ, double mu, double cH);
     double widthCharginoWBosonDFSZ(double mChargino, double mW, double mAxino, double gSU2, double x0, double y0);
     boost::numeric::ublas::vector<double> TAxinoNeutralinoScalar(double zMix0, double zMix1, double alpha, double mAxino, double mNeutralino);
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthNeutralinoHiggsDFSZ(double cH);
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthNeutralinoZBosonDFSZ();
+    std::deque< Models::PartialWidth > widthNeutralinoHiggsDFSZ(double cH);
+    std::deque< Models::PartialWidth > widthNeutralinoZBosonDFSZ();
     Models::PartialWidth widthLightCharginoHiggsDFSZ(double cH);
     Models::PartialWidth widthHeavyCharginoHiggsDFSZ(double cH);
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthCharginoWBosonDFSZ();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthFermionSfermionDFSZ();
+    std::deque< Models::PartialWidth > widthCharginoWBosonDFSZ();
+    std::deque< Models::PartialWidth > widthFermionSfermionDFSZ();
 public:
-    AxinoWidthsDFSZ(const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles);
+    AxinoWidthsDFSZ(const ModelBase& model, const std::deque< Models::Particle >& particles);
     ~AxinoWidthsDFSZ();
 };
 

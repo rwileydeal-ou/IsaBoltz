@@ -10,7 +10,7 @@
 struct BranchingFraction
 {
     Models::TotalWidth TotalWidth;
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > PartialWidths;
+    std::deque< Models::PartialWidth > PartialWidths;
     
     BranchingFraction(const BranchingFraction &b){
         TotalWidth = b.TotalWidth;

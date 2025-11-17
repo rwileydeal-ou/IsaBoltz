@@ -16,7 +16,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque<SigmaV, boost::pool_allocator<SigmaV>> crossSections;
+            std::deque<SigmaV> crossSections;
         } CallbackReturn;
         
         CrossSection(/* args */);

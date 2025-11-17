@@ -10,22 +10,22 @@ class GravitinoWidths
 {
 private:
     const ModelBase& model_;
-    const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles_;
+    const std::deque< Models::Particle >& particles_;
     Models::Particle parent_;
     Models::PartialWidth widthGluino();
     Models::PartialWidth widthAxinoAxion();
     Models::PartialWidth widthAxinoSaxion();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthLightSquarks();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthSbottom();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthStop();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthStau();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthSneutrinos();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthLightLeptons();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthNeutralinoZBoson();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthNeutralinoPhoton();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthCharginoWBoson();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthNeutralinoHiggs();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widthCharginoHiggs();
+    std::deque< Models::PartialWidth > widthLightSquarks();
+    std::deque< Models::PartialWidth > widthSbottom();
+    std::deque< Models::PartialWidth > widthStop();
+    std::deque< Models::PartialWidth > widthStau();
+    std::deque< Models::PartialWidth > widthSneutrinos();
+    std::deque< Models::PartialWidth > widthLightLeptons();
+    std::deque< Models::PartialWidth > widthNeutralinoZBoson();
+    std::deque< Models::PartialWidth > widthNeutralinoPhoton();
+    std::deque< Models::PartialWidth > widthCharginoWBoson();
+    std::deque< Models::PartialWidth > widthNeutralinoHiggs();
+    std::deque< Models::PartialWidth > widthCharginoHiggs();
     double gPrime_;
     double g_;
     double gZ_;
@@ -37,7 +37,7 @@ private:
     double gscl(double mFermion, double mScalar, double cLLRR, double cLRRL);
     double gvec(double mFermion, double mVector, double cgg1, double cgg2, double cgh1, double cgh2, double chh1, double chh2);
 public:
-    GravitinoWidths(const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles);
+    GravitinoWidths(const ModelBase& model, const std::deque< Models::Particle >& particles);
     ~GravitinoWidths();
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > Decays;
+    std::deque< Models::PartialWidth > Decays;
 };

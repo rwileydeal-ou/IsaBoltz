@@ -2,7 +2,7 @@
 
 using namespace std;
 
-NeutralinoWidths::NeutralinoWidths(const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles) 
+NeutralinoWidths::NeutralinoWidths(const ModelBase& model, const std::deque< Models::Particle >& particles) 
     : model_(model),
     particles_(particles)
 {

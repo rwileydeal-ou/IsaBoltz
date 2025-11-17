@@ -1,6 +1,6 @@
 #include <cmd/BranchingRatios/Receiver.h>
 
-BranchingRatioReceiver::BranchingRatioReceiver(Connection& connection, Models::Particle& particle, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles) : 
+BranchingRatioReceiver::BranchingRatioReceiver(Connection& connection, Models::Particle& particle, const std::deque< Models::Particle >& particles) : 
     connection_(connection),
     particle_(particle),
     particles_(particles)

@@ -1,6 +1,6 @@
 #include <ParticleDefs/Neutralino/NeutralinoFactory.h>
 
-NeutralinoBranchingRatioFactory::NeutralinoBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles) : 
+NeutralinoBranchingRatioFactory::NeutralinoBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles) : 
     BranchingRatioFactory(logger, parent, model, particles)
 {}
 NeutralinoBranchingRatioFactory::~NeutralinoBranchingRatioFactory(){}

@@ -18,7 +18,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque<Models::TempEquality, boost::pool_allocator<Models::TempEquality>> TempEqualities;
+            std::deque<Models::TempEquality> TempEqualities;
         } CallbackReturn;
         
         TempEquality(/* args */);

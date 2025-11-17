@@ -18,7 +18,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque< Models::TotalWidth, boost::pool_allocator<Models::TotalWidth> > TotalWidths;
+            std::deque< Models::TotalWidth > TotalWidths;
         } CallbackReturn;
         
         TotalWidth(/* args */);

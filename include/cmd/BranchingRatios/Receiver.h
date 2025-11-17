@@ -24,11 +24,11 @@ private:
     Connection& connection_;
     Models::Particle& particle_;
     BranchingFraction branchingFraction_;
-    const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles_;
+    const std::deque< Models::Particle >& particles_;
     void factorySetup(std::shared_ptr< BranchingRatioFactory >& branchingRatioFactory);
 public:
     ~BranchingRatioReceiver();
-    BranchingRatioReceiver(Connection& connection, Models::Particle& particle, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles);
+    BranchingRatioReceiver(Connection& connection, Models::Particle& particle, const std::deque< Models::Particle >& particles);
     void Calculate() override;
     BranchingFraction getBranchingFraction();
 };

@@ -18,7 +18,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque< Models::Particle, boost::pool_allocator<Models::Particle> > Particles;
+            std::deque< Models::Particle > Particles;
         } CallbackReturn;
         
         Particle(/* args */);

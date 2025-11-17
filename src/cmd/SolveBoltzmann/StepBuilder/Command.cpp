@@ -8,8 +8,8 @@ BoltzmannStepBuilderCommand::BoltzmannStepBuilderCommand(
     std::shared_ptr< DataRelay > fortranInterface, 
     const Models::ScaleFactorPoint& reheatPoint, 
     const std::deque< Models::ParticleEvolution >& initialParticleEvolutions, 
-    std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, 
-    std::map< std::string, std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > >& partialWidths, 
+    std::deque< Models::Particle >& particles, 
+    std::map< std::string, std::deque< Models::PartialWidth > >& partialWidths, 
     std::map< std::string, Models::TotalWidth >& totalWidths
 ) :
     db_(connection),
@@ -634,7 +634,7 @@ void BoltzmannStepBuilderCommand::Execute()
     sqlDataToPost_.ScaleFactors.push_front( currentPoint_ );
 
     // now take into account temperature-dependent initial conditions (e.g. axion coh. osc. initial densities)
-    handleTemperatureDependences();
+//    handleTemperatureDependences();
 
     // now we want to check if any major transitions happen
     // must happen after Hubble is calculated since transitions typically depend on H
@@ -684,33 +684,38 @@ bool BoltzmannStepBuilderCommand::ForcePost(){
 }
 
 void BoltzmannStepBuilderCommand::cleanScaleFactorData(){
-    sqlDataToPost_.ScaleFactors.erase( 
-        std::remove_if(
-            sqlDataToPost_.ScaleFactors.begin(),
-            sqlDataToPost_.ScaleFactors.end(),
-            [this]( const Models::ScaleFactorPoint& s ){
-                return s.Id != currentPoint_.Id;
-            }
-        ),
-        sqlDataToPost_.ScaleFactors.end() 
-    );
+    auto& data = sqlDataToPost_.ScaleFactors;
+
+    // Remove reference from decltype(data)
+    std::remove_reference_t<decltype(data)> kept;
+
+    for (auto& d : data) {
+        if (d.Id == currentPoint_.Id)
+            kept.push_back(std::move(d));
+    }
+
+    data.swap(kept);
 }
 
 void BoltzmannStepBuilderCommand::cleanParticleData(){
-    connection_.Log.Info("Size of particle data: " + to_string( sqlDataToPost_.ParticleDatas.size() ));
-    sqlDataToPost_.ParticleDatas.erase( 
-        std::remove_if(
-            sqlDataToPost_.ParticleDatas.begin(),
-            sqlDataToPost_.ParticleDatas.end(),
-            [this]( const ParticleData& p ){
-                return p.ScaleFactorId != currentPoint_.Id;
-            }
-        ),
-        sqlDataToPost_.ParticleDatas.end() 
-    );
+    connection_.Log.Info("Size of particle data: " +
+        std::to_string(sqlDataToPost_.ParticleDatas.size()));
+
+    auto& data = sqlDataToPost_.ParticleDatas;
+
+    // Remove reference from decltype(data)
+    std::remove_reference_t<decltype(data)> kept;
+
+    for (auto& d : data) {
+        if (d.ScaleFactorId == currentPoint_.Id)
+            kept.push_back(std::move(d));
+    }
+
+    data.swap(kept);
 }
 
 void BoltzmannStepBuilderCommand::Post(){
+    connection_.Log.Info("Posting data to database");
     if ( evoStatements_.size() > 0 ){
         db_.Execute( evoStatements_ );
         evoStatements_.clear();
@@ -741,6 +746,7 @@ void BoltzmannStepBuilderCommand::Post(){
         db_.Execute( crossSectionStatements_ );
         crossSectionStatements_.clear();
     }
+    connection_.Log.Info("Finished posting data to database");
 }
 
 void BoltzmannStepBuilderCommand::SetResult(){

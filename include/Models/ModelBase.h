@@ -211,18 +211,18 @@ struct ModelBase{
     double DeltaEW;
     int NW;
     int IsajetError;
-    std::deque< Models::Particle, boost::pool_allocator< Models::Particle> > Particles;
+    std::deque< Models::Particle > Particles;
 };
 
 class ModelBaseOps{
 public:
-    static Models::Particle& Find (std::deque< Models::Particle, boost::pool_allocator<Models::Particle> > &vec, std::string key) {
+    static Models::Particle& Find (std::deque< Models::Particle > &vec, std::string key) {
         auto result = std::find_if( vec.begin(), vec.end(),
             [&] (Models::Particle const& p) { return p.Key == key; }
         );
         return (*result);
     }
-    static const Models::Particle FindConst (std::deque< Models::Particle, boost::pool_allocator<Models::Particle> > vec, std::string key) {
+    static const Models::Particle FindConst (std::deque< Models::Particle > vec, std::string key) {
         auto result = std::find_if( vec.begin(), vec.end(),
             [&] (Models::Particle const& p) { return p.Key == key; }
         );

@@ -2,7 +2,7 @@
 
 using namespace std;
 
-AxinoWidths::AxinoWidths(const ModelBase& model, const deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles)
+AxinoWidths::AxinoWidths(const ModelBase& model, const deque< Models::Particle >& particles)
     : model_(model),
     particles_(particles)
 {

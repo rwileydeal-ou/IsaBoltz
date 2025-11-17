@@ -2,7 +2,7 @@
 
 using namespace std;
 
-SaxionWidthsDFSZ::SaxionWidthsDFSZ(const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles) 
+SaxionWidthsDFSZ::SaxionWidthsDFSZ(const ModelBase& model, const std::deque< Models::Particle >& particles) 
     : SaxionWidths(model, particles)
 {
     _epsilonhl = ephl(2., model_.StandardModel.vEW);
@@ -32,7 +32,7 @@ SaxionWidthsDFSZ::SaxionWidthsDFSZ(const ModelBase& model, const std::deque< Mod
 SaxionWidthsDFSZ::~SaxionWidthsDFSZ(){}
 
 // from arXiv:1309.5365
-std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> SaxionWidthsDFSZ::widthVBosonVBoson(){
+std::deque<Models::PartialWidth> SaxionWidthsDFSZ::widthVBosonVBoson(){
     auto wBoson = ModelBaseOps::FindConst(particles_, "wboson");
     auto zBoson = ModelBaseOps::FindConst(particles_, "zboson");
 
@@ -43,13 +43,13 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     double ggZ = model_.StandardModel.Couplings.gSU2 / sqrt(1. - model_.StandardModel.MixingAngles.SinSqrThetaW);
     double ggW = model_.StandardModel.Couplings.gSU2;
     
-    std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> widths;
+    std::deque<Models::PartialWidth> widths;
     widths.push_back(widthZBosonZBoson(zBoson, ggZ, gsVV));
     widths.push_back(widthWBosonWBoson(wBoson, ggW, gsVV));
     return widths;
 }
 
-std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> SaxionWidthsDFSZ::widthVBosonHiggs(){
+std::deque<Models::PartialWidth> SaxionWidthsDFSZ::widthVBosonHiggs(){
     auto higgsPseudo = ModelBaseOps::FindConst(particles_, "higgspseudoscalar");
     auto higgsCharged = ModelBaseOps::FindConst(particles_, "higgscharged");
     auto wBoson = ModelBaseOps::FindConst(particles_, "wboson");
@@ -61,14 +61,14 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     double ggZ = model_.StandardModel.Couplings.gSU2 / sqrt(1 - model_.StandardModel.MixingAngles.SinSqrThetaW);
     double ggW = model_.StandardModel.Couplings.gSU2;
 
-    std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> widths;
+    std::deque<Models::PartialWidth> widths;
     widths.push_back(widthZBosonHiggs(zBoson, higgsPseudo, ggZ, gsVh));
     widths.push_back(widthWBosonHiggs(wBoson, higgsCharged, ggW, gsVh));
     return widths;
 }
 
 // from arXiv:1309.5365
-std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> SaxionWidthsDFSZ::widthFermionFermion(){
+std::deque<Models::PartialWidth> SaxionWidthsDFSZ::widthFermionFermion(){
     double alpha = model_.Susy.MixingAngles.alfah;
     double beta = atan(model_.Susy.TanBeta);
     // couplings from A.12
@@ -78,7 +78,7 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     double wTT = widthFermionFermion(parent_.Mass, model_.Masses.MSusy.topMSusy, model_.StandardModel.vEW, gsffU, model_.StandardModel.NC);
     double wBB = widthFermionFermion(parent_.Mass, model_.Masses.MSusy.botMSusy, model_.StandardModel.vEW, gsffD, model_.StandardModel.NC);
 
-    std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> widths;
+    std::deque<Models::PartialWidth> widths;
     widths.push_back(Models::PartialWidth( parent_, { ModelBaseOps::FindConst(particles_, "bottomq"), ModelBaseOps::FindConst(particles_, "bottomq") }, wBB));
     widths.push_back(Models::PartialWidth( parent_, { ModelBaseOps::FindConst(particles_, "topq"), ModelBaseOps::FindConst(particles_, "topq") }, wTT));
     return widths;
@@ -92,7 +92,7 @@ double SaxionWidthsDFSZ::widthNeutralinoNeutralino(double mNeutralino1, double m
     return width;
 }
 
-std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> SaxionWidthsDFSZ::widthNeutralinoNeutralino(double cH){
+std::deque<Models::PartialWidth> SaxionWidthsDFSZ::widthNeutralinoNeutralino(double cH){
     auto neutralino1 = ModelBaseOps::FindConst(particles_, "neutralino1");
     auto neutralino2 = ModelBaseOps::FindConst(particles_, "neutralino2");
     auto neutralino3 = ModelBaseOps::FindConst(particles_, "neutralino3");
@@ -110,7 +110,7 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
         }
     }
 
-    std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> widths;
+    std::deque<Models::PartialWidth> widths;
     // same states get additional 1/2 in width since identical particles
     widths.push_back( Models::PartialWidth( parent_, { neutralino1, neutralino1 }, 1./2. * widthNeutralinoNeutralino(neutralino1.Mass, neutralino1.Mass, parent_.Mass, thz[0], thz[0], zets[0][0], zets[0][0]) ) );
     widths.push_back( Models::PartialWidth( parent_, { neutralino2, neutralino2 }, 1./2. * widthNeutralinoNeutralino(neutralino2.Mass, neutralino2.Mass, parent_.Mass, thz[1], thz[1], zets[1][1], zets[1][1]) ) );
@@ -127,7 +127,7 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     return widths;
 }
 
-std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> SaxionWidthsDFSZ::widthSneutrinoSneutrino(){
+std::deque<Models::PartialWidth> SaxionWidthsDFSZ::widthSneutrinoSneutrino(){
     auto nuel = ModelBaseOps::FindConst(particles_, "sneutrinoselectronl");
     auto numu = ModelBaseOps::FindConst(particles_, "sneutrinosmuonl");
     auto nutau = ModelBaseOps::FindConst(particles_, "sneutrinostaul");
@@ -140,7 +140,7 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     auto upSneutrinosMixedAhl = couplingMatrixSfermions(upSneutrinoAhl.sLsL, 0., 0., 0.);
     auto upSneutrinosMixedAHH = couplingMatrixSfermions(upSneutrinoAHH.sLsL, 0., 0., 0.);
 
-    std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> widths;
+    std::deque<Models::PartialWidth> widths;
     widths.push_back( Models::PartialWidth( parent_, { nuel, nuel }, widthSfermionSfermion(nuel.Mass, nuel.Mass, parent_.Mass, upSneutrinosMixedAhl.LL, upSneutrinosMixedAHH.LL, 1.) ));
     widths.push_back( Models::PartialWidth( parent_, { nuel, ModelBaseOps::FindConst(particles_, "neutrinoelectron") }, 2. * widthSfermionSfermion(nuel.Mass, 0., parent_.Mass, upSneutrinosMixedAhl.LR, upSneutrinosMixedAHH.LR, 1.) ));
     widths.push_back( Models::PartialWidth( parent_, { ModelBaseOps::FindConst(particles_, "neutrinoelectron"), ModelBaseOps::FindConst(particles_, "neutrinoelectron") }, widthSfermionSfermion(0., 0., parent_.Mass, upSneutrinosMixedAhl.RR, upSneutrinosMixedAHH.RR, 1.) ));
@@ -155,7 +155,7 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     return widths;
 }
 
-std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> SaxionWidthsDFSZ::widthSleptonSlepton(){
+std::deque<Models::PartialWidth> SaxionWidthsDFSZ::widthSleptonSlepton(){
     auto sel = ModelBaseOps::FindConst(particles_, "selectronl");
     auto ser = ModelBaseOps::FindConst(particles_, "selectronr");
     auto smul = ModelBaseOps::FindConst(particles_, "smuonl");
@@ -175,7 +175,7 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     auto stauSleptonsMixedAhl = couplingMatrixSfermions(stauSleptonAhl.sLsL, stauSleptonAhl.sRsR, stauSleptonAhl.sLsR, model_.Susy.MixingAngles.thetaL);
     auto stauSleptonsMixedAHH = couplingMatrixSfermions(stauSleptonAHH.sLsL, stauSleptonAHH.sRsR, stauSleptonAHH.sLsR, model_.Susy.MixingAngles.thetaL);
 
-    std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> widths;
+    std::deque<Models::PartialWidth> widths;
     widths.push_back( Models::PartialWidth( parent_, { sel, sel }, widthSfermionSfermion(sel.Mass, sel.Mass, parent_.Mass, downSleptonsMixedAhl.LL, downSleptonsMixedAHH.LL, 1.) ));
     widths.push_back( Models::PartialWidth( parent_, { sel, ser }, 2. * widthSfermionSfermion(sel.Mass, ser.Mass, parent_.Mass, downSleptonsMixedAhl.LR, downSleptonsMixedAHH.LR, 1.) ));
     widths.push_back( Models::PartialWidth( parent_, { ser, ser }, widthSfermionSfermion(ser.Mass, ser.Mass, parent_.Mass, downSleptonsMixedAhl.RR, downSleptonsMixedAHH.RR, 1.) ));
@@ -188,7 +188,7 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     return widths;
 }
 
-std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> SaxionWidthsDFSZ::widthSquarkSquark(){
+std::deque<Models::PartialWidth> SaxionWidthsDFSZ::widthSquarkSquark(){
     auto upl = ModelBaseOps::FindConst(particles_, "suplsq");
     auto upr = ModelBaseOps::FindConst(particles_, "suprsq");
     auto dnl = ModelBaseOps::FindConst(particles_, "sdownlsq");
@@ -225,7 +225,7 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     auto sbottomSquarksMixedAhl = couplingMatrixSfermions(sbottomSquarkAhl.sLsL, sbottomSquarkAhl.sRsR, sbottomSquarkAhl.sLsR, model_.Susy.MixingAngles.thetaB);
     auto sbottomSquarksMixedAHH = couplingMatrixSfermions(sbottomSquarkAHH.sLsL, sbottomSquarkAHH.sRsR, sbottomSquarkAHH.sLsR, model_.Susy.MixingAngles.thetaB);
 
-    std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> widths;
+    std::deque<Models::PartialWidth> widths;
     // get up squark widths
     widths.push_back( Models::PartialWidth( parent_, { upl, upl }, widthSfermionSfermion(upl.Mass, upl.Mass, parent_.Mass, upSquarksMixedAhl.LL, upSquarksMixedAHH.LL, 3.) ));
     widths.push_back( Models::PartialWidth( parent_, { upl, upr }, 2. * widthSfermionSfermion(upl.Mass, upr.Mass, parent_.Mass, upSquarksMixedAhl.LR, upSquarksMixedAHH.LR, 3.) ));
@@ -325,7 +325,7 @@ double SaxionWidthsDFSZ::psLamb(double x, double y, double z){
     return result;
 }
 
-std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> SaxionWidthsDFSZ::widthDiHiggs(double cH){
+std::deque<Models::PartialWidth> SaxionWidthsDFSZ::widthDiHiggs(double cH){
     auto higgsLight = ModelBaseOps::FindConst(particles_, "higgslight");
     auto higgsHeavy = ModelBaseOps::FindConst(particles_, "higgsheavy");
     auto higgsPseudo = ModelBaseOps::FindConst(particles_, "higgspseudoscalar");
@@ -342,7 +342,7 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     double lshlHH = -( cH * pow(higgsPseudo.Mass, 2.) /(2. * sqrt(2.) * model_.PQSector.Potential.vPQ ) ) * sin(2. * beta) * cos(2. * alpha) + ( pow(zBoson.Mass, 2.) / ( sqrt(2.) * model_.StandardModel.vEW ) ) * cos(2. * alpha) * sin(beta-alpha) * ( - _epsilonhl * ( 2. * tan(2. * alpha) + pow(tan(beta-alpha), -1.) ) + _epsilonHH * ( 2. * tan(2. * alpha) * pow(tan(beta-alpha), -1.) - 1. ) );
     double lsHpHm = ( sqrt(2.) * cH * pow(model_.Susy.Couplings.mu,2.) / model_.PQSector.Potential.vPQ ) * ( 1. + (1./4.) * ( pow(higgsPseudo.Mass, 2.) / pow(model_.Susy.Couplings.mu, 2.) ) * pow(sin(2. * beta), 2.) ) + ( pow(zBoson.Mass, 2.) / ( sqrt(2.) * model_.StandardModel.vEW ) ) * ( cos(2. * beta) * sin(beta-alpha) * ( _epsilonhl - _epsilonHH * pow(tan(beta-alpha), -1.)) + 2. * CTW2 * sin(beta+alpha) * ( _epsilonhl + _epsilonHH * pow(tan(beta+alpha), -1.) ) );
 
-    std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> widths;
+    std::deque<Models::PartialWidth> widths;
     widths.push_back( Models::PartialWidth( parent_, { higgsLight, higgsLight }, widthDiHiggs(lshl, higgsLight.Mass, higgsLight.Mass, parent_.Mass) ));
     widths.push_back( Models::PartialWidth( parent_, { higgsHeavy, higgsHeavy }, widthDiHiggs(lsHH, higgsHeavy.Mass, higgsHeavy.Mass, parent_.Mass) ));
     widths.push_back( Models::PartialWidth( parent_, { higgsPseudo, higgsPseudo }, widthDiHiggs(lsA, higgsPseudo.Mass, higgsPseudo.Mass, parent_.Mass) ));
@@ -378,7 +378,7 @@ double SaxionWidthsDFSZ::widthCharginoCharginoDifferentGen(double mSaxion, doubl
 }
 
 // helper method to calculate all couplings and return total width for same gen charginos total
-std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> SaxionWidthsDFSZ::widthCharginoCharginoSameGen(double cH){
+std::deque<Models::PartialWidth> SaxionWidthsDFSZ::widthCharginoCharginoSameGen(double cH){
     auto chargino1 = ModelBaseOps::FindConst(particles_, "chargino1");
     auto chargino2 = ModelBaseOps::FindConst(particles_, "chargino2");
 
@@ -399,7 +399,7 @@ std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> Sa
     double s2HH = - 1./2. * sgnW2 * sgnGammaL * sgnGammaR * ( cos(alpha) * cos(gammaR) * sin(gammaL) - sin(alpha) * cos(gammaL) * sin(gammaR) );
     double sig2s = _epsilonhl * s2hl + _epsilonHH * s2HH + cH * model_.Susy.Couplings.mu * sgnW2 * sgnGammaL * sgnGammaR * sin(gammaL) * sin(gammaR) / (4. * model_.StandardModel.Couplings.gSU2 * model_.PQSector.Potential.vPQ);
 
-    std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> widths;
+    std::deque<Models::PartialWidth> widths;
     widths.push_back( Models::PartialWidth( parent_, { chargino1, chargino1 }, widthCharginoCharginoSameGen(parent_.Mass, chargino1.Mass, model_.StandardModel.Couplings.gSU2, sig1s) ));
     widths.push_back( Models::PartialWidth( parent_, { chargino2, chargino2 }, widthCharginoCharginoSameGen(parent_.Mass, chargino2.Mass, model_.StandardModel.Couplings.gSU2, sig2s) ));
     return widths;

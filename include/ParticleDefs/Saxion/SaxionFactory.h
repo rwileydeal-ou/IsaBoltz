@@ -11,7 +11,7 @@
 
 class SaxionBranchingRatioFactory : public BranchingRatioFactory {
 public:
-    SaxionBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles);
+    SaxionBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
     ~SaxionBranchingRatioFactory();
     std::shared_ptr< IBranchingRatio > create_branching_ratio() override;
 };

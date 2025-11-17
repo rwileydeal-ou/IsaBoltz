@@ -14,14 +14,14 @@ private:
     Connection& connection_;
     std::shared_ptr< BranchingRatioReceiver > receiver_;
     Models::Particle particle_;
-    const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles_;
+    const std::deque< Models::Particle >& particles_;
     bool postResult_;
     bool squashLogs_;
     void postSqlTotalWidth(DbManager& db, BranchingFraction& result);
     void postSqlPartialWidths(DbManager& db, BranchingFraction& result);
     void postResult();
 public:
-    BranchingRatioCommand(Connection& connection, Models::Particle& particle, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, bool squashLogs = false);
+    BranchingRatioCommand(Connection& connection, Models::Particle& particle, const std::deque< Models::Particle >& particles, bool squashLogs = false);
     ~BranchingRatioCommand();
     void Execute() override;
     void PostResult(bool post);

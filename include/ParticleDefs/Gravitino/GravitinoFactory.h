@@ -12,7 +12,7 @@
 
 class GravitinoBranchingRatioFactory : public BranchingRatioFactory {
 public:
-    GravitinoBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles);
+    GravitinoBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
     ~GravitinoBranchingRatioFactory();
     std::shared_ptr< IBranchingRatio > create_branching_ratio() override;
 };

@@ -48,10 +48,10 @@ private:
     typedef boost::numeric::odeint::rosenbrock4 <state_type> error_stepper_type;
 
     Models::ParticleEvolution pullParticleEvolution( DbManager& db, std::string particleKey, ParticleProductionMechanism productionMechanism, boost::uuids::uuid scaleFactorId );
-    std::map< std::string, std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > > pullPartialWidths( const std::deque< Models::ParticleEvolution >& particleEvos );
+    std::map< std::string, std::deque< Models::PartialWidth > > pullPartialWidths( const std::deque< Models::ParticleEvolution >& particleEvos );
     std::map< std::string, Models::TotalWidth > pullTotalWidths( const std::deque< Models::ParticleEvolution >& particleEvos );
     std::deque< Models::ParticleEvolution > pullParticleEvolutions();
-    std::deque< Models::Particle, boost::pool_allocator<Models::Particle> > pullParticles();
+    std::deque< Models::Particle > pullParticles();
     void purgeSQL(int startOrdinal, int endOrdinal);
 public:
     BoltzmannSolverCommand(Connection& connection, std::shared_ptr< DataRelay > fortranInterface, boost::uuids::uuid reheatScaleFactorId, double finalTemp, std::vector< std::string > enabledKeys);

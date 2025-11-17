@@ -1,6 +1,6 @@
 #include <ParticleDefs/Axino/AxinoFactory.h>
 
-AxinoBranchingRatioFactory::AxinoBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles) : 
+AxinoBranchingRatioFactory::AxinoBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles) : 
     BranchingRatioFactory(logger, parent, model, particles)
 {}
 AxinoBranchingRatioFactory::~AxinoBranchingRatioFactory(){}

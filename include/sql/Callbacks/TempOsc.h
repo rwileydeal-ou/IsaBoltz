@@ -18,7 +18,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque<Models::TempOscillation, boost::pool_allocator<Models::TempOscillation>> TempOscs;
+            std::deque<Models::TempOscillation> TempOscs;
         } CallbackReturn;
         
         TempOsc(/* args */);

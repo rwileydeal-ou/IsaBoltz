@@ -16,7 +16,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque<Models::ScaleFactorPoint, boost::pool_allocator<Models::ScaleFactorPoint>> ScaleFactors;
+            std::deque<Models::ScaleFactorPoint> ScaleFactors;
         } CallbackReturn;
         
         ScaleFactor(/* args */);

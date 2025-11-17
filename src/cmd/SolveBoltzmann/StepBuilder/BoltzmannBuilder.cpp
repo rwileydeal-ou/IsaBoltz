@@ -29,30 +29,25 @@ T BoltzmannBuilder::handleOverflow(T input, Logger& logger){
 //...Compute pressure/number density given energy/number density ratio and particle's mass
 //...Uses numerical fit (see notes)
 double BoltzmannBuilder::getPN(double r, double m){
-    vector<double> A;
-    A.reserve(8);
-    A.push_back(-0.345998);
-    A.push_back(0.234319);
-    A.push_back(-0.0953434);
-    A.push_back(0.023657);
-    A.push_back(-0.00360707);
-    A.push_back(0.000329645);
-    A.push_back(-0.0000165549);
-    A.push_back(.000000351085);
-
+    static const double A[8] = {
+        -0.345998, 0.234319, -0.0953434, 0.023657,
+        -0.00360707, 0.000329645, -0.0000165549, 0.000000351085
+    };
+                            
     double rT = 11.5 * m;
-
     if (r < rT) {
-        double rm = r/m;
-        double F1 = (2./3.) * ( rm - 1.);
-        for (size_t i =0; i<A.size(); ++i){
-            F1 += A[i] * pow( rm - 1., i+2);
+        const double rm1 = (r / m) - 1.0;
+        double F1 = (2.0 / 3.0) * rm1;
+        double rm1pow = rm1 * rm1;
+        for (int i = 0; i < 8; ++i) {
+            F1 += A[i] * rm1pow;
+            rm1pow *= rm1;
         }
-        double F2 = r / 3.;
-        return min(m * F1, F2);
-    } else{
-        return r / 3.;
+        const double F2 = r / 3.0;
+        const double val = m * F1;
+        return val < F2 ? val : F2;
     }
+    return r / 3.0;
 }
 
 // This method builds the contribution from a particle to the entropy Boltzmann equation, d(log(S/S0))/dx
@@ -61,16 +56,16 @@ ComponentBuilder BoltzmannBuilder::calculate_particle_entropy(const double& t, c
     ComponentBuilder builder( 2 * data_.ParticleDatas.size() );
     
     long double widthXmass = Br(particle, rad) * particle.TotalWidth * particle.Mass;
-
+    long double expTerm = expl( particle.Y1 + 3. * t - rad.Y1 );
     if ( particle.ProductionMechanism == ParticleProductionMechanism::COHERENT_OSCILLATION ){
-        builder.EntropyEquation += widthXmass * expl( particle.Y1 + 3. * t - rad.Y1 ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
-        builder.EntropyJacobian[ 0 ] += - widthXmass * expl( particle.Y1 + 3. * t - rad.Y1 ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
-        builder.EntropyJacobian[ 2 * particle.EqnIndex ] += widthXmass * expl( particle.Y1 + 3. * t - rad.Y1 ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
-        builder.EntropyJacobian[ 2 * particle.EqnIndex + 1 ] += - widthXmass * expl( particle.Y1 + 3. * t - rad.Y1 ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
+        builder.EntropyEquation += widthXmass * expTerm / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
+        builder.EntropyJacobian[ 0 ] += - widthXmass * expTerm / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
+        builder.EntropyJacobian[ 2 * particle.EqnIndex ] += widthXmass * expTerm / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
+        builder.EntropyJacobian[ 2 * particle.EqnIndex + 1 ] += - widthXmass * expTerm / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
 
         // dh/drho etc
-        builder.EntropyJacobian[ 2 * particle.EqnIndex ] += - widthXmass * particle.EnergyDensity * expl( particle.Y1 + 3. * t - rad.Y1 ) / ( 6. * pow(data_.CurrentPoint.Hubble, 3.) * 5.95e36 * data_.CurrentPoint.Temperature );
-        builder.EntropyJacobian[ 2 * particle.EqnIndex + 1 ] += - widthXmass * particle.EnergyDensity * expl( particle.Y1 + 3. * t - rad.Y1 ) / ( 6. * pow(data_.CurrentPoint.Hubble, 3.) * 5.95e36 * data_.CurrentPoint.Temperature );
+        builder.EntropyJacobian[ 2 * particle.EqnIndex ] += - widthXmass * particle.EnergyDensity * expTerm / ( 6. * pow(data_.CurrentPoint.Hubble, 3.) * 5.95e36 * data_.CurrentPoint.Temperature );
+        builder.EntropyJacobian[ 2 * particle.EqnIndex + 1 ] += - widthXmass * particle.EnergyDensity * expTerm / ( 6. * pow(data_.CurrentPoint.Hubble, 3.) * 5.95e36 * data_.CurrentPoint.Temperature );
     } else{ 
         long double n1 = particle.NumberDensity;
         long double nEQ1 = particle.EquilibriumNumberDensity;
@@ -82,10 +77,10 @@ ComponentBuilder BoltzmannBuilder::calculate_particle_entropy(const double& t, c
 
 //        builder.EntropyEquation += widthXmass * ( n1 - nEQ1 ) * expl( 3. * t - rad.Y1 ) / ( data_.ReheatPoint.Entropy * data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
 
-        builder.EntropyEquation += widthXmass * ( 1. - nRatio ) * expl( particle.Y1 + 3. * t - rad.Y1 ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
-        builder.EntropyJacobian[ 0 ] += - widthXmass * ( 1. - nRatio ) * expl( particle.Y1 + 3. * t - rad.Y1 ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
-        builder.EntropyJacobian[ 2 * particle.EqnIndex ] += widthXmass * ( 1. - nRatio ) * expl( particle.Y1 + 3. * t - rad.Y1 ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
-        builder.EntropyJacobian[ 2 * particle.EqnIndex + 1 ] += - widthXmass * ( 1. - nRatio ) * expl( particle.Y1 + 3. * t - rad.Y1 ) / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
+        builder.EntropyEquation += widthXmass * ( 1. - nRatio ) * expTerm / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
+        builder.EntropyJacobian[ 0 ] += - widthXmass * ( 1. - nRatio ) * expTerm / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
+        builder.EntropyJacobian[ 2 * particle.EqnIndex ] += widthXmass * ( 1. - nRatio ) * expTerm / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
+        builder.EntropyJacobian[ 2 * particle.EqnIndex + 1 ] += - widthXmass * ( 1. - nRatio ) * expTerm / ( data_.CurrentPoint.Hubble * data_.CurrentPoint.Temperature );
     }
     return builder;
 }
@@ -406,7 +401,7 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const Partic
         double daughterRelativisticFactor = daughter.Mass * daughter.NumberDensity / ( daughter.EnergyDensity + nRegularizer_ );
         double parentRelativisticFactor = parent.Mass * parent.NumberDensity / ( parent.EnergyDensity + nRegularizer_ );
 
-        double sigma = 200.;
+        double sigma = 20.;
         double dampFactor = ( 1. - expl( - sigma * pow( 0.5 - rhoN1 / rhoN2, 2. ) ) ) / ( 1. - expl( - sigma * 0.25 ) );
         double dampFactor2 = ( expl( - sigma * pow( std::min(parentRelativisticFactor, 1.), 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) );
         double dampFactor3 = ( expl( - sigma * pow( std::min(daughterRelativisticFactor, 1.), 2. ) ) - expl(-sigma) ) / (1. - expl(-sigma) );
@@ -434,7 +429,7 @@ ComponentBuilder BoltzmannBuilder::calculate_injection_contribution(const Partic
 //        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex ] += - widthXmass2 * n2 * daughter.EnergyDensity / ( 6. * pow(hubble, 3.) * daughter.Mass * ( n1 + nRegularizer_ ) * 5.95e36 );
 //        builder.NumberDensityJacobian[ 2 * daughter.EqnIndex + 1 ] += - widthXmass2 * n2 * daughter.EnergyDensity / ( 6. * pow(hubble, 3.) * daughter.Mass * ( n1 + nRegularizer_ ) * 5.95e36 ) * dampFactor2 * dampFactor3;
 
-        double baseJacobianHubble = widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( 6. * pow(hubble, 3.) * 5.95e36 );
+//        double baseJacobianHubble = widthXmass2 * n2 * ( 0.5 - rhoN1 / rhoN2 ) / ( 6. * pow(hubble, 3.) * 5.95e36 );
 //        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex ] += - baseJacobianHubble * dampFactor;
 //        builder.EnergyDensityJacobian[ 2 * parent.EqnIndex + 1 ] += - baseJacobianHubble * dampFactor * dampFactor2;
 //        builder.EnergyDensityJacobian[ 2 * daughter.EqnIndex ] += - baseJacobianHubble * daughter.EnergyDensity / ( parent.EnergyDensity + nRegularizer_ ) * dampFactor;

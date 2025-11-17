@@ -1,6 +1,6 @@
 #include <ParticleDefs/Modulus/ModulusFactory.h>
 
-ModulusBranchingRatioFactory::ModulusBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles) 
+ModulusBranchingRatioFactory::ModulusBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles) 
     : BranchingRatioFactory(logger, parent, model, particles)
 {
 }

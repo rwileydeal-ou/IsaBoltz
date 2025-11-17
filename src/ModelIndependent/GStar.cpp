@@ -6,41 +6,57 @@ GStar::GStar(/* args */){}
 GStar::~GStar(){}
 
 double GStar::integralEval(double numFactor, double denomFactor, double t0, double tf, double dt){
-    state_type x0(1);
-    x0[0] = 0.;
-    // have to increment t0 slightly if ==0 since otherwise the exp(1/t) will give an unevaluate-able expression which gets carried through, but incrementing using smallest float precision value should get washed out in adaptive algorithm
-    if (t0==0.){ t0 += numeric_limits<float>::min(); }
+    using namespace boost::math::quadrature;
 
-    // use a lambda expression to insert the integral needed into boost's integrate function
-    auto result = boost::numeric::odeint::integrate(
-        [numFactor, denomFactor](const state_type &x, state_type &dxdt, double t){
-            if (pow(t,2.)*pow(numFactor,2.) > 1.){
-                dxdt[0] = 0;
-            } else{
-                dxdt[0] = sqrt(1 - pow(t, 2.) * pow(numFactor, 2.) ) / ( pow(t, 5.) * ( exp(1. / t) + denomFactor ) );
-            }
-        },
-        x0, t0, tf, dt
-    );
-    return (x0[0]*0.15399);
+    // avoid t = 0 singularity
+    if (t0 == 0.0)
+        t0 = std::numeric_limits<double>::min();
+
+    // define the integrand
+    auto integrand = [numFactor, denomFactor](double t) -> double {
+        double t2 = t * t;
+        double nf2 = numFactor * numFactor;
+
+        if (t2 * nf2 > 1.0)
+            return 0.0;
+
+        double sqrt_term = std::sqrt(1.0 - t2 * nf2);
+        double denom = std::pow(t, 5.0) * (std::exp(1.0 / t) + denomFactor);
+        return sqrt_term / denom;
+    };
+
+    // perform integration using adaptive Gauss–Kronrod
+    // we integrate the *derivative*, not a differential equation, so this is direct quadrature
+    double result = 0.0;
+    try {
+        // n = 15 gives good performance–accuracy tradeoff
+        result = gauss_kronrod<double, 15>::integrate(integrand, t0, tf, 5, 1e-8);
+    } catch (const std::exception &e) {
+        std::cerr << "Integration failed: " << e.what() << std::endl;
+        return 0.0;
+    }
+
+    // multiply by the normalization factor
+    return result * 0.15399;
 }
 
 double GStar::defaultIntegralEval(const double& numFactor, const double& denomFactor){
     return integralEval(numFactor, denomFactor, 0., 1. / numFactor, 0.1);
 }
 
-Models::Particle GStar::findParticle( const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, std::string key ){
-    for( auto& p : particles){
-        if (p.Key == key){
-            return p;
-        }
-    }
-    throw_with_trace( logic_error("Could not find particle") );
-    throw logic_error("If you can read this, something went very wrong...");
+Models::Particle& GStar::findParticle(
+    const std::deque<Models::Particle>& particles,
+    const std::string& key)
+{
+
+    for (auto& p : particles)
+        if (p.Key == key)
+            return const_cast<Models::Particle&>(p);
+
+    throw_with_trace(logic_error("Could not find particle with key: " + key));
 }
 
-
-double GStar::calculateQCD(const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, const double& T, const CosmologicalTemperatures& temperatures){
+double GStar::calculateQCD(const std::deque< Models::Particle >& particles, const double& T, const CosmologicalTemperatures& temperatures){
     double gQCD = 0.;
     if (T < temperatures.Hadronization){
         auto gPion = GStar::defaultIntegralEval(abs(findParticle(particles, "pion0").Mass) / T, -1. );
@@ -69,7 +85,7 @@ double GStar::calculateQCD(const std::deque< Models::Particle, boost::pool_alloc
     return gQCD;
 }
 
-double GStar::calculateGaugeBosons(const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, const double& T, const CosmologicalTemperatures& temperatures){
+double GStar::calculateGaugeBosons(const std::deque< Models::Particle >& particles, const double& T, const CosmologicalTemperatures& temperatures){
     auto wBoson = findParticle(particles, "wboson");
     auto zBoson = findParticle(particles, "zboson");
     auto gW = GStar::defaultIntegralEval(abs(wBoson.Mass) / T, -1. );
@@ -80,7 +96,7 @@ double GStar::calculateGaugeBosons(const std::deque< Models::Particle, boost::po
     return gGauges;
 }
 
-double GStar::calculateLeptons(const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, const double& T, const CosmologicalTemperatures& temperatures){
+double GStar::calculateLeptons(const std::deque< Models::Particle >& particles, const double& T, const CosmologicalTemperatures& temperatures){
     auto electron = findParticle(particles, "electron");
     auto muon = findParticle(particles, "muon");
     auto tau = findParticle(particles, "tau");
@@ -99,7 +115,7 @@ double GStar::calculateLeptons(const std::deque< Models::Particle, boost::pool_a
     return gLeptons;
 }
 
-double GStar::calculateSusy(const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, const double& T, const CosmologicalTemperatures& temperatures){
+double GStar::calculateSusy(const std::deque< Models::Particle >& particles, const double& T, const CosmologicalTemperatures& temperatures){
     auto gluino = findParticle(particles, "gluino");
     auto higgsLight = findParticle(particles, "higgslight");
     auto higgsHeavy = findParticle(particles, "higgsheavy");
@@ -220,10 +236,12 @@ double GStar::Calculate(Connection& connection, double T){
         throw_with_trace( logic_error("Could not find particles!") );
     }
 
-    auto susy = GStar::calculateSusy(cb.CallbackReturn.Particles, T, connection.Model.Cosmology.Temperatures);
-    auto leptons = GStar::calculateLeptons(cb.CallbackReturn.Particles, T, connection.Model.Cosmology.Temperatures);
-    auto qcd = GStar::calculateQCD(cb.CallbackReturn.Particles, T, connection.Model.Cosmology.Temperatures);
-    auto gb = GStar::calculateGaugeBosons(cb.CallbackReturn.Particles, T, connection.Model.Cosmology.Temperatures);
+    auto particles = cb.CallbackReturn.Particles;
+
+    auto susy = GStar::calculateSusy(particles, T, connection.Model.Cosmology.Temperatures);
+    auto leptons = GStar::calculateLeptons(particles, T, connection.Model.Cosmology.Temperatures);
+    auto qcd = GStar::calculateQCD(particles, T, connection.Model.Cosmology.Temperatures);
+    auto gb = GStar::calculateGaugeBosons(particles, T, connection.Model.Cosmology.Temperatures);
     double gstr = (susy + leptons + qcd + gb);
 
     connection.Log.Trace("Calculated g_{*}=" + to_string(gstr) + " at T=" + to_string(T) + " GeV");
@@ -251,10 +269,12 @@ double GStar::Calculate(DbManager& db, Connection& connection, double T){
         throw_with_trace( logic_error("Could not find particles!") );
     }
 
-    auto susy = GStar::calculateSusy(cb.CallbackReturn.Particles, T, connection.Model.Cosmology.Temperatures);
-    auto leptons = GStar::calculateLeptons(cb.CallbackReturn.Particles, T, connection.Model.Cosmology.Temperatures);
-    auto qcd = GStar::calculateQCD(cb.CallbackReturn.Particles, T, connection.Model.Cosmology.Temperatures);
-    auto gb = GStar::calculateGaugeBosons(cb.CallbackReturn.Particles, T, connection.Model.Cosmology.Temperatures);
+    auto particles = cb.CallbackReturn.Particles;
+
+    auto susy = GStar::calculateSusy(particles, T, connection.Model.Cosmology.Temperatures);
+    auto leptons = GStar::calculateLeptons(particles, T, connection.Model.Cosmology.Temperatures);
+    auto qcd = GStar::calculateQCD(particles, T, connection.Model.Cosmology.Temperatures);
+    auto gb = GStar::calculateGaugeBosons(particles, T, connection.Model.Cosmology.Temperatures);
     double gstr = (susy + leptons + qcd + gb);
 
     connection.Log.Trace("Calculated g_{*}=" + to_string(gstr) + " at T=" + to_string(T) + " GeV");
@@ -270,108 +290,12 @@ double GStar::CalculateEntropic(DbManager& db, Connection& connection, double T,
 }
 
 
-double GStar::Calculate(const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, Connection& connection, double T){
+double GStar::Calculate(const std::deque< Models::Particle >& particles, Connection& connection, double T){
     auto susy = GStar::calculateSusy(particles, T, connection.Model.Cosmology.Temperatures);
     auto leptons = GStar::calculateLeptons(particles, T, connection.Model.Cosmology.Temperatures);
     auto qcd = GStar::calculateQCD(particles, T, connection.Model.Cosmology.Temperatures);
     auto gb = GStar::calculateGaugeBosons(particles, T, connection.Model.Cosmology.Temperatures);
     double gstr = (susy + leptons + qcd + gb);
-
-/*
-    double gstr = 0.;
-    double gQCD = 0.;
-
-    for( auto& p : particles ){
-        if ( T < connection.Model.Cosmology.Temperatures.Hadronization && ( p.Key == "charmq" || p.Key == "bottomq" || p.Key == "topq" ) ){
-            continue;
-        } else if ( T >= connection.Model.Cosmology.Temperatures.Hadronization && ( p.Key == "pion0" || p.Key == "eta" || p.Key == "rho0" || p.Key == "omega" || p.Key == "kaon0" ) ){
-            continue;
-        } else if ( p.Key == "photon" || p.Key == "gluon" || p.Key == "upq" || p.Key == "downq" || p.Key == "strangeq" || p.Key == "neutralino1" ){
-            continue;
-        } else if ( p.Key == "modulus" || p.Key == "axion" || p.Key == "saxion" || p.Key == "axino" ){
-            continue;            
-        }
-
-        double den = 0.;
-        if (p.Statistics == ParticleStatistics::Fermion){ den = 1.; }
-        else{ den = -1.; }
-
-        double gs = GStar::defaultIntegralEval(abs(p.Mass) / T, den);        
-
-        if (p.Key == "gluino"){
-            gstr += 16. * gs;
-        } else if ( p.Key == "suplsq" || p.Key == "suprsq" || p.Key == "sdownlsq" || p.Key == "sdownrsq" || p.Key == "sstrangelsq" || p.Key == "sstrangersq" || p.Key == "scharmlsq" || p.Key == "scharmrsq" || p.Key == "sbottom1sq" || p.Key == "sbottom2sq" || p.Key == "stop1sq" || p.Key == "stop2sq" ){
-            gstr += 6. * gs;
-        } else if ( p.Key == "sneutrinoselectronl" || p.Key == "sneutrinosmuonl" || p.Key == "sneutrinostaul" ){
-            gstr += gs;
-        } else if ( p.Key == "selectronl" || p.Key == "selectronr" || p.Key == "smuonl" || p.Key == "smuonr" || p.Key == "stau1" || p.Key == "stau2" ){
-            gstr += 2. * gs;
-        } else if ( p.Key == "neutralino2" || p.Key == "neutralino3" || p.Key == "neutralino4" ){
-            // neutralinos (for whatever reason, omit Z1, TODO: find out why)
-            gstr += 2. * gs;
-        } else if ( p.Key == "chargino1" || p.Key == "chargino2" ){
-            gstr += 4. * gs;
-        } else if ( p.Key == "higgslight" || p.Key == "higgsheavy" || p.Key == "higgspseudoscalar" ){
-            gstr += gs;
-        } else if ( p.Key == "higgscharged"){
-            gstr += 2. * gs;
-        } else if ( p.Key == "wboson"){
-            gstr += 6. * gs;
-        } else if ( p.Key == "zboson"){
-            gstr += 3. * gs;
-        } else if ( p.Key == "electron" || p.Key == "muon" || p.Key == "tau"){
-            gstr += 4. * gs;
-        }
-
-        if (T < connection.Model.Cosmology.Temperatures.Hadronization){
-            if ( p.Key == "pion0" ){
-                gQCD += 4. * gs;
-            } else if ( p.Key == "eta" ){
-                gQCD += 2. * gs;
-            } else if ( p.Key == "rho0" ){
-                gQCD += 6. * gs;
-            } else if ( p.Key == "omega" ){
-                gQCD += 6. * gs;
-            } else if ( p.Key == "kaon0" ){
-                gQCD += 4. * gs;
-            }
-        } else{
-            if ( p.Key == "charmq" || p.Key == "bottomq" || p.Key == "topq" ){
-                gQCD += 12. * gs;
-            }
-        }
-    }
-
-    if ( T >= connection.Model.Cosmology.Temperatures.Hadronization ){
-        // gluon
-        gQCD += ( 1. * 2. * 8. );
-        // light quarks
-        gQCD += 12. * ( (7. / 8.) * 3. ); // 3 gens of quarks approximated as massless
-    }
-
- 
-    if (T > 0.15 && T < 0.25){
-        double fit = 3.21029 + (91.7341 - 184.36 * T) / ( 1. + exp(100. * (0.2-T) ) );
-        if (T < connection.Model.Cosmology.Temperatures.Hadronization){
-            gQCD = max(fit, gQCD);
-        } else{
-            gQCD = min(fit, gQCD);
-        }
-    }
-
-
-    // photon
-    gstr += 2.;
-
-    // neutrinos
-    if (T > connection.Model.Cosmology.Temperatures.NeutrinoDecouple){
-        gstr += (7. / 8.) * 6.; // neutrinos are still coupled
-    } else{
-        gstr += (7. / 8.) * 6. * pow(4./11., 4./3.); // decoupled neutrinos
-    }
-
-    gstr += gQCD;
-*/
 
     if (std::isnan(gstr)){
         connection.Log.Debug("Invalid g_{*} calculated at T=" + to_string(T) + " GeV... Setting to maximal g_{*} = 225");
@@ -382,7 +306,7 @@ double GStar::Calculate(const std::deque< Models::Particle, boost::pool_allocato
     return gstr;
 }
 
-double GStar::CalculateEntropic(const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, Connection& connection, double T){
+double GStar::CalculateEntropic(const std::deque< Models::Particle >& particles, Connection& connection, double T){
     double gstr = Calculate( particles, connection, T );
     if (T <= connection.Model.Cosmology.Temperatures.NeutrinoDecouple){
         return ( gstr - (7. / 8.) * 6. * ( pow(4. / 11., 4. / 3.) - (4. / 11.) ) );
@@ -391,7 +315,7 @@ double GStar::CalculateEntropic(const std::deque< Models::Particle, boost::pool_
     return gstr;
 }
 
-double GStar::CalculateEntropic(const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, Connection& connection, double T, double gstr){
+double GStar::CalculateEntropic(const std::deque< Models::Particle >& particles, Connection& connection, double T, double gstr){
     if (T <= connection.Model.Cosmology.Temperatures.NeutrinoDecouple){
         return ( gstr - (7. / 8.) * 6. * ( pow(4. / 11., 4. / 3.) - (4. / 11.) ) );
     }

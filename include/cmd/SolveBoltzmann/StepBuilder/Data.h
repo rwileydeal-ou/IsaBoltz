@@ -12,18 +12,18 @@
 
 struct BoltzmannData
 {
-    const std::vector< ParticleData, boost::pool_allocator<ParticleData> >& ParticleDatas;
+    const std::vector< ParticleData >& ParticleDatas;
     const Models::ScaleFactorPoint& CurrentPoint; 
     const Models::ScaleFactorPoint& ReheatPoint;
-    const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& Particles;
-    const std::map< std::string, std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > >& PartialWidths;
+    const std::deque< Models::Particle >& Particles;
+    const std::map< std::string, std::deque< Models::PartialWidth > >& PartialWidths;
     
     BoltzmannData(
-        const std::vector< ParticleData, boost::pool_allocator<ParticleData> >& particleDatas,
+        const std::vector< ParticleData >& particleDatas,
         const Models::ScaleFactorPoint& currentPoint,
         const Models::ScaleFactorPoint& reheatPoint,
-        const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles,
-        const std::map< std::string, std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > >& partialWidths
+        const std::deque< Models::Particle >& particles,
+        const std::map< std::string, std::deque< Models::PartialWidth > >& partialWidths
     ) :
     ParticleDatas(particleDatas),
     CurrentPoint(currentPoint),

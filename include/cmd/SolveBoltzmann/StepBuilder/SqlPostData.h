@@ -12,10 +12,10 @@
 
 struct BoltzSqlData
 {
-    std::deque< ParticleData, boost::pool_allocator<ParticleData> > ParticleDatas;
-    std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > PartialWidths;
-    std::deque< Models::TotalWidth, boost::pool_allocator<Models::TotalWidth> > TotalWidths;
-    std::deque< Models::ScaleFactorPoint, boost::pool_allocator<Models::ScaleFactorPoint> > ScaleFactors;
+    std::deque< ParticleData> ParticleDatas;
+    std::deque< Models::PartialWidth > PartialWidths;
+    std::deque< Models::TotalWidth > TotalWidths;
+    std::deque< Models::ScaleFactorPoint > ScaleFactors;
 };
 
 #endif  

@@ -2,7 +2,7 @@
 
 using namespace std;
 
-SaxionBr::SaxionBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles) : 
+SaxionBr::SaxionBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles) : 
     IBranchingRatio(logger, parent, model, particles)
 {}
 SaxionBr::~SaxionBr(){}
@@ -20,7 +20,7 @@ BranchingFraction SaxionBr::Calculate(){
     return br;
 }
 
-deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth>> SaxionBr::handleDFSZ(){
+deque< Models::PartialWidth > SaxionBr::handleDFSZ(){
     SaxionWidthsDFSZ dfszWidths(model_, particles_);
     return dfszWidths.Decays;
 }

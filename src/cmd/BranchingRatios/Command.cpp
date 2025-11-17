@@ -2,7 +2,7 @@
 
 using namespace std;
 
-BranchingRatioCommand::BranchingRatioCommand(Connection& connection, Models::Particle& particle, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, bool squashLogs) :
+BranchingRatioCommand::BranchingRatioCommand(Connection& connection, Models::Particle& particle, const std::deque< Models::Particle >& particles, bool squashLogs) :
     connection_(connection),
     particle_(particle),
     particles_(particles)

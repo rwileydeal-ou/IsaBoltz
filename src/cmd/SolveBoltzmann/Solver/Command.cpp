@@ -84,7 +84,7 @@ Models::ScaleFactorPoint BoltzmannSolverCommand::pullReheatScaleFactorPoint(boos
     return scaleFactor;
 }
 
-std::deque< Models::Particle, boost::pool_allocator<Models::Particle> > BoltzmannSolverCommand::pullParticles(){
+std::deque< Models::Particle > BoltzmannSolverCommand::pullParticles(){
     Models::Particle p;
     DbManager db(connection_);
     db.Open();
@@ -101,8 +101,8 @@ std::deque< Models::Particle, boost::pool_allocator<Models::Particle> > Boltzman
     return cb.CallbackReturn.Particles;
 }
 
-std::map< std::string, std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > > BoltzmannSolverCommand::pullPartialWidths( const std::deque< Models::ParticleEvolution >& particleEvos ){
-    std::map< std::string, std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > > partialWidths;
+std::map< std::string, std::deque< Models::PartialWidth > > BoltzmannSolverCommand::pullPartialWidths( const std::deque< Models::ParticleEvolution >& particleEvos ){
+    std::map< std::string, std::deque< Models::PartialWidth > > partialWidths;
     DbManager db(connection_);
     db.Open();
 

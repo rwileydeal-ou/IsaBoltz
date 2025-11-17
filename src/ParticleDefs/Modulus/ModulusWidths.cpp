@@ -2,7 +2,7 @@
 
 using namespace std;
 
-ModulusWidths::ModulusWidths(const ModelBase& model, const std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles) 
+ModulusWidths::ModulusWidths(const ModelBase& model, const std::deque< Models::Particle >& particles) 
     : model_(model),
     particles_(particles)
 {
@@ -78,8 +78,8 @@ Models::PartialWidth ModulusWidths::widthDiAxino(double lambdaPQ, const Models::
     return Models::PartialWidth( parent_, { axino, axino }, width );
 }
 
-deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > ModulusWidths::widthDiAxionic(){
-    deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widths;
+deque< Models::PartialWidth > ModulusWidths::widthDiAxionic(){
+    deque< Models::PartialWidth > widths;
 
     double lambdaPQ = model_.ModulusCouplings.AxionicCouplings.LambdaAx;
     if ( lambdaPQ != 0. ){
@@ -127,7 +127,7 @@ Models::PartialWidth ModulusWidths::widthNeutralinoINeutralinoJ(double lambdaEff
     return Models::PartialWidth( parent_, { neutralinoI, neutralinoJ }, width  );
 }
 
-std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > ModulusWidths::widthNeutralinos(){
+std::deque< Models::PartialWidth > ModulusWidths::widthNeutralinos(){
     auto neutralino1 = ModelBaseOps::FindConst(particles_, "neutralino1");
     auto neutralino2 = ModelBaseOps::FindConst(particles_, "neutralino2");
     auto neutralino3 = ModelBaseOps::FindConst(particles_, "neutralino3");
@@ -138,7 +138,7 @@ std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > 
     double lambdaU1 = model_.ModulusCouplings.GaugeCouplings.LambdaU1;
     double lambdaSU2 = model_.ModulusCouplings.GaugeCouplings.LambdaSU2;
 
-    deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widths;
+    deque< Models::PartialWidth > widths;
     for ( int i = 0; i < 4; ++i ){
         double lambdaEff = lambdaHu * pow( model_.Susy.MixingAngles.zMix[i][0], 2. ) + lambdaHd * pow( model_.Susy.MixingAngles.zMix[i][1], 2. )
         + lambdaSU2 * pow(model_.Susy.MixingAngles.zMix[i][2], 2.) + lambdaU1 * pow(model_.Susy.MixingAngles.zMix[i][3], 2.);
@@ -203,7 +203,7 @@ Models::PartialWidth ModulusWidths::widthChargino1Chargino2(double lambdaEff, do
     return Models::PartialWidth( parent_, { chargino1, chargino2 }, width  );
 }
 
-std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > ModulusWidths::widthCharginos(){
+std::deque< Models::PartialWidth > ModulusWidths::widthCharginos(){
     auto chargino1 = ModelBaseOps::FindConst(particles_, "chargino1");
     auto chargino2 = ModelBaseOps::FindConst(particles_, "chargino2");
 
@@ -225,7 +225,7 @@ std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > 
     double x = 0.5 * ( copysign(1., chargino1.Mass * chargino2.Mass ) * thX * sin( gammaL ) * cos( gammaL ) + thY * sin( gammaR ) * cos( gammaR ) );
     double y = 0.5 * ( copysign(1., chargino1.Mass * chargino2.Mass ) * thX * sin( gammaL ) * cos( gammaL ) - thY * sin( gammaR ) * cos( gammaR ) );
 
-    deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widths;
+    deque< Models::PartialWidth > widths;
     double gVW1 = 2. * lambdaSU2 * xc + ( lambdaHu + lambdaHd ) * xs;
     double gAW1 = 2. * lambdaSU2 * yc + ( lambdaHu + lambdaHd ) * ys;
     widths.push_back(widthDiChargino(1., gVW1, gAW1, chargino1, model_.Constants.mPlanck));
@@ -316,7 +316,7 @@ Models::PartialWidth ModulusWidths::widthGluonGluon(double lambdaSU3, const Mode
     return Models::PartialWidth( parent_, { gluon, gluon }, width  );
 }
 
-deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > ModulusWidths::widthVBosonVBoson(){
+deque< Models::PartialWidth > ModulusWidths::widthVBosonVBoson(){
     auto wBoson = ModelBaseOps::FindConst(particles_, "wboson");
     auto zBoson = ModelBaseOps::FindConst(particles_, "zboson");
     auto photon = ModelBaseOps::FindConst(particles_, "photon");
@@ -326,7 +326,7 @@ deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > Modul
     double lambdaSU2 = model_.ModulusCouplings.GaugeCouplings.LambdaSU2;
     double lambdaSU3 = model_.ModulusCouplings.GaugeCouplings.LambdaSU3;
     
-    deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widths;
+    deque< Models::PartialWidth > widths;
     widths.push_back(widthZBosonZBoson(lambdaU1, lambdaSU2, model_.StandardModel.MixingAngles.SinSqrThetaW, zBoson, model_.Constants.mPlanck));
     widths.push_back(widthWBosonWBoson(lambdaSU2, wBoson, model_.Constants.mPlanck));
     widths.push_back(widthPhotonPhoton(lambdaU1, lambdaSU2, model_.StandardModel.MixingAngles.SinSqrThetaW, photon, model_.Constants.mPlanck));
@@ -397,7 +397,7 @@ Models::PartialWidth ModulusWidths::widthChargedHiggsChargedHiggs(double lambdaE
     return Models::PartialWidth( parent_, { chargedHiggs, chargedHiggs }, width  );
 }
 
-deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > ModulusWidths::widthHiggsHiggs(){
+deque< Models::PartialWidth > ModulusWidths::widthHiggsHiggs(){
     auto higgsLight = ModelBaseOps::FindConst(particles_, "higgslight");
     auto higgsHeavy = ModelBaseOps::FindConst(particles_, "higgsheavy");
     auto higgsPseudo = ModelBaseOps::FindConst(particles_, "higgspseudoscalar");
@@ -409,7 +409,7 @@ deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > Modul
     double alpha = model_.Susy.MixingAngles.alfah;
     double beta = atan( model_.Susy.TanBeta );
 
-    deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widths;
+    deque< Models::PartialWidth > widths;
     double lambdaEff_hh = lambdaGM * sin( 2. * alpha ) + 2. * ( lambdaHu * pow( cos( alpha ), 2. ) + lambdaHd * pow( sin( alpha ), 2. ) ) * pow( higgsLight.Mass / parent_.Mass, 2. );
     widths.push_back(widthLightHiggsLightHiggs(lambdaEff_hh, higgsLight, model_.Constants.mPlanck));
 
@@ -497,7 +497,7 @@ Models::PartialWidth ModulusWidths::widthSquark1Squark2(double lambdaUD, double 
     return Models::PartialWidth( parent_, { squark1, squark2 }, 3. * width  );
 }
 
-deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > ModulusWidths::widthSquarkSquark(){
+deque< Models::PartialWidth > ModulusWidths::widthSquarkSquark(){
     // Left-hand squarks
     auto upl = ModelBaseOps::FindConst(particles_, "suplsq");
     auto dnl = ModelBaseOps::FindConst(particles_, "sdownlsq");
@@ -528,7 +528,7 @@ deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > Modul
     double thetaT = model_.Susy.MixingAngles.thetaT;
     double thetaB = model_.Susy.MixingAngles.thetaB;
 
-    deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widths;
+    deque< Models::PartialWidth > widths;
     // add all left-hand squarks (1st & 2nd gen.)
     widths.push_back(widthSquarkLSquarkL(lambdaQ1, upl, model_.Constants.mPlanck));
     widths.push_back(widthSquarkLSquarkL(lambdaQ1, dnl, model_.Constants.mPlanck));
@@ -604,7 +604,7 @@ Models::PartialWidth ModulusWidths::widthSlepton1Slepton2(double lambdaL, double
     return Models::PartialWidth( parent_, { slepton1, slepton2 }, width  );
 }
 
-deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > ModulusWidths::widthSleptonSlepton(){
+deque< Models::PartialWidth > ModulusWidths::widthSleptonSlepton(){
     // sneutrinos
     auto nuel = ModelBaseOps::FindConst(particles_, "sneutrinoselectronl");
     auto numu = ModelBaseOps::FindConst(particles_, "sneutrinosmuonl");
@@ -628,7 +628,7 @@ deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > Modul
 
     double thetaTau = model_.Susy.MixingAngles.thetaL;
 
-    deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widths;
+    deque< Models::PartialWidth > widths;
     widths.push_back(widthSleptonLRSleptonLR(lambdaLe, nuel, model_.Constants.mPlanck));
     widths.push_back(widthSleptonLRSleptonLR(lambdaLm, numu, model_.Constants.mPlanck));
     widths.push_back(widthSleptonLRSleptonLR(lambdaLt, nutau, model_.Constants.mPlanck));
@@ -659,7 +659,7 @@ Models::PartialWidth ModulusWidths::widthQuarkQuark(double lambdaUD, double lamb
     return Models::PartialWidth( parent_, { quark, quark }, 3. * width  );
 }
 
-deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > ModulusWidths::widthQuarkQuark(){
+deque< Models::PartialWidth > ModulusWidths::widthQuarkQuark(){
     // up-type quarks
     auto upQ = ModelBaseOps::FindConst(particles_, "upq");
     auto charmQ = ModelBaseOps::FindConst(particles_, "charmq");
@@ -681,7 +681,7 @@ deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > Modul
     double lambdaQ2 = model_.ModulusCouplings.QuarkSquarkCouplings.LambdaQ2;
     double lambdaQ3 = model_.ModulusCouplings.QuarkSquarkCouplings.LambdaQ3;
 
-    deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widths;
+    deque< Models::PartialWidth > widths;
     widths.push_back(widthQuarkQuark(lambdaUu, lambdaQ1, upQ, model_.Constants.mPlanck));
     widths.push_back(widthQuarkQuark(lambdaUc, lambdaQ2, charmQ, model_.Constants.mPlanck));
     widths.push_back(widthQuarkQuark(lambdaUt, lambdaQ3, topQ, model_.Constants.mPlanck));
@@ -704,7 +704,7 @@ Models::PartialWidth ModulusWidths::widthChargedDiLepton(double lambdaL, double 
     return Models::PartialWidth( parent_, { lepton, lepton }, width  );
 }
 
-deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > ModulusWidths::widthLeptonLepton(){
+deque< Models::PartialWidth > ModulusWidths::widthLeptonLepton(){
     // charged leptons
     auto el = ModelBaseOps::FindConst(particles_, "electron");
     auto mu = ModelBaseOps::FindConst(particles_, "muon");
@@ -718,7 +718,7 @@ deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > Modul
     double lambdaE2 = model_.ModulusCouplings.LeptonSleptonCouplings.LambdaE2;
     double lambdaE3 = model_.ModulusCouplings.LeptonSleptonCouplings.LambdaE3;
 
-    deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > widths;
+    deque< Models::PartialWidth > widths;
     widths.push_back(widthChargedDiLepton(lambdaLe, lambdaE1, el, model_.Constants.mPlanck));
     widths.push_back(widthChargedDiLepton(lambdaLm, lambdaE2, mu, model_.Constants.mPlanck));
     widths.push_back(widthChargedDiLepton(lambdaLt, lambdaE3, tau, model_.Constants.mPlanck));

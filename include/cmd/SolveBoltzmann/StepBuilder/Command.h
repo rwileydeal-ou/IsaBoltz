@@ -80,12 +80,12 @@ private:
     */
     const Models::ScaleFactorPoint& reheatPoint_;
     Models::ScaleFactorPoint currentPoint_;
-    std::deque<Models::Particle, boost::pool_allocator<Models::Particle>>& particles_;
-    std::map< std::string, std::deque<Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > >& partialWidths_;
+    std::deque< Models::Particle >& particles_;
+    std::map< std::string, std::deque< Models::PartialWidth > >& partialWidths_;
     std::map< std::string, Models::TotalWidth >& totalWidths_;
     const std::deque< Models::ParticleEvolution >& initialParticleEvolutions_;
     bool tempDependentMassEnabled_;
-    std::vector< ParticleData, boost::pool_allocator<ParticleData> > currentParticleData_;
+    std::vector< ParticleData > currentParticleData_;
 
     /* 
         Data required for handling separate steps correctly 
@@ -143,8 +143,8 @@ public:
         std::shared_ptr< DataRelay > fortranInterface, 
         const Models::ScaleFactorPoint& reheatPoint, 
         const std::deque< Models::ParticleEvolution >& initialParticleEvolutions, 
-        std::deque< Models::Particle, boost::pool_allocator<Models::Particle> >& particles, 
-        std::map< std::string, std::deque< Models::PartialWidth, boost::pool_allocator<Models::PartialWidth> > >& partialWidths, 
+        std::deque< Models::Particle >& particles, 
+        std::map< std::string, std::deque< Models::PartialWidth > >& partialWidths, 
         std::map< std::string, Models::TotalWidth >& totalWidths
     );
     ~BoltzmannStepBuilderCommand();

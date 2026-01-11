@@ -25,7 +25,7 @@ struct BoltzmannObserver
 
     void operator()( const state_type &x , double t )
     {
-        if ( t - previousT >= 0.1 || t == 0. || command_.ForcePost() ){
+        if ( t - previousT >= 0.01 || t == 0. || command_.ForcePost() ){
             command_.SetResult();
             int builderOrdinal = command_.getCurrentOrdinal();
             if ( builderOrdinal > ordinal_ ){

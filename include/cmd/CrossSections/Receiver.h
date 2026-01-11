@@ -19,14 +19,29 @@ private:
     Connection& connection_;
     Models::Particle particle_;
     SigmaV crossSection_;
+    std::shared_ptr< ISigmaV > crossSectionFactory_;
     std::shared_ptr< DataRelay > fortranInterface_;
     std::shared_ptr< double > temperature_;
     bool isCohOscField_;
-    void factorySetup(std::shared_ptr< CrossSectionFactory >& crossSectionFactory, const Models::Particle& p, bool isCohOscField);
+    void factorySetup(
+        std::shared_ptr< CrossSectionFactory >& crossSectionFactory, 
+        const Models::Particle& p, 
+        bool isCohOscField
+    );
 public:
     ~CrossSectionReceiver();
-    CrossSectionReceiver(Connection& connection, Models::Particle& particle, std::shared_ptr< double > temperature, bool isCohOscField, std::shared_ptr< DataRelay > fortranInterface);
+    CrossSectionReceiver(
+        Connection& connection, 
+        Models::Particle& particle, 
+        std::shared_ptr< double > temperature, 
+        bool isCohOscField, 
+        std::shared_ptr< DataRelay > fortranInterface
+    );
     void Calculate() override;
+    void UpdateInputs( 
+        std::shared_ptr< double > temperature, 
+        Models::Particle& particle 
+    );
     SigmaV getThermalCrossSection();
 };
 

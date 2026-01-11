@@ -2,19 +2,34 @@
 
 using namespace std;
 
-CrossSectionReceiver::CrossSectionReceiver(Connection& connection, Models::Particle& particle, std::shared_ptr< double > temperature, bool isCohOscField, std::shared_ptr< DataRelay > fortranInterface) :
+CrossSectionReceiver::CrossSectionReceiver(
+    Connection& connection, 
+    Models::Particle& particle, 
+    std::shared_ptr< double > temperature, 
+    bool isCohOscField, 
+    std::shared_ptr< DataRelay > fortranInterface
+) :
     connection_(connection)
 {
     particle_ = particle;
     fortranInterface_ = fortranInterface;
     temperature_ = temperature;
     isCohOscField_ = isCohOscField;
+
+    // define and configure factories
+    std::shared_ptr< CrossSectionFactory > crossSectionFactorySetup;
+    factorySetup(crossSectionFactorySetup, particle_, isCohOscField_);
+    crossSectionFactory_ = crossSectionFactorySetup -> create_cross_section();
 }
 
 CrossSectionReceiver::~CrossSectionReceiver(){
 }
 
-void CrossSectionReceiver::factorySetup(std::shared_ptr< CrossSectionFactory >& crossSectionFactory, const Models::Particle& p, bool isCohOscField){
+void CrossSectionReceiver::factorySetup(
+    std::shared_ptr< CrossSectionFactory >& crossSectionFactory, 
+    const Models::Particle& p, 
+    bool isCohOscField
+){
     if (p.Key == "neutralino1"){
         if(true){
             crossSectionFactory = std::make_shared< CrossSectionFromFileFactory >();
@@ -35,16 +50,19 @@ void CrossSectionReceiver::factorySetup(std::shared_ptr< CrossSectionFactory >& 
 }
 
 void CrossSectionReceiver::Calculate(){
-    // define and configure factories
-    std::shared_ptr< CrossSectionFactory > crossSection;
-    factorySetup(crossSection, particle_, isCohOscField_);
-
     // calculate branching ratios
-    auto a = crossSection -> create_cross_section();
-    crossSection_ = a -> Calculate( 
+    crossSection_ = crossSectionFactory_ -> Calculate( 
         particle_, connection_.Model, *temperature_, fortranInterface_
     );
     crossSection_.InputId = connection_.InputId;
+}
+
+void CrossSectionReceiver::UpdateInputs( 
+    std::shared_ptr< double > temperature, 
+    Models::Particle& particle 
+){
+    temperature_ = temperature;
+    particle_ = particle;
 }
 
 SigmaV CrossSectionReceiver::getThermalCrossSection(){

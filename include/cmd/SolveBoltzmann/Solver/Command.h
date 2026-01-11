@@ -12,6 +12,7 @@
 #include <boost/numeric/ublas/matrix.hpp>
 
 #include <memory>
+#include <unordered_map>
 
 #include <client/Sender.h>
 #include <cmd/ICommand.h>
@@ -34,6 +35,7 @@
 #include <cmd/SolveBoltzmann/Solver/SystemJacobian.h>
 #include <cmd/SolveBoltzmann/Solver/Observer.h>
 #include <cmd/RelicDensity/Command.h>
+#include <cmd/SolveBoltzmann/StepBuilder/GStarSpline.h>
 
 class BoltzmannSolverCommand : public ICommand {
 private:
@@ -51,10 +53,22 @@ private:
     std::map< std::string, std::deque< Models::PartialWidth > > pullPartialWidths( const std::deque< Models::ParticleEvolution >& particleEvos );
     std::map< std::string, Models::TotalWidth > pullTotalWidths( const std::deque< Models::ParticleEvolution >& particleEvos );
     std::deque< Models::ParticleEvolution > pullParticleEvolutions();
-    std::deque< Models::Particle > pullParticles();
+    std::deque< Models::Particle > pullParticles(
+        std::unordered_map< 
+            boost::uuids::uuid, 
+            Models::Particle, 
+            boost::hash<boost::uuids::uuid> 
+        >& particleCache
+    );
     void purgeSQL(int startOrdinal, int endOrdinal);
 public:
-    BoltzmannSolverCommand(Connection& connection, std::shared_ptr< DataRelay > fortranInterface, boost::uuids::uuid reheatScaleFactorId, double finalTemp, std::vector< std::string > enabledKeys);
+    BoltzmannSolverCommand(
+        Connection& connection, 
+        std::shared_ptr< DataRelay > fortranInterface, 
+        boost::uuids::uuid reheatScaleFactorId, 
+        double finalTemp, 
+        std::vector< std::string > enabledKeys
+    );
     ~BoltzmannSolverCommand();
     void Execute() override;
 };

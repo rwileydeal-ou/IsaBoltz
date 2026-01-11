@@ -15,15 +15,8 @@ public:
 
     }
     void operator() ( const state_type &x , state_type &dxdt , const double& t ){
-        if ( !( command_.IsInitialized() ) ){
-            // We need both the Boltzmann equations and the Jacobian of the system
-            // Only need to run the command once, then get the result to plug into Boost integrator
-            command_.UpdateData( x, t );
-            command_.Execute();
-        } else{
-            command_.Reset();
-        }
-
+        command_.UpdateData( x, t );
+        command_.Execute();
         dxdt = command_.getDxDt();
 
     }

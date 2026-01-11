@@ -87,6 +87,15 @@ void CrossSectionCommand::Execute(){
     }
 }
 
+void CrossSectionCommand::UpdateInputs( 
+    std::shared_ptr< double > temperature,
+    Models::Particle& particle
+){
+    particle_ = particle;
+    temperature_ = temperature;
+    receiver_ -> UpdateInputs( temperature, particle );
+}
+
 SigmaV CrossSectionCommand::getResult(){
     return result_;
 }

@@ -9,12 +9,18 @@
 
 class CrossSectionFromFile : public ISigmaV
 {
+public:
+    explicit CrossSectionFromFile(std::string fileName);
+    ~CrossSectionFromFile();
+    SigmaV Calculate(const Models::Particle& particle,
+                     const ModelBase& model,
+                     double T,
+                     std::shared_ptr<DataRelay> fortInterface) override;
+
 private:
     std::string fileName_;
-public:
-    SigmaV Calculate(const Models::Particle& neutralino, const ModelBase& model, double T, std::shared_ptr< DataRelay > fortInterface) override;
-    CrossSectionFromFile( std::string fileName );
-    ~CrossSectionFromFile();
+    std::vector<double> temps_;
+    std::vector<double> sigmas_;
 };
 
 #endif

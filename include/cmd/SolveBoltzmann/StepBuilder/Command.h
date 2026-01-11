@@ -53,6 +53,7 @@
 
 #include <sql/Statements/TempOsc.h>
 
+#include <cmd/SolveBoltzmann/StepBuilder/GStarSpline.h>
 #include <cmd/SolveBoltzmann/StepBuilder/ParticleData.h>
 
 class BoltzmannStepBuilderCommand : public ICommand {
@@ -86,6 +87,11 @@ private:
     const std::deque< Models::ParticleEvolution >& initialParticleEvolutions_;
     bool tempDependentMassEnabled_;
     std::vector< ParticleData > currentParticleData_;
+    std::unordered_map<
+        boost::uuids::uuid,
+        Models::Particle,
+        boost::hash<boost::uuids::uuid>
+    >& particleCache_;
 
     /* 
         Data required for handling separate steps correctly 
@@ -125,7 +131,13 @@ private:
     void calculateCrossSection( ParticleData& particle );
     void handleTemperatureDependence( ParticleData& particle );
     void handleTemperatureDependences();
-    void updateParticleMassAndId( ParticleData& particle, std::map<string, boost::uuids::uuid>& resetKeys, int index, const ParticleData& previousParticle, const Models::ScaleFactorPoint& previousPoint );
+    void updateParticleMassAndId( 
+        ParticleData& particle, 
+        std::map<string, boost::uuids::uuid>& resetKeys, 
+        int index, 
+        const ParticleData& previousParticle, 
+        const Models::ScaleFactorPoint& previousPoint 
+    );
     void addComponents();
     void checkTransitions();
     void checkOscillationTransition( ParticleData& particle );
@@ -145,7 +157,8 @@ public:
         const std::deque< Models::ParticleEvolution >& initialParticleEvolutions, 
         std::deque< Models::Particle >& particles, 
         std::map< std::string, std::deque< Models::PartialWidth > >& partialWidths, 
-        std::map< std::string, Models::TotalWidth >& totalWidths
+        std::map< std::string, Models::TotalWidth >& totalWidths, 
+        std::unordered_map< boost::uuids::uuid, Models::Particle, boost::hash<boost::uuids::uuid> >& particleCache
     );
     ~BoltzmannStepBuilderCommand();
     void Execute() override;

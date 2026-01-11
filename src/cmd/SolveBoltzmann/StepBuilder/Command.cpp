@@ -10,7 +10,8 @@ BoltzmannStepBuilderCommand::BoltzmannStepBuilderCommand(
     const std::deque< Models::ParticleEvolution >& initialParticleEvolutions, 
     std::deque< Models::Particle >& particles, 
     std::map< std::string, std::deque< Models::PartialWidth > >& partialWidths, 
-    std::map< std::string, Models::TotalWidth >& totalWidths
+    std::map< std::string, Models::TotalWidth >& totalWidths, 
+    std::unordered_map< boost::uuids::uuid, Models::Particle, boost::hash<boost::uuids::uuid> >& particleCache
 ) :
     db_(connection),
     connection_(connection),
@@ -18,7 +19,8 @@ BoltzmannStepBuilderCommand::BoltzmannStepBuilderCommand(
     particles_(particles),
     partialWidths_(partialWidths),
     totalWidths_(totalWidths),
-    initialParticleEvolutions_(initialParticleEvolutions)
+    initialParticleEvolutions_(initialParticleEvolutions),
+    particleCache_(particleCache)
 {
     fortranInterface_ = fortranInterface;
 
@@ -103,7 +105,11 @@ Models::ScaleFactorPoint BoltzmannStepBuilderCommand::pullPreviousScaleFactorPoi
     throw std::logic_error("If you see this, something went very wrong...");
 } 
 
-ParticleData BoltzmannStepBuilderCommand::pullParticleEvolution( std::string particleKey, ParticleProductionMechanism productionMechanism, boost::uuids::uuid scaleFactorId ){
+ParticleData BoltzmannStepBuilderCommand::pullParticleEvolution( 
+    std::string particleKey, 
+    ParticleProductionMechanism productionMechanism, 
+    boost::uuids::uuid scaleFactorId 
+){
     auto r2 = std::find_if( 
         sqlDataToPost_.ParticleDatas.begin(), sqlDataToPost_.ParticleDatas.end(), 
         [&particleKey, &scaleFactorId, &productionMechanism, this](const ParticleData& part){ 
@@ -198,7 +204,7 @@ double BoltzmannStepBuilderCommand::tempRadiation(long double entropy, long doub
         if (it != gstarCache.end() && abs(it->first - T0) < 1e-3)
             gstr = it->second;
         else {
-            gstr = GStar::CalculateEntropic(particles_, connection_, T0);
+            gstr = GStarSpline::instance().gs(T0);
             gstarCache[T0] = gstr;
         }
 
@@ -228,8 +234,8 @@ Models::ScaleFactorPoint BoltzmannStepBuilderCommand::setCurrentPoint(){
     point.ScaleFactor = expl(t_);
     point.Entropy = reheatPoint_.Entropy * expl( x_[0] );
     point.Temperature = tempRadiation( point.Entropy, point.ScaleFactor );
-    point.GStar = GStar::Calculate( particles_, connection_, point.Temperature );
-    point.GStarEntropic = GStar::CalculateEntropic( particles_, connection_, point.Temperature, point.GStar );
+    point.GStar = GStarSpline::instance().g( point.Temperature );
+    point.GStarEntropic = GStarSpline::instance().gs( point.Temperature );
     return point;
 }
 
@@ -315,6 +321,7 @@ void BoltzmannStepBuilderCommand::setEvolutionInitialState( ){
         auto nextP = setMatterInitialState( prevP, index );
         updateParticleMassAndId( nextP, resetKeys, index, prevP, previousPoint );
 
+        nextP.CrossSectionCmd = prevP.CrossSectionCmd;
         // finally calculate cross sections
         calculateCrossSection( nextP );
         currentParticleData_.push_back(nextP);
@@ -401,6 +408,7 @@ void BoltzmannStepBuilderCommand::calculateCrossSection( ParticleData& particle 
             isaTools.Execute();
         }
     }
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     Models::Particle part;
     part.Id = particle.ParticleId;
@@ -408,12 +416,21 @@ void BoltzmannStepBuilderCommand::calculateCrossSection( ParticleData& particle 
     part.Mass = particle.Mass;
     part.Key = particle.ParticleKey;
 
-    CrossSectionCommand cs( connection_, part, std::make_shared< double >(currentPoint_.Temperature), fortranInterface_, currentPoint_.Id, true );
-    // wait to post til later, do in batch
-    cs.PostResult(false);
-    cs.Execute();
-    auto res = cs.getResult();
+    if ( particle.CrossSectionCmd == nullptr ){
+        particle.CrossSectionCmd = std::make_shared< CrossSectionCommand >( connection_, part, std::make_shared< double >(currentPoint_.Temperature), fortranInterface_, currentPoint_.Id, true );
+        // wait to post til later, do in batch
+        particle.CrossSectionCmd -> PostResult(false);
+    }
+    particle.CrossSectionCmd -> UpdateInputs( std::make_shared< double >(currentPoint_.Temperature), part );
+    particle.CrossSectionCmd -> Execute();
+    auto res = particle.CrossSectionCmd ->getResult();
     particle.AnnihilationCrossSection = res.CrossSection;
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+
+    connection_.Log.Debug(
+        "Cross section calculation took " 
+        + boost::lexical_cast<std::string>( std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() 
+    ) + " microseconds");
 }
 
 void BoltzmannStepBuilderCommand::handleTemperatureDependence( ParticleData& particle ){
@@ -542,8 +559,12 @@ void BoltzmannStepBuilderCommand::checkDecayTransition( ParticleData& particle )
                 && ( p2.ParticleEvolutionId != particle.ParticleEvolutionId )
             ){
                 rrMin = max( rrMin, log( particle.EnergyDensity / p2.EnergyDensity ) );
+                if (rrMin > -7){ break; } // no point in continuing
             }
         }
+        // if bad point, continue and let solver adapt
+        if ( particle.NumberDensity * particle.Mass > 1.1 * particle.EnergyDensity ){ return; }
+
         if (rrMin < -7. || ( particle.NumberDensity < numericalCutoff && particle.EnergyDensity < numericalCutoff )){
             particle.IsActive = false;
             particle.NumberDensity = 0.;
@@ -561,7 +582,7 @@ void BoltzmannStepBuilderCommand::addComponents(){
     }
 
     BoltzmannData data( currentParticleData_, currentPoint_, reheatPoint_, particles_, partialWidths_ );
-    BoltzmannBuilder b(connection_, data);
+    BoltzmannBuilder b(connection_, data, particleCache_);
 
     int i = 0;
 
@@ -620,12 +641,22 @@ void BoltzmannStepBuilderCommand::postCrossSection( const ParticleData& particle
 
 void BoltzmannStepBuilderCommand::Execute()
 {
+    // tmp code:
+    std::fill(dxdt_.begin(), dxdt_.end(), 0.0L);
+    for (size_t i = 0; i < jac_.size1(); ++i)
+        for (size_t j = 0; j < jac_.size2(); ++j)
+            jac_(i,j) = 0.0L;
+
     forcePost_ = false;
     // based on results of previous step, set the current point
     currentPoint_ = setCurrentPoint();
 
+    auto initialStateStartTimer = std::chrono::system_clock::now();
+
     // here we set the initial states 
     setEvolutionInitialState();
+
+    auto initialStateEndTimer = std::chrono::system_clock::now();
 
     // Hubble parameter depends on energy densities, which are calculated in setEvolutionInitialState method
     calculateHubble();
@@ -633,8 +664,12 @@ void BoltzmannStepBuilderCommand::Execute()
     // add current point to tentative data to post
     sqlDataToPost_.ScaleFactors.push_front( currentPoint_ );
 
+    auto tempDependenceStartTimer = std::chrono::system_clock::now();
+
     // now take into account temperature-dependent initial conditions (e.g. axion coh. osc. initial densities)
-//    handleTemperatureDependences();
+    handleTemperatureDependences();
+
+    auto tempDependenceEndTimer = std::chrono::system_clock::now();
 
     // now we want to check if any major transitions happen
     // must happen after Hubble is calculated since transitions typically depend on H
@@ -644,8 +679,31 @@ void BoltzmannStepBuilderCommand::Execute()
         sqlDataToPost_.ParticleDatas.push_front( p );
     }
 
+    auto buildEqnStartTimer = std::chrono::system_clock::now();
+
     // now that all the necessary data for the step is calculated, we can assemble the Boltzmann equations
     addComponents();
+
+    auto buildEqnEndTimer = std::chrono::system_clock::now();
+
+    auto duration1 = initialStateEndTimer - initialStateStartTimer;
+    auto duration2 = tempDependenceEndTimer - tempDependenceStartTimer;
+    auto duration3 = buildEqnEndTimer - buildEqnStartTimer;
+
+    auto maxDuration = max({duration1, duration2, duration3});
+    if (maxDuration == duration1){
+        connection_.Log.Debug("Boltzmann Step Builder: Setting Initial State took the longest");
+    } else if (maxDuration == duration2){
+        connection_.Log.Debug("Boltzmann Step Builder: Temperature Dependence Handling took the longest");
+    } else if (maxDuration == duration3){
+        connection_.Log.Debug("Boltzmann Step Builder: Boltzmann Equation Assembly took the longest");
+    }
+    connection_.Log.Debug(
+        "Initial State: " + std::to_string( std::chrono::duration_cast<std::chrono::milliseconds>(duration1).count() ) +
+        ", Temp Dependence: " + std::to_string( std::chrono::duration_cast<std::chrono::milliseconds>(duration2).count() ) +
+        ", Boltzmann Assembly: " + std::to_string( std::chrono::duration_cast<std::chrono::milliseconds>(duration3).count() )
+    );
+
 }
 
 bool BoltzmannStepBuilderCommand::Exit(){
@@ -698,9 +756,6 @@ void BoltzmannStepBuilderCommand::cleanScaleFactorData(){
 }
 
 void BoltzmannStepBuilderCommand::cleanParticleData(){
-    connection_.Log.Info("Size of particle data: " +
-        std::to_string(sqlDataToPost_.ParticleDatas.size()));
-
     auto& data = sqlDataToPost_.ParticleDatas;
 
     // Remove reference from decltype(data)
@@ -827,6 +882,16 @@ void BoltzmannStepBuilderCommand::SetResult(){
 }
 
 void BoltzmannStepBuilderCommand::UpdateData( const state_type& x, const double& t ){
+    ordinal_ += 1;        // keep this if needed
+    x_ = x;
+    t_ = t;
+
+    if (dxdt_.size() != x_.size()) dxdt_.resize(x_.size());
+    if (jac_.size1() != x_.size() || jac_.size2() != x_.size())
+        jac_.resize(x_.size(), x_.size());
+
+    return;
+    // tmp code finish
     if (!isInitialized_){
         // increment the ordinal on each step (step 0 is initial condition, already calculated)
         ordinal_ += 1;

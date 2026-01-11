@@ -289,6 +289,7 @@ string DbManager::create_Particle_table(){
     "Charges        TEXT    NOT NULL," \
     "ScaleFactorID  TEXT );";
     cmd.append("CREATE INDEX particle_id_asc ON Particle(ID asc);");
+    cmd.append("CREATE INDEX particle_keyPair_asc ON Particle(ParticleKey asc, InputID asc);");
     cmd.append("CREATE INDEX particle_inputid_asc ON Particle(InputID asc);");
     return cmd;
 }

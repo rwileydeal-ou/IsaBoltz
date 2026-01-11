@@ -17,11 +17,22 @@ private:
     const std::deque< Models::Particle >& particles_;
     bool postResult_;
     bool squashLogs_;
-    void postSqlTotalWidth(DbManager& db, BranchingFraction& result);
-    void postSqlPartialWidths(DbManager& db, BranchingFraction& result);
+    void postSqlTotalWidth(
+        DbManager& db, 
+        BranchingFraction& result
+    );
+    void postSqlPartialWidths(
+        DbManager& db, 
+        BranchingFraction& result
+    );
     void postResult();
 public:
-    BranchingRatioCommand(Connection& connection, Models::Particle& particle, const std::deque< Models::Particle >& particles, bool squashLogs = false);
+    BranchingRatioCommand(
+        Connection& connection, 
+        Models::Particle& particle, 
+        const std::deque< Models::Particle >& particles, 
+        bool squashLogs = false
+    );
     ~BranchingRatioCommand();
     void Execute() override;
     void PostResult(bool post);

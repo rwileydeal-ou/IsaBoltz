@@ -30,12 +30,36 @@ private:
     bool postResult_;
     void postResult();
 public:
-    CrossSectionCommand(Connection& connection, const Models::Particle& particle, std::shared_ptr< double > temperature, std::shared_ptr< DataRelay > fortranInterface, bool squashLogs = false);
-    CrossSectionCommand(Connection& connection, const Models::Particle& particle, std::shared_ptr< double > temperature, std::shared_ptr< DataRelay > fortranInterface, boost::uuids::uuid scaleFactorId, bool squashLogs = false);
-    CrossSectionCommand(Connection& connection, boost::uuids::uuid particleId, std::shared_ptr< double > temperature, std::shared_ptr< DataRelay > fortranInterface, boost::uuids::uuid scaleFactorId, bool squashLogs = false);
+    CrossSectionCommand(
+        Connection& connection, 
+        const Models::Particle& particle, 
+        ::shared_ptr< double > temperature, 
+        std::shared_ptr< DataRelay > fortranInterface, 
+        bool squashLogs = false
+    );
+    CrossSectionCommand(
+        Connection& connection, 
+        const Models::Particle& particle, 
+        std::shared_ptr< double > temperature, 
+        std::shared_ptr< DataRelay > fortranInterface, 
+        boost::uuids::uuid scaleFactorId, 
+        bool squashLogs = false
+    );
+    CrossSectionCommand(
+        Connection& connection, 
+        boost::uuids::uuid particleId, 
+        std::shared_ptr< double > temperature, 
+        std::shared_ptr< DataRelay > fortranInterface, 
+        boost::uuids::uuid scaleFactorId, 
+        bool squashLogs = false
+    );
     ~CrossSectionCommand();
     void Execute() override;
     void PostResult(bool post=true);
+    void UpdateInputs( 
+        std::shared_ptr< double > temperature,
+        Models::Particle& particle
+    );
     SigmaV getResult();
 };
 

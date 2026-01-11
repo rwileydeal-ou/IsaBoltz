@@ -84,7 +84,13 @@ Models::ScaleFactorPoint BoltzmannSolverCommand::pullReheatScaleFactorPoint(boos
     return scaleFactor;
 }
 
-std::deque< Models::Particle > BoltzmannSolverCommand::pullParticles(){
+std::deque< Models::Particle > BoltzmannSolverCommand::pullParticles(
+    std::unordered_map< 
+        boost::uuids::uuid, 
+        Models::Particle, 
+        boost::hash<boost::uuids::uuid> 
+    >& particleCache
+){
     Models::Particle p;
     DbManager db(connection_);
     db.Open();
@@ -98,6 +104,10 @@ std::deque< Models::Particle > BoltzmannSolverCommand::pullParticles(){
     if (cb.CallbackReturn.Particles.size() == 0){
         throw_with_trace( logic_error("Could not find particles!") );
     }
+
+    for (auto& part : cb.CallbackReturn.Particles){
+    }
+
     return cb.CallbackReturn.Particles;
 }
 
@@ -152,9 +162,16 @@ void BoltzmannSolverCommand::Execute(){
     // make sure we have correct reheat object 
     reheatPoint_ = pullReheatScaleFactorPoint( reheatPoint_.Id );
 
+    // construct hashmap
+    std::unordered_map< 
+        boost::uuids::uuid, 
+        Models::Particle, 
+        boost::hash<boost::uuids::uuid> 
+    > particleCache;
+
     // pull ParticleEvolution objects now to eliminate redundant SQL calls
     auto particleEvolutions = pullParticleEvolutions();
-    auto particleDefs = pullParticles();
+    auto particleDefs = pullParticles(particleCache);
     auto partialWidths = pullPartialWidths( particleEvolutions );
     auto totalWidths = pullTotalWidths( particleEvolutions );
 
@@ -174,6 +191,8 @@ void BoltzmannSolverCommand::Execute(){
     auto stepper = boost::numeric::odeint::make_dense_output(1.e-03, 1.e-03, 0.1, stepperType);
 //    auto stepper = boost::numeric::odeint::make_dense_output(1.e-04, 1.e-03, stepperType);
 
+    GStarSpline::initialize(particleDefs, connection_);
+
     // delegate building the step to the proper command
     BoltzmannStepBuilderCommand stepSolver(
         connection_, 
@@ -182,7 +201,8 @@ void BoltzmannSolverCommand::Execute(){
         particleEvolutions,
         particleDefs,
         partialWidths,
-        totalWidths
+        totalWidths,
+        particleCache
     );
 
     System sys( stepSolver );
@@ -199,6 +219,11 @@ void BoltzmannSolverCommand::Execute(){
     observer.operator()( stepper.current_state(), stepper.current_time() );
     while (true){
         try{
+            // insert here
+//            stepSolver.UpdateData( stepper.current_state(), stepper.current_time() );
+//            stepSolver.Execute();
+            // end testing
+
             stepper.do_step( 
                 make_pair( 
                     sys, sysJac 

@@ -7,6 +7,8 @@
 #include <Models/ProductionMechanism.h>
 #include <Models/Particle.h>
 #include <Models/ParticleEvolution.h>
+#include <cmd/CrossSections/Command.h>
+#include <memory>
 
 struct ParticleData
 {
@@ -39,6 +41,7 @@ struct ParticleData
     double AnnihilationCrossSection = 0.;
     int EqnIndex = -1;
     double Amplitude = 0.;
+    std::shared_ptr< CrossSectionCommand > CrossSectionCmd = nullptr;
 
     // Switches
     bool IsActive;
@@ -75,6 +78,7 @@ struct ParticleData
         AnnihilationCrossSection( particleData.AnnihilationCrossSection ),
         EqnIndex( particleData.EqnIndex ),
         Amplitude( particleData.Amplitude ),
+        CrossSectionCmd( particleData.CrossSectionCmd ),
         IsActive( particleData.IsActive ),
         IsOscillating( particleData.IsOscillating ),
         IsDecaying( particleData.IsDecaying ),

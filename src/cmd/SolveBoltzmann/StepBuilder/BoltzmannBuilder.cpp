@@ -222,7 +222,7 @@ void BoltzmannBuilder::calculate_inverse_decay(
 ){
     // This term is the prefactor to the decay piece, Gamma_i * m_i / (rho_i * H), which then multiplies the rest of the decay piece
     // (see e.g. sum in the second term on RHS of Eq. 2.4 in arXiv 1406.4138, note EQ was divided by n_i * H for computation)
-    long double preFactor = parent.TotalWidth * parent.Mass / ( hubble * parent.EnergyDensity );
+    long double preFactor = parent.TotalWidth * parent.Mass / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
     long double postFactor = 0.;
 
     auto cascadeBr = CascadeBranchingRatios(connection_, data_, particleCache_);
@@ -232,7 +232,7 @@ void BoltzmannBuilder::calculate_inverse_decay(
             // if parent is R-odd and child is R-odd, assume other child is effectively radiation in thermal equilibrium (R-even)
             // We'll use this variable for the term in parentheses within e.g. the second term of RHS of Eq. 2.4 of arXiv 1406.4138
             long double nEff = (
-                daughter.NumberDensity / daughter.EquilibriumNumberDensity
+                daughter.NumberDensity / ( daughter.EquilibriumNumberDensity + nRegularizer_ )
             ) * parent.EquilibriumNumberDensity;
             postFactor = cascadeBr.Calculate(parent, daughter) * nEff;
             builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - preFactor * postFactor;
@@ -249,7 +249,7 @@ void BoltzmannBuilder::calculate_inverse_decay(
         else if ( (int)parent.Charges[0].Value == 1 && (int)daughter.Charges[0].Value == 1 ){
             // if parent is R-even and child is R-even, take both daughters to be the same (don't assume thermal eq)
             long double nEff = pow( 
-                daughter.NumberDensity / daughter.EquilibriumNumberDensity, 2. 
+                daughter.NumberDensity / ( daughter.EquilibriumNumberDensity + nRegularizer_ ), 2. 
             ) * parent.EquilibriumNumberDensity;
             postFactor = cascadeBr.Calculate(parent, daughter) * nEff;
             builder.NumberDensityJacobian[ 2 * parent.EqnIndex ] += - preFactor * postFactor;
@@ -259,7 +259,7 @@ void BoltzmannBuilder::calculate_inverse_decay(
         else if ( (int)parent.Charges[0].Value == 1 && (int)daughter.Charges[0].Value == -1 ){
             // if parent is R-even and child is R-odd, take both daughters to be the same (not thermal eq)
             long double nEff = pow( 
-                daughter.NumberDensity / daughter.EquilibriumNumberDensity, 2. 
+                daughter.NumberDensity / ( daughter.EquilibriumNumberDensity + nRegularizer_ ), 2. 
             ) * parent.EquilibriumNumberDensity;
             // if decays to R-odd pair, end up with 2 neutralinos in final state so need to multiply n and rho by 2
             postFactor = 2. * cascadeBr.Calculate(parent, daughter) * nEff;

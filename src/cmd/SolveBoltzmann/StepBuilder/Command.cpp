@@ -1,5 +1,4 @@
 #include <cmd/SolveBoltzmann/StepBuilder/Command.h>
-#include <chrono>
 
 using namespace std;
 
@@ -32,7 +31,6 @@ BoltzmannStepBuilderCommand::BoltzmannStepBuilderCommand(
 
     resetParticleData();
     db_.Open();
-    startTime_ = std::chrono::system_clock::now();
 }
 
 BoltzmannStepBuilderCommand::~BoltzmannStepBuilderCommand(){
@@ -408,7 +406,6 @@ void BoltzmannStepBuilderCommand::calculateCrossSection( ParticleData& particle 
             isaTools.Execute();
         }
     }
-    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
 
     Models::Particle part;
     part.Id = particle.ParticleId;
@@ -425,12 +422,6 @@ void BoltzmannStepBuilderCommand::calculateCrossSection( ParticleData& particle 
     particle.CrossSectionCmd -> Execute();
     auto res = particle.CrossSectionCmd ->getResult();
     particle.AnnihilationCrossSection = res.CrossSection;
-    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
-
-    connection_.Log.Debug(
-        "Cross section calculation took " 
-        + boost::lexical_cast<std::string>( std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() 
-    ) + " microseconds");
 }
 
 void BoltzmannStepBuilderCommand::handleTemperatureDependence( ParticleData& particle ){
@@ -481,11 +472,10 @@ void BoltzmannStepBuilderCommand::handleTemperatureDependences(){
 void BoltzmannStepBuilderCommand::checkTransitions(){
     if ( 
         currentPoint_.Temperature == 0. 
-        || std::isnan( currentPoint_.Temperature ) 
-        || std::isinf( currentPoint_.Temperature ) 
+        || !std::isfinite( currentPoint_.Temperature ) 
         || currentPoint_.Hubble == 0. 
-        || std::isnan( currentPoint_.Hubble ) 
-        || std::isinf( currentPoint_.Hubble ) 
+        || !std::isfinite( currentPoint_.Hubble ) 
+        || currentPoint_.Entropy < reheatPoint_.Entropy 
     ){
         return;
     }
@@ -651,12 +641,8 @@ void BoltzmannStepBuilderCommand::Execute()
     // based on results of previous step, set the current point
     currentPoint_ = setCurrentPoint();
 
-    auto initialStateStartTimer = std::chrono::system_clock::now();
-
     // here we set the initial states 
     setEvolutionInitialState();
-
-    auto initialStateEndTimer = std::chrono::system_clock::now();
 
     // Hubble parameter depends on energy densities, which are calculated in setEvolutionInitialState method
     calculateHubble();
@@ -664,12 +650,8 @@ void BoltzmannStepBuilderCommand::Execute()
     // add current point to tentative data to post
     sqlDataToPost_.ScaleFactors.push_front( currentPoint_ );
 
-    auto tempDependenceStartTimer = std::chrono::system_clock::now();
-
     // now take into account temperature-dependent initial conditions (e.g. axion coh. osc. initial densities)
     handleTemperatureDependences();
-
-    auto tempDependenceEndTimer = std::chrono::system_clock::now();
 
     // now we want to check if any major transitions happen
     // must happen after Hubble is calculated since transitions typically depend on H
@@ -679,31 +661,8 @@ void BoltzmannStepBuilderCommand::Execute()
         sqlDataToPost_.ParticleDatas.push_front( p );
     }
 
-    auto buildEqnStartTimer = std::chrono::system_clock::now();
-
     // now that all the necessary data for the step is calculated, we can assemble the Boltzmann equations
     addComponents();
-
-    auto buildEqnEndTimer = std::chrono::system_clock::now();
-
-    auto duration1 = initialStateEndTimer - initialStateStartTimer;
-    auto duration2 = tempDependenceEndTimer - tempDependenceStartTimer;
-    auto duration3 = buildEqnEndTimer - buildEqnStartTimer;
-
-    auto maxDuration = max({duration1, duration2, duration3});
-    if (maxDuration == duration1){
-        connection_.Log.Debug("Boltzmann Step Builder: Setting Initial State took the longest");
-    } else if (maxDuration == duration2){
-        connection_.Log.Debug("Boltzmann Step Builder: Temperature Dependence Handling took the longest");
-    } else if (maxDuration == duration3){
-        connection_.Log.Debug("Boltzmann Step Builder: Boltzmann Equation Assembly took the longest");
-    }
-    connection_.Log.Debug(
-        "Initial State: " + std::to_string( std::chrono::duration_cast<std::chrono::milliseconds>(duration1).count() ) +
-        ", Temp Dependence: " + std::to_string( std::chrono::duration_cast<std::chrono::milliseconds>(duration2).count() ) +
-        ", Boltzmann Assembly: " + std::to_string( std::chrono::duration_cast<std::chrono::milliseconds>(duration3).count() )
-    );
-
 }
 
 bool BoltzmannStepBuilderCommand::Exit(){

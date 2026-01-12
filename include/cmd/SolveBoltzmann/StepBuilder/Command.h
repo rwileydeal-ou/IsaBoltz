@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <math.h>
 #include <map>
-#include <chrono>
 #include <future>
 #include <thread>
 #include <cctype>
@@ -74,7 +73,6 @@ private:
     DbManager db_;
     Connection& connection_;
     std::shared_ptr< DataRelay > fortranInterface_;
-    std::chrono::time_point<std::chrono::system_clock> startTime_;
 
     /* 
         Data required for constructing Boltzmann equations 

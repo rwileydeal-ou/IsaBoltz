@@ -219,11 +219,6 @@ void BoltzmannSolverCommand::Execute(){
     observer.operator()( stepper.current_state(), stepper.current_time() );
     while (true){
         try{
-            // insert here
-//            stepSolver.UpdateData( stepper.current_state(), stepper.current_time() );
-//            stepSolver.Execute();
-            // end testing
-
             stepper.do_step( 
                 make_pair( 
                     sys, sysJac 

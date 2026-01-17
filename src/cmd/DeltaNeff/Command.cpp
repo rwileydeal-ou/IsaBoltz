@@ -2,30 +2,50 @@
 
 using namespace std;
 
-DeltaNeffCommand::DeltaNeffCommand(Connection& connection, Models::Particle& particle, std::vector< std::vector< boost::uuids::uuid > > childrenIdPairs) :
-    connection_(connection)
+DeltaNeffCommand::DeltaNeffCommand(
+    Connection& connection, 
+    Models::Particle& particle, 
+    std::vector< std::vector< boost::uuids::uuid > > childrenIdPairs
+) :
+    connection_(connection),
+    db_(connection)
 {
     particle_ = particle;
     Models::ParticleEvolution particleEvo;
     particleEvo.ParticleId = particle.Id;
     particleEvo.InputId = connection.InputId;
-    this -> receiver_ = std::make_shared< EstimateDeltaNeffReceiver >( connection_, particleEvo, particle_, childrenIdPairs );
+    this -> receiver_ = std::make_shared< EstimateDeltaNeffReceiver >( 
+        connection_, 
+        particleEvo, 
+        particle_, 
+        childrenIdPairs 
+    );
 }
 // This constructor computes Delta Neff for <enabledKey>
 // Assumes there is already a ParticleEvolution object in the database, computes DeltaNeff from 
 DeltaNeffCommand::DeltaNeffCommand(Connection& connection, std::string enabledKey) :
-    connection_(connection)
+    connection_(connection),
+    db_(connection)
 {
     // need to pull particle evolution from db in this case
-    DbManager db(connection_);
-    db.Open();
+    db_.Open();
     
     // first pull final scale factor
-    auto statementScale = Statements::ScaleFactor( finalScaleFactorPoint_, Statements::StatementType::Read );
-    auto filter = Filters::ScaleFactor( connection_.InputId, Filters::WhereUUID::InputId );
+    auto statementScale = Statements::ScaleFactor( 
+        finalScaleFactorPoint_, 
+        Statements::StatementType::Read 
+    );
+    auto filter = Filters::ScaleFactor( 
+        connection_.InputId, 
+        Filters::WhereUUID::InputId 
+    );
     statementScale.AddFilter( filter );
     auto cbScale = Callbacks::ScaleFactor();
-    db.Execute( statementScale, cbScale.Callback, cbScale.CallbackReturn );
+    db_.Execute( 
+        statementScale, 
+        cbScale.Callback, 
+        cbScale.CallbackReturn 
+    );
 
     if ( cbScale.CallbackReturn.ScaleFactors.size() == 0 ){
         throw_with_trace( logic_error("Could not find ScaleFactors") );
@@ -48,11 +68,23 @@ DeltaNeffCommand::DeltaNeffCommand(Connection& connection, std::string enabledKe
         production = ParticleProductionMechanism::THERMAL;
     }
 
-    auto statementEvo = Statements::BoltzmannParticleEvolution( particleEvo_, Statements::StatementType::Read );
-    auto filterEvo = Filters::ParticleEvolution( particleKey, production, finalScaleFactorPoint_.Id, Filters::WhereUUID::ScaleFactorId );
+    auto statementEvo = Statements::BoltzmannParticleEvolution( 
+        particleEvo_, 
+        Statements::StatementType::Read 
+    );
+    auto filterEvo = Filters::ParticleEvolution( 
+        particleKey, 
+        production, 
+        finalScaleFactorPoint_.Id, 
+        Filters::WhereUUID::ScaleFactorId 
+    );
     statementEvo.AddFilter( filterEvo );
     auto cbEvo = Callbacks::ParticleEvolution();
-    db.Execute( statementEvo, cbEvo.Callback, cbEvo.CallbackReturn );
+    db_.Execute( 
+        statementEvo, 
+        cbEvo.Callback, 
+        cbEvo.CallbackReturn 
+    );
 
     if ( cbEvo.CallbackReturn.ParticleEvolutions.size() != 1 ){
         throw_with_trace( logic_error("Could not find unique ParticleEvolution") );
@@ -60,35 +92,49 @@ DeltaNeffCommand::DeltaNeffCommand(Connection& connection, std::string enabledKe
     particleEvo_ = cbEvo.CallbackReturn.ParticleEvolutions.front();
 
     // now pull the particle object - needed for mass
-    auto statementParticle = Statements::Particle( particle_, Statements::StatementType::Read );
-    auto filterParticle = Filters::Particle( particleEvo_.ParticleId, Filters::WhereUUID::Id );
+    auto statementParticle = Statements::Particle( 
+        particle_, 
+        Statements::StatementType::Read 
+    );
+    auto filterParticle = Filters::Particle( 
+        particleEvo_.ParticleId, 
+        Filters::WhereUUID::Id 
+    );
     statementParticle.AddFilter( filterParticle );
     auto cbParticle = Callbacks::Particle();
-    db.Execute( statementParticle, cbParticle.Callback, cbParticle.CallbackReturn );
+    db_.Execute( 
+        statementParticle, 
+        cbParticle.Callback, 
+        cbParticle.CallbackReturn 
+    );
 
     if ( cbParticle.CallbackReturn.Particles.size() != 1 ){
         throw_with_trace( logic_error("Could not find unique particle") );
     }
     particle_ = cbParticle.CallbackReturn.Particles.front();
 
-    db.Close();
-
-    this -> receiver_ = std::make_shared< BoltzmannDeltaNeffReceiver >( connection_, particleEvo_, particle_, finalScaleFactorPoint_ );
+    this -> receiver_ = std::make_shared< BoltzmannDeltaNeffReceiver >( 
+        connection_, 
+        particleEvo_, 
+        particle_, 
+        finalScaleFactorPoint_ 
+    );
 }
 DeltaNeffCommand::~DeltaNeffCommand(){
+    db_.Close();
 }
 
 void DeltaNeffCommand::Execute(){
     this -> receiver_ -> Calculate();
-    auto a = receiver_ -> getDeltaNeff();
+    auto result = receiver_ -> getDeltaNeff();
 
-    DbManager db(connection_);
-    db.Open();
-    auto statement = Statements::DeltaNeff( a, Statements::StatementType::Create );
-    db.Execute( statement );
-    db.Close();
+    auto statement = Statements::DeltaNeff( 
+        result, 
+        Statements::StatementType::Create 
+    );
+    db_.Execute( statement );
 
     ostringstream logEntry;
-    logEntry << "Delta N_eff for " << particle_.Key << ": " << a.Delta_Neff;
+    logEntry << "Delta N_eff for " << particle_.Key << ": " << result.Delta_Neff;
     connection_.Log.Info( logEntry.str() );
 }

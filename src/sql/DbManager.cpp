@@ -40,7 +40,9 @@ void DbManager::Close(){
     sqlite3_close(db_);
 }
 
-void DbManager::executeStatementPtr( std::shared_ptr< Statements::IStatement > statement ){
+void DbManager::executeStatementPtr( 
+    std::shared_ptr< Statements::IStatement > statement 
+){
     string statementStr = statement -> Statement();
     if (!statementStr.empty()){
         logger_.Debug("Executing SQL statement: '" + statementStr + "'");
@@ -124,7 +126,11 @@ void DbManager::executeStatement( Statements::IStatement& statement ){
     }
 }
 
-void DbManager::executeStatementCallback( Statements::IStatement& statement, int (*callback)(void*,int,char**,char**), ICallbackReturn& callbackReturn ){
+void DbManager::executeStatementCallback( 
+    Statements::IStatement& statement, 
+    int (*callback)(void*,int,char**,char**), 
+    ICallbackReturn& callbackReturn 
+){
     string statementStr = statement.Statement();
     if (!statementStr.empty()){
         logger_.Debug("Executing SQL statement: '" + statementStr + "'");
@@ -166,7 +172,14 @@ void DbManager::executeStatementCallback( Statements::IStatement& statement, int
     }
 }
 
-void DbManager::executeStatementDeque( std::deque< std::shared_ptr< Statements::IStatement >, boost::pool_allocator< std::shared_ptr< Statements::IStatement > > > statement ){
+void DbManager::executeStatementDeque( 
+    std::deque< 
+        std::shared_ptr< Statements::IStatement >, 
+        boost::pool_allocator< 
+            std::shared_ptr< Statements::IStatement > 
+        > 
+    > statement 
+){
     string statementStr;
     for (int i = 0; i < statement.size(); ++i){
         string st = statement[i] -> Statement();
@@ -221,15 +234,28 @@ void DbManager::executeStatementDeque( std::deque< std::shared_ptr< Statements::
     }
 }
 
-void DbManager::Execute( std::deque< std::shared_ptr< Statements::IStatement >, boost::pool_allocator< std::shared_ptr< Statements::IStatement > > > statement ){
+void DbManager::Execute( 
+    std::deque< 
+        std::shared_ptr< Statements::IStatement >, 
+        boost::pool_allocator< 
+            std::shared_ptr< Statements::IStatement > 
+        > 
+    > statement 
+){
     executeStatementDeque( statement );
 }
 
-void DbManager::Execute( Statements::IStatement& statement ){
+void DbManager::Execute( 
+    Statements::IStatement& statement 
+){
     executeStatement( statement );
 }
 
-void DbManager::Execute( Statements::IStatement& statement, int (*callback)(void*,int,char**,char**), ICallbackReturn& callbackReturn ){
+void DbManager::Execute( 
+    Statements::IStatement& statement, 
+    int (*callback)(void*,int,char**,char**), 
+    ICallbackReturn& callbackReturn 
+){
     executeStatementCallback( statement, callback, callbackReturn );
 }
 
@@ -301,7 +327,7 @@ string DbManager::create_ParticleEvolution_table(){
     "InputID        TEXT    NOT NULL," \
     "ParticleKey    TEXT    NOT NULL," \
     "ParticleID     TEXT    NOT NULL," \
-    "Production     TEXT    NOT NULL," \
+    "Production     INT     NOT NULL," \
     "Active         INT     NOT NULL," \
     "Y1             REAL," \
     "Y2             REAL," \
@@ -371,6 +397,7 @@ string DbManager::create_ScaleFactor_table(){
     "GStarEntropic  REAL    NOT NULL," \
     "Ordinal        INT     NOT NULL);";
     cmd.append("CREATE INDEX scalefactor_id_asc ON ScaleFactor(ID asc);");
+    cmd.append("CREATE INDEX scalefactor_inputid_desc ON ScaleFactor(InputID, Ordinal desc);");
     cmd.append("CREATE INDEX scalefactor_ordinal_desc ON ScaleFactor(Ordinal desc);");
     return cmd;
 }

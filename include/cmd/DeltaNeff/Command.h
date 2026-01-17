@@ -20,13 +20,21 @@
 class DeltaNeffCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager db_;
     std::shared_ptr< DeltaNeffReceiver > receiver_;
     Models::ParticleEvolution particleEvo_;
     Models::Particle particle_;
     Models::ScaleFactorPoint finalScaleFactorPoint_;
 public:
-    DeltaNeffCommand(Connection& connection, std::string particleKey);
-    DeltaNeffCommand(Connection& connection, Models::Particle& particle, std::vector< std::vector< boost::uuids::uuid > > childrenIdPairs);
+    DeltaNeffCommand(
+        Connection& connection, 
+        std::string particleKey
+    );
+    DeltaNeffCommand(
+        Connection& connection, 
+        Models::Particle& particle, 
+        std::vector< std::vector< boost::uuids::uuid > > childrenIdPairs
+    );
     ~DeltaNeffCommand();
     void Execute() override;
 };

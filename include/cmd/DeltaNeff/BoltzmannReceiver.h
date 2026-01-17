@@ -22,7 +22,12 @@ private:
     double calculateDeltaNeff() override;
 public:
     ~BoltzmannDeltaNeffReceiver();
-    BoltzmannDeltaNeffReceiver( Connection& connection, const Models::ParticleEvolution& particleEvo, const Models::Particle& particle, const Models::ScaleFactorPoint& finalScaleFactorPoint );
+    BoltzmannDeltaNeffReceiver( 
+        Connection& connection, 
+        const Models::ParticleEvolution& particleEvo, 
+        const Models::Particle& particle, 
+        const Models::ScaleFactorPoint& finalScaleFactorPoint 
+    );
 };
 
 #endif

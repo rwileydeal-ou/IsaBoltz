@@ -77,7 +77,7 @@ vector<string> BoltzmannParticleEvolution::ColumnData(){
     data.push_back("'" + boost::lexical_cast<string>(boltzmannParticleEvolution_.InputId) + "'");
     data.push_back("'" + boltzmannParticleEvolution_.ParticleKey + "'");
     data.push_back("'" + boost::lexical_cast<string>(boltzmannParticleEvolution_.ParticleId) + "'");
-    data.push_back("'" + boost::lexical_cast<string>(boltzmannParticleEvolution_.ProductionMechanism) + "'");
+    data.push_back( boost::lexical_cast<string>(boltzmannParticleEvolution_.ProductionMechanism) );
     data.push_back( boost::lexical_cast<string>(boltzmannParticleEvolution_.IsActive) );
     data.push_back( numericGuard(boltzmannParticleEvolution_.Y1) );
     data.push_back( numericGuard(boltzmannParticleEvolution_.Y2) );

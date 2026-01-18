@@ -27,7 +27,7 @@ RelicDensityCommand::RelicDensityCommand(Connection& connection, std::string ena
     if ( cbScale.CallbackReturn.ScaleFactors.size() == 0 ){
         throw_with_trace( logic_error("Could not find ScaleFactors") );
     }
-    finalScaleFactorPoint_ = cbScale.CallbackReturn.ScaleFactors[ cbScale.CallbackReturn.ScaleFactors.size() - 1 ];
+    finalScaleFactorPoint_ = cbScale.CallbackReturn.ScaleFactors[ 0 ];
 
     if ( finalScaleFactorPoint_.Ordinal != cbScale.CallbackReturn.ScaleFactors.size() - 1){
         throw_with_trace( logic_error("Error in relic density - final scale factor not matching expected ordinal") );

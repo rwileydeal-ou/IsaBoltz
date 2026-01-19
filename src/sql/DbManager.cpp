@@ -367,6 +367,7 @@ string DbManager::create_TotalWidth_table(){
     "ScaleFactorID  TEXT );";
     cmd.append("CREATE INDEX totalwidth_id_asc ON TotalWidth(ID asc);");
     cmd.append("CREATE INDEX totalwidth_mult_asc ON TotalWidth(ParentID asc, InputID);");
+    cmd.append("CREATE INDEX totalwidth_inputid_asc ON TotalWidth(InputID asc);");
     return cmd;
 }
 

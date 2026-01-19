@@ -14,6 +14,18 @@ private:
     boost::uuids::uuid scaleFactorId_;
     std::shared_ptr< CheckBBNReceiver > receiver_;
     Models::Particle particle_;
+    Models::ScaleFactorPoint findScaleFactor( 
+        std::deque<Models::ScaleFactorPoint>& scaleFactors,  
+        boost::uuids::uuid scaleFactorId
+    );
+    Models::TotalWidth findTotalWidth( 
+        std::deque<Models::TotalWidth>& totalWidths,  
+        boost::uuids::uuid parentId
+    );
+    Models::Particle findParticle( 
+        std::deque<Models::Particle>& particles,  
+        boost::uuids::uuid particleId
+    );
 public:
     CheckBBNCommand(Connection& connection, std::string enabledKey);
     ~CheckBBNCommand();

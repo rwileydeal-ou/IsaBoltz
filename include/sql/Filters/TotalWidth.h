@@ -14,6 +14,7 @@ namespace Filters{
         /* data */
     public:
         TotalWidth(boost::uuids::uuid totalWidthId);
+        TotalWidth(boost::uuids::uuid id, WhereUUID whereUUID);
         TotalWidth(boost::uuids::uuid inputId, boost::uuids::uuid parentId);
         TotalWidth(boost::uuids::uuid inputId, boost::uuids::uuid parentId, boost::uuids::uuid scaleFactorId);
         ~TotalWidth();

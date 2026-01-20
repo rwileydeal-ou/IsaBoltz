@@ -353,6 +353,7 @@ string DbManager::create_PartialWidth_table(){
     "ScaleFactorID  TEXT );";
     cmd.append("CREATE INDEX partialwidth_id_asc ON PartialWidth(ID asc);");
     cmd.append("CREATE INDEX partialwidth_mult_asc ON PartialWidth(ParentID asc, InputID);");
+    cmd.append("CREATE INDEX partialwidth_mult2_asc ON PartialWidth(ParentID asc, InputID, ScaleFactorID);");
     return cmd;
 }
 

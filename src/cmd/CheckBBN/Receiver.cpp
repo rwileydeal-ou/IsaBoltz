@@ -1,6 +1,12 @@
 #include <cmd/CheckBBN/Receiver.h>
 
-CheckBBNReceiver::CheckBBNReceiver(Connection& connection, Models::Particle& particle, const Models::ParticleEvolution& particleEvolution, const Models::ScaleFactorPoint& scaleFactor, const Models::TotalWidth& totalWidth) :
+CheckBBNReceiver::CheckBBNReceiver(
+    Connection& connection, 
+    Models::Particle& particle, 
+    const Models::ParticleEvolution& particleEvolution, 
+    const Models::ScaleFactorPoint& scaleFactor, 
+    const Models::TotalWidth& totalWidth
+) :
     connection_(connection)
 {
     particle_ = particle;
@@ -22,11 +28,22 @@ Models::TotalWidth CheckBBNReceiver::pullTotalWidth(){
     DbManager db(connection_);
     db.Open();
 
-    auto statement = Statements::TotalWidth(br, Statements::StatementType::Read);
-    auto filter = Filters::TotalWidth(particle_.InputId, particle_.Id, scaleFactor_.Id);
+    auto statement = Statements::TotalWidth(
+        br, 
+        Statements::StatementType::Read
+    );
+    auto filter = Filters::TotalWidth(
+        particle_.InputId, 
+        particle_.Id, 
+        scaleFactor_.Id
+    );
     statement.AddFilter(filter);
     auto cb = Callbacks::TotalWidth();
-    db.Execute(statement, cb.Callback, cb.CallbackReturn);
+    db.Execute(
+        statement, 
+        cb.Callback, 
+        cb.CallbackReturn
+    );
     db.Close();
 
     if (cb.CallbackReturn.TotalWidths.size() != 1){
@@ -44,11 +61,22 @@ std::deque< Models::PartialWidth > CheckBBNReceiver::pullPartialWidths(){
     DbManager db(connection_); 
     db.Open();
 
-    auto statement = Statements::PartialWidth(child, Statements::StatementType::Read);
-    auto filter = Filters::PartialWidth(connection_.InputId, particle_.Id, scaleFactor_.Id);
+    auto statement = Statements::PartialWidth(
+        child, 
+        Statements::StatementType::Read
+    );
+    auto filter = Filters::PartialWidth(
+        connection_.InputId, 
+        particle_.Id, 
+        scaleFactor_.Id
+    );
     statement.AddFilter( filter );
     auto cb = Callbacks::PartialWidth();
-    db.Execute( statement, cb.Callback, cb.CallbackReturn );
+    db.Execute( 
+        statement, 
+        cb.Callback, 
+        cb.CallbackReturn 
+    );
     db.Close();
 
     for (size_t i=0; i < cb.CallbackReturn.PartialWidths.size(); ++i){
@@ -65,16 +93,26 @@ std::deque< Models::Particle > CheckBBNReceiver::pullHadrons(){
     DbManager db(connection_); 
     db.Open();
 
-    auto statement = Statements::Particle(hadron, Statements::StatementType::Read);
-    // this is a hack. TODO: we really need to not hardcode things. Especially when they're in the config file and SM content.
-    auto filter = Filters::Particle("%q", connection_.InputId, Filters::SqlComparator::Like );
+    auto statement = Statements::Particle(
+        hadron, 
+        Statements::StatementType::Read
+    );
+    auto filter = Filters::Particle(
+        connection_.InputId, 
+        Filters::WhereUUID::InputId
+    );
     statement.AddFilter( filter );
     auto cb = Callbacks::Particle();
-    db.Execute( statement, cb.Callback, cb.CallbackReturn );
+    db.Execute( 
+        statement, 
+        cb.Callback, 
+        cb.CallbackReturn 
+    );
     db.Close();
 
     for (size_t i=0; i < cb.CallbackReturn.Particles.size(); ++i){
         auto p = cb.CallbackReturn.Particles[i];
+        // this is a hack. TODO: we really need to not hardcode things. Especially when they're in the config file and SM content.
         // TODO: find why top quark is excluded (should be kinematically allowed for Z1 >~ 350 GeV)
         if (p.Key == "upq" || p.Key == "downq" || p.Key == "strangeq" || p.Key == "charmq" || p.Key == "bottomq"){
             hadrons.push_back( p );
@@ -172,7 +210,9 @@ double CheckBBNReceiver::hadronicBranchingRatio(){
     return BRhad;
 }
 
-std::deque<std::deque<double>> CheckBBNReceiver::parseBbnData(std::string infile){
+std::deque<std::deque<double>> CheckBBNReceiver::parseBbnData(
+    std::string infile
+){
     std::ifstream file;
     file.open(infile);
     std::string line;
@@ -213,7 +253,10 @@ unsigned int CheckBBNReceiver::indexBr(){
     return index;
 }
 
-double CheckBBNReceiver::interpolatedOmega(std::string infile, double logLifetime){
+double CheckBBNReceiver::interpolatedOmega(
+    std::string infile, 
+    double logLifetime
+){
     unsigned int posBr = indexBr();
     std::deque<std::deque<double>> fileData = parseBbnData(infile);
     unsigned int fileIndex = 0;

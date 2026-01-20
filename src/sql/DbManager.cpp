@@ -339,6 +339,7 @@ string DbManager::create_ParticleEvolution_table(){
     "IsDecay        INT);";
     cmd.append("CREATE INDEX particleevolution_boltz_asc ON ParticleEvolution(ScaleFactorID asc, ParticleKey asc, Production asc);");
     cmd.append("CREATE INDEX particleevolution_mult_asc ON ParticleEvolution(ParticleID asc, InputID);");
+    cmd.append("CREATE INDEX particleevolution_mult2_asc ON ParticleEvolution(ParticleKey asc, Production asc, InputID);");
     return cmd;
 }
 

@@ -142,6 +142,10 @@ void CheckBBNReceiver::Calculate(){
 
     // we already validated width > 0
     double logLifetime = log10( connection_.Model.Constants.hBar / totalWidth_.Width );
+    if (logLifetime < -2.0) {
+        checkBBN_.ConstraintSatisfied = true;
+        return;
+    }
     checkBBN_.BrHadronic = hadronicBranchingRatio();
 
     // Interpolated value (in log scale) for mZ1 = 1 TeV
@@ -195,8 +199,8 @@ double CheckBBNReceiver::hadronicBranchingRatio(){
                     isHadronicDecay = true;
                 }
             }
-	    if (isHadronicDecay){
-		BRhad += w.Width / totalWidth_.Width;
+    	    if (isHadronicDecay){
+	        	BRhad += w.Width / totalWidth_.Width;
             }
         }
     }

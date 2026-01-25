@@ -16,7 +16,9 @@ CascadeBranchingRatios::CascadeBranchingRatios(
 CascadeBranchingRatios::~CascadeBranchingRatios(){
 }
 
-const Models::Particle& CascadeBranchingRatios::pullParticle(const boost::uuids::uuid& particleId) {
+const Models::Particle& CascadeBranchingRatios::pullParticle(
+    const boost::uuids::uuid& particleId
+) {
     // ---- 1. Check in-memory cache ----
     auto it = particleCache_.find(particleId);
     if (it != particleCache_.end()) {
@@ -55,7 +57,10 @@ const Models::Particle& CascadeBranchingRatios::pullParticle(const boost::uuids:
 
 // this helper function computes R-odd to the LSP, assuming 2-body cascade decay to R-odd+R-even ends in 1 LSP
 // excludes species tracked separately
-double CascadeBranchingRatios::Br_Rodd_to_LSP( const ParticleData& parent, const ParticleData& daughter ){
+double CascadeBranchingRatios::Br_Rodd_to_LSP(
+    const ParticleData& parent, 
+    const ParticleData& daughter 
+){
     double br = 0.;
     const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
@@ -104,7 +109,10 @@ double CascadeBranchingRatios::Br_Rodd_to_LSP( const ParticleData& parent, const
 }
 
 // this helper function computes R-odd to R-odd where the daughter is NOT the LSP and is tracked separately
-double CascadeBranchingRatios::Br_Rodd_to_Rodd(const ParticleData& parent, const ParticleData& daughter){
+double CascadeBranchingRatios::Br_Rodd_to_Rodd(
+    const ParticleData& parent, 
+    const ParticleData& daughter
+){
     double br = 0.;
     const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
@@ -134,7 +142,10 @@ double CascadeBranchingRatios::Br_Rodd_to_Rodd(const ParticleData& parent, const
     return br;
 }
 
-double CascadeBranchingRatios::Br_Rodd_to_Reven(const ParticleData& parent, const ParticleData& daughter){
+double CascadeBranchingRatios::Br_Rodd_to_Reven(
+    const ParticleData& parent, 
+    const ParticleData& daughter
+){
     double br = 0.;
     const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
     for ( auto& width : widths ){
@@ -166,7 +177,10 @@ double CascadeBranchingRatios::Br_Rodd_to_Reven(const ParticleData& parent, cons
 
 // this helper function computes R-odd to radiation, assuming any 2-body cascade decay ends in radiation release
 // excludes species where both daughters are explicitly tracked separately
-double CascadeBranchingRatios::Br_Rodd_to_radiation(const ParticleData& parent, const ParticleData& daughter){
+double CascadeBranchingRatios::Br_Rodd_to_radiation(
+    const ParticleData& parent, 
+    const ParticleData& daughter
+){
     double br = 1.;
 
     // check to make sure we don't include things tracked separately
@@ -220,7 +234,10 @@ double CascadeBranchingRatios::Br_Rodd_to_radiation(const ParticleData& parent, 
     return br;
 }
 
-double CascadeBranchingRatios::Br_Reven_to_Reven(const ParticleData& parent, const ParticleData& daughter){
+double CascadeBranchingRatios::Br_Reven_to_Reven(
+    const ParticleData& parent, 
+    const ParticleData& daughter
+){
     double br = 0.;
 
     const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
@@ -246,7 +263,10 @@ double CascadeBranchingRatios::Br_Reven_to_Reven(const ParticleData& parent, con
     return br;
 }
 
-double CascadeBranchingRatios::Br_Reven_to_radiation(const ParticleData& parent, const ParticleData& daughter){
+double CascadeBranchingRatios::Br_Reven_to_radiation(
+    const ParticleData& parent, 
+    const ParticleData& daughter
+){
     double br = 1.;
 
     // go through all partial widths of the parent
@@ -292,7 +312,10 @@ double CascadeBranchingRatios::Br_Reven_to_radiation(const ParticleData& parent,
 
 // this method computes R-even -> LSP + LSP, assuming 2-body cascade decay ends in 1 LSP
 // excludes if BOTH children are tracked separately 
-double CascadeBranchingRatios::Br_Reven_to_LSP(const ParticleData& parent, const ParticleData& daughter){
+double CascadeBranchingRatios::Br_Reven_to_LSP(
+    const ParticleData& parent, 
+    const ParticleData& daughter
+){
     double br = 0.;
 
     const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
@@ -346,7 +369,10 @@ double CascadeBranchingRatios::Br_Reven_to_LSP(const ParticleData& parent, const
     return br;
 }
 
-double CascadeBranchingRatios::Br_Reven_to_Rodd(const ParticleData& parent, const ParticleData& daughter){
+double CascadeBranchingRatios::Br_Reven_to_Rodd(
+    const ParticleData& parent, 
+    const ParticleData& daughter
+){
     double br = 0.;
 
     const auto& widths = data_.PartialWidths.at(parent.ParticleKey);
@@ -372,7 +398,10 @@ double CascadeBranchingRatios::Br_Reven_to_Rodd(const ParticleData& parent, cons
     return br;
 }
 
-double CascadeBranchingRatios::Calculate(const ParticleData& parent, const ParticleData& daughter){    
+double CascadeBranchingRatios::Calculate(
+    const ParticleData& parent, 
+    const ParticleData& daughter
+){    
     // if the daughter is kinematically inaccessible, no point in continuing - but can't tell other particle, so only look at parent/daughter masses
     if (
         parent.Mass <= daughter.Mass 

@@ -815,15 +815,15 @@ void BoltzmannStepBuilderCommand::SetResult(){
         // ONLY WORKS BECAUSE WE'RE ONLY CONSIDERING AXION TO BE TEMP-DEPENDENT
         if( p.TempDependentMass && !addedAxion ){
             Models::Particle particle;
-            auto st = Statements::Particle( particle, Statements::StatementType::Read );
-            auto fil = Filters::Particle( p.ParticleKey, p.InputId );
-            st.AddFilter( fil );
-            auto cb = Callbacks::Particle();
-            db_.Execute( st, cb.Callback, cb.CallbackReturn );
-            if ( cb.CallbackReturn.Particles.size() == 0 ){
-                throw_with_trace( logic_error("Could not pull particle to update") );
-            }
-            particle = cb.CallbackReturn.Particles.front();
+
+            auto oldParticle = std::find_if( 
+                particles_.begin(), particles_.end(), 
+                [&p, this](Models::Particle& pa){ 
+                    return pa.Key == p.ParticleKey; 
+                } 
+            );
+            
+            particle = *oldParticle;
             particle.Id = p.ParticleId;
             particle.Mass = p.Mass;
             particle.ScaleFactorId = p.ScaleFactorId;

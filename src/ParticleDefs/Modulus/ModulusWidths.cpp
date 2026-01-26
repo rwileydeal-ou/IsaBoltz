@@ -52,7 +52,7 @@ Models::PartialWidth ModulusWidths::widthDiAxion(double lambdaPQ, const Models::
     double mAx = axion.Mass;
     double mPhi = parent_.Mass;
     double massRatioSqr = pow( mAx / mPhi, 2. );
-    double prefactor = pow( lambdaPQ, 2. ) * pow( mPhi, 3. ) / ( 16. * M_PI * pow( mPlanck, 2. ) ) * pow( 1. - 2. * massRatioSqr, 2. );
+    double prefactor = pow( lambdaPQ, 2. ) * pow( mPhi, 3. ) / ( 64. * M_PI * pow( mPlanck, 2. ) ) * pow( 1. - 2. * massRatioSqr, 2. );
     double width = prefactor * Utility::SqrtLambda( 1., massRatioSqr, massRatioSqr );
 
     return Models::PartialWidth( parent_, { axion, axion }, width );
@@ -62,7 +62,7 @@ Models::PartialWidth ModulusWidths::widthDiSaxion(double lambdaPQ, const Models:
     double mSax = saxion.Mass;
     double mPhi = parent_.Mass;
     double massRatioSqr = pow( mSax / mPhi, 2. );
-    double prefactor = pow( lambdaPQ, 2. ) * pow( mPhi, 3. ) / ( 16. * M_PI * pow( mPlanck, 2. ) ) * pow( 1. + 2. * massRatioSqr, 2. );
+    double prefactor = pow( lambdaPQ, 2. ) * pow( mPhi, 3. ) / ( 64. * M_PI * pow( mPlanck, 2. ) ) * pow( 1. + 2. * massRatioSqr, 2. );
     double width = prefactor * Utility::SqrtLambda( 1., massRatioSqr, massRatioSqr );
 
     return Models::PartialWidth( parent_, { saxion, saxion }, width );
@@ -72,7 +72,7 @@ Models::PartialWidth ModulusWidths::widthDiAxino(double lambdaPQ, const Models::
     double mAx = axino.Mass;
     double mPhi = parent_.Mass;
     double massRatioSqr = pow( mAx / mPhi, 2. );
-    double prefactor = pow( lambdaPQ, 2. ) * pow( mAx, 2. ) * mPhi / ( 2. * M_PI * pow( mPlanck, 2. ) ) * ( 1. - 4. * massRatioSqr );
+    double prefactor = pow( lambdaPQ, 2. ) * pow( mAx, 2. ) * mPhi / ( 8. * M_PI * pow( mPlanck, 2. ) ) * ( 1. - 4. * massRatioSqr );
     double width = prefactor * Utility::SqrtLambda( 1., massRatioSqr, massRatioSqr );
 
     return Models::PartialWidth( parent_, { axino, axino }, width );
@@ -731,8 +731,8 @@ Models::PartialWidth ModulusWidths::widthDiGravitino(double lambdaG, const Model
     double mG = gravitino.Mass;
     double massRatioSqr = pow( mG / mModulus, 2. );
     // calculate order of magnitude
-    double prefactor = pow( lambdaG, 2. ) * pow( mModulus, 3. ) / ( 288. * M_PI * pow( mPlanck, 2. ) );
-//    double prefactor = pow( lambdaG, 2. ) * pow( mModulus, 3. ) * massRatioSqr / ( 288. * M_PI * pow( mPlanck, 2. ) );
+//    double prefactor = pow( lambdaG, 2. ) * pow( mModulus, 3. ) / ( 288. * M_PI * pow( mPlanck, 2. ) );
+    double prefactor = pow( lambdaG, 2. ) * pow( mModulus, 3. ) * massRatioSqr / ( 288. * M_PI * pow( mPlanck, 2. ) );
 
     // now stitch in the rest of the width
     double width = prefactor * Utility::SqrtLambda(1., massRatioSqr, massRatioSqr);

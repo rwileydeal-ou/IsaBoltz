@@ -20,7 +20,7 @@ struct ParticleData
     boost::uuids::uuid ScaleFactorId;
 
     // Evolution object
-    ParticleProductionMechanism ProductionMechanism;
+    ParticleProductionMechanism ProductionMechanism = ParticleProductionMechanism::NONE;
     long double Y1 = 0.;
     long double Y2 = 0.;
     long double NumberDensity = 0.;
@@ -29,7 +29,7 @@ struct ParticleData
 
     // Particle object
     int PdgCode = 0;
-    Models::ParticleStatistics Statistics;
+    Models::ParticleStatistics Statistics = Models::ParticleStatistics::None;
     std::vector<Models::Charge> Charges;
     double Mass = 0.;
     bool TempDependentMass = false;

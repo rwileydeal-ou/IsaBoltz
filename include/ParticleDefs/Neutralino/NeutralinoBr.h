@@ -8,7 +8,12 @@ class NeutralinoBr : public IBranchingRatio
 {
 private:
 public:
-    NeutralinoBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
+    NeutralinoBr(
+        Logger& logger, 
+        const Models::Particle& parent, 
+        const ModelBase& model, 
+        const std::vector< Models::Particle >& particles
+    );
     ~NeutralinoBr();
     BranchingFraction Calculate() override;
 };

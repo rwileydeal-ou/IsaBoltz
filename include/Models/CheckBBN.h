@@ -22,18 +22,6 @@ namespace Models{
         double DensityCalculated = 0.;
         bool ConstraintSatisfied = false;
 
-        CheckBBN(const CheckBBN &checkBBN){
-            Id = checkBBN.Id;
-            InputId = checkBBN.InputId;
-            ParticleId = checkBBN.ParticleId;
-            ParticleEvolutionId = checkBBN.ParticleEvolutionId;
-            ScaleFactorId = checkBBN.ScaleFactorId;
-            BrHadronic = checkBBN.BrHadronic;
-            DensityConstraint = checkBBN.DensityConstraint;
-            DensityCalculated = checkBBN.DensityCalculated;
-            ConstraintSatisfied = checkBBN.ConstraintSatisfied;
-        }
-
         CheckBBN( const Models::ScaleFactorPoint& point, const Particle& particle, double densityConstraint, bool constraintSatisfied ){
             Id = boost::uuids::random_generator()();
             InputId = point.InputId;
@@ -50,19 +38,6 @@ namespace Models{
             ScaleFactorId = point.Id;
             DensityConstraint = densityConstraint;
             ConstraintSatisfied = constraintSatisfied;
-        }
-
-        CheckBBN& operator = (const CheckBBN &checkBBN){
-            Id = checkBBN.Id;
-            InputId = checkBBN.InputId;
-            ParticleId = checkBBN.ParticleId;
-            ParticleEvolutionId = checkBBN.ParticleEvolutionId;
-            ScaleFactorId = checkBBN.ScaleFactorId;
-            BrHadronic = checkBBN.BrHadronic;
-            DensityConstraint = checkBBN.DensityConstraint;
-            DensityCalculated = checkBBN.DensityCalculated;
-            ConstraintSatisfied = checkBBN.ConstraintSatisfied;
-            return *this;
         }
 
         CheckBBN(){

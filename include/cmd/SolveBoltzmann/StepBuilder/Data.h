@@ -1,7 +1,6 @@
 #ifndef BoltzmannData_h
 #define BoltzmannData_h
 
-#include <deque>
 #include <vector>
 #include <Models/ParticleEvolution.h>
 #include <Models/Particle.h>
@@ -15,15 +14,15 @@ struct BoltzmannData
     const std::vector< ParticleData >& ParticleDatas;
     const Models::ScaleFactorPoint& CurrentPoint; 
     const Models::ScaleFactorPoint& ReheatPoint;
-    const std::deque< Models::Particle >& Particles;
-    const std::map< std::string, std::deque< Models::PartialWidth > >& PartialWidths;
+    const std::vector< Models::Particle >& Particles;
+    const std::map< std::string, std::vector< Models::PartialWidth > >& PartialWidths;
     
     BoltzmannData(
         const std::vector< ParticleData >& particleDatas,
         const Models::ScaleFactorPoint& currentPoint,
         const Models::ScaleFactorPoint& reheatPoint,
-        const std::deque< Models::Particle >& particles,
-        const std::map< std::string, std::deque< Models::PartialWidth > >& partialWidths
+        const std::vector< Models::Particle >& particles,
+        const std::map< std::string, std::vector< Models::PartialWidth > >& partialWidths
     ) :
     ParticleDatas(particleDatas),
     CurrentPoint(currentPoint),

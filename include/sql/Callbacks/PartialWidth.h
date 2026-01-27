@@ -1,7 +1,7 @@
 #ifndef CallbackPartialWidth_h
 #define CallbackPartialWidth_h
 
-#include <deque>
+#include <vector>
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/classification.hpp>
 #include <boost/algorithm/string/split.hpp>
@@ -18,7 +18,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque< Models::PartialWidth > PartialWidths;
+            std::vector< Models::PartialWidth > PartialWidths;
         } CallbackReturn;
         
         PartialWidth(/* args */);

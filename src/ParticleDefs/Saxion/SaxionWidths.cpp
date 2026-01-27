@@ -1,7 +1,10 @@
 #include <ParticleDefs/Saxion/SaxionWidths.h>
 
-SaxionWidths::SaxionWidths(const ModelBase& model, const std::deque< Models::Particle >& particles)
-    : model_(model),
+SaxionWidths::SaxionWidths(
+    const ModelBase& model, 
+    const std::vector< Models::Particle >& particles
+) :
+    model_(model),
     particles_(particles)
 {
     parent_ = ModelBaseOps::FindConst(particles_, "saxion");

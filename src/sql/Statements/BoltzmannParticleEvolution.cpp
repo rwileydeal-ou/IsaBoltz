@@ -3,7 +3,10 @@
 using namespace std;
 using namespace Statements;
 
-BoltzmannParticleEvolution::BoltzmannParticleEvolution(const Models::ParticleEvolution& boltzmannParticleEvolution, StatementType statementType) :
+BoltzmannParticleEvolution::BoltzmannParticleEvolution(
+    const Models::ParticleEvolution& boltzmannParticleEvolution, 
+    StatementType statementType
+) :
     IStatement(statementType)
 {
     boltzmannParticleEvolution_ = boltzmannParticleEvolution;

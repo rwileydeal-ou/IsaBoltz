@@ -2,8 +2,11 @@
 
 using namespace std;
 
-GravitinoWidths::GravitinoWidths(const ModelBase& model, const std::deque< Models::Particle >& particles)
-    : model_(model),
+GravitinoWidths::GravitinoWidths(
+    const ModelBase& model, 
+    const std::vector< Models::Particle >& particles
+) :
+    model_(model),
     particles_(particles)
 {
     parent_ = ModelBaseOps::FindConst(particles_, "gravitino");
@@ -148,7 +151,7 @@ double GravitinoWidths::widthNeutralinoHA(double mNeutralino, double mHA, double
     return gscl(abs(mNeutralino), mHA, cc1, cc2);
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthCharginoHiggs(){
+vector< Models::PartialWidth > GravitinoWidths::widthCharginoHiggs(){
     auto higgsCharged = ModelBaseOps::FindConst(particles_, "higgscharged");
     auto chargino1 = ModelBaseOps::FindConst(particles_, "chargino1");
     auto chargino2 = ModelBaseOps::FindConst(particles_, "chargino2");
@@ -157,7 +160,7 @@ deque< Models::PartialWidth > GravitinoWidths::widthCharginoHiggs(){
     double thY = copysign(1., 1./tan(model_.Susy.MixingAngles.gammaR));
     double beta = atan(model_.Susy.TanBeta);
 
-    deque< Models::PartialWidth > widths;
+    vector< Models::PartialWidth > widths;
     double cc11 = 2. * ( pow( sin( beta ) * cos( model_.Susy.MixingAngles.gammaL ), 2. ) + pow( cos( beta ) * cos( model_.Susy.MixingAngles.gammaR ), 2. ) );
     double cc21 = - copysign(1., chargino1.Mass) * 4. * thX * sin( beta ) * cos( beta ) * cos( model_.Susy.MixingAngles.gammaL ) * cos( model_.Susy.MixingAngles.gammaR );
     widths.push_back( Models::PartialWidth(parent_, { chargino1, higgsCharged }, 2. * gscl(chargino1.Mass, higgsCharged.Mass, cc11, cc21)) );
@@ -168,7 +171,7 @@ deque< Models::PartialWidth > GravitinoWidths::widthCharginoHiggs(){
     return widths;
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthNeutralinoHiggs(){
+vector< Models::PartialWidth > GravitinoWidths::widthNeutralinoHiggs(){
     auto higgsLight = ModelBaseOps::FindConst(particles_, "higgslight");
     auto higgsHeavy = ModelBaseOps::FindConst(particles_, "higgsheavy");
     auto higgsPseudo = ModelBaseOps::FindConst(particles_, "higgspseudoscalar");
@@ -179,14 +182,14 @@ deque< Models::PartialWidth > GravitinoWidths::widthNeutralinoHiggs(){
 
     double alpha = model_.Susy.MixingAngles.alfah;
     double beta = atan( model_.Susy.TanBeta );
-    deque<double> neutralinoMasses = { neutralino1.Mass, neutralino2.Mass, neutralino3.Mass, neutralino4.Mass };
-    deque<double> widthsHl, widthsHH, widthsHA;
+    vector<double> neutralinoMasses = { neutralino1.Mass, neutralino2.Mass, neutralino3.Mass, neutralino4.Mass };
+    vector<double> widthsHl, widthsHH, widthsHA;
     for (int i=0; i<4; ++i){
         widthsHl.push_back( widthNeutralinoHl( neutralinoMasses[i], higgsLight.Mass, alpha, model_.Susy.MixingAngles.zMix[i][0], model_.Susy.MixingAngles.zMix[i][1]) );
         widthsHH.push_back( widthNeutralinoHH( neutralinoMasses[i], higgsHeavy.Mass, alpha, model_.Susy.MixingAngles.zMix[i][0], model_.Susy.MixingAngles.zMix[i][1]) );
         widthsHA.push_back( widthNeutralinoHA( neutralinoMasses[i], higgsPseudo.Mass, beta, model_.Susy.MixingAngles.zMix[i][0], model_.Susy.MixingAngles.zMix[i][1]) );
     }
-    deque< Models::PartialWidth > widths;
+    vector< Models::PartialWidth > widths;
     widths.push_back( Models::PartialWidth(parent_, { neutralino1, higgsLight }, widthsHl[0] ) );
     widths.push_back( Models::PartialWidth(parent_, { neutralino2, higgsLight }, widthsHl[1] ) );
     widths.push_back( Models::PartialWidth(parent_, { neutralino3, higgsLight }, widthsHl[2] ) );
@@ -221,16 +224,16 @@ double GravitinoWidths::widthNeutralinoZBoson(double mNeutralino, double mZ, dou
     return gvec(abs(mNeutralino), mZ, cgg1, cgg2, cgh1, cgh2, chh1, chh2);
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthNeutralinoZBoson(){
+vector< Models::PartialWidth > GravitinoWidths::widthNeutralinoZBoson(){
     auto neutralino1 = ModelBaseOps::FindConst(particles_, "neutralino1");
     auto neutralino2 = ModelBaseOps::FindConst(particles_, "neutralino2");
     auto neutralino3 = ModelBaseOps::FindConst(particles_, "neutralino3");
     auto neutralino4 = ModelBaseOps::FindConst(particles_, "neutralino4");
     auto zBoson = ModelBaseOps::FindConst(particles_, "zboson");
     
-    deque< Models::PartialWidth > neutralinoWidths;
-    deque<double> widthVals;
-    deque<double> neutralinoMasses = { neutralino1.Mass, neutralino2.Mass, neutralino3.Mass, neutralino4.Mass };
+    vector< Models::PartialWidth > neutralinoWidths;
+    vector<double> widthVals;
+    vector<double> neutralinoMasses = { neutralino1.Mass, neutralino2.Mass, neutralino3.Mass, neutralino4.Mass };
     for (int i=0; i<4; ++i){
         widthVals.push_back( widthNeutralinoZBoson( neutralinoMasses[i], zBoson.Mass, model_.Susy.MixingAngles.zMix[i][0], model_.Susy.MixingAngles.zMix[i][1], model_.Susy.MixingAngles.zMix[i][2], model_.Susy.MixingAngles.zMix[i][3], model_.Susy.Couplings.vuq, model_.Susy.Couplings.vdq) );
     }
@@ -247,15 +250,15 @@ double GravitinoWidths::widthNeutralinoPhoton(double mNeutralino, double mPhoton
     return gvec(abs(mNeutralino), mPhoton, cgg1, 0., 0., 0., 0., 0.);
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthNeutralinoPhoton(){
+vector< Models::PartialWidth > GravitinoWidths::widthNeutralinoPhoton(){
     auto neutralino1 = ModelBaseOps::FindConst(particles_, "neutralino1");
     auto neutralino2 = ModelBaseOps::FindConst(particles_, "neutralino2");
     auto neutralino3 = ModelBaseOps::FindConst(particles_, "neutralino3");
     auto neutralino4 = ModelBaseOps::FindConst(particles_, "neutralino4");
 
-    deque< Models::PartialWidth > neutralinoWidths;
-    deque<double> widthVals;
-    deque<double> neutralinoMasses = { neutralino1.Mass, neutralino2.Mass, neutralino3.Mass, neutralino4.Mass };
+    vector< Models::PartialWidth > neutralinoWidths;
+    vector<double> widthVals;
+    vector<double> neutralinoMasses = { neutralino1.Mass, neutralino2.Mass, neutralino3.Mass, neutralino4.Mass };
     for (int i=0; i<4; ++i){
         widthVals.push_back( widthNeutralinoPhoton( neutralinoMasses[i], 0., model_.Susy.MixingAngles.zMix[i][0], model_.Susy.MixingAngles.zMix[i][1], model_.Susy.MixingAngles.zMix[i][2], model_.Susy.MixingAngles.zMix[i][3], model_.Susy.Couplings.vuq, model_.Susy.Couplings.vdq) );
     }
@@ -266,12 +269,12 @@ deque< Models::PartialWidth > GravitinoWidths::widthNeutralinoPhoton(){
     return neutralinoWidths;
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthCharginoWBoson(){
+vector< Models::PartialWidth > GravitinoWidths::widthCharginoWBoson(){
     auto chargino1 = ModelBaseOps::FindConst(particles_, "chargino1");
     auto chargino2 = ModelBaseOps::FindConst(particles_, "chargino2");
     auto wBoson = ModelBaseOps::FindConst(particles_, "wboson");
     
-    deque< Models::PartialWidth > widths;
+    vector< Models::PartialWidth > widths;
     double THX = copysign(1., 1./tan(model_.Susy.MixingAngles.gammaL ));
     double THY = copysign(1., 1./tan(model_.Susy.MixingAngles.gammaR ));
     double gammaR = model_.Susy.MixingAngles.gammaR;
@@ -300,7 +303,7 @@ deque< Models::PartialWidth > GravitinoWidths::widthCharginoWBoson(){
     return widths;
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthLightSquarks(){
+vector< Models::PartialWidth > GravitinoWidths::widthLightSquarks(){
     auto upl = ModelBaseOps::FindConst(particles_, "suplsq");
     auto upr = ModelBaseOps::FindConst(particles_, "suprsq");
     auto dnl = ModelBaseOps::FindConst(particles_, "sdownlsq");
@@ -311,7 +314,7 @@ deque< Models::PartialWidth > GravitinoWidths::widthLightSquarks(){
     auto chr = ModelBaseOps::FindConst(particles_, "scharmrsq");
 
 
-    deque< Models::PartialWidth > widths;
+    vector< Models::PartialWidth > widths;
     widths.push_back( Models::PartialWidth(parent_, { upl, ModelBaseOps::FindConst(particles_, "upq") }, 3. * gscl(0., abs(upl.Mass), 2., 0.) ) );
     widths.push_back( Models::PartialWidth(parent_, { upr, ModelBaseOps::FindConst(particles_, "upq") }, 3. * gscl(0., abs(upr.Mass), 2., 0.) ) );
     widths.push_back( Models::PartialWidth(parent_, { dnl, ModelBaseOps::FindConst(particles_, "downq") }, 3. * gscl(0., abs(dnl.Mass), 2., 0.) ) );
@@ -323,7 +326,7 @@ deque< Models::PartialWidth > GravitinoWidths::widthLightSquarks(){
     return widths;
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthSbottom(){
+vector< Models::PartialWidth > GravitinoWidths::widthSbottom(){
     auto sb1 = ModelBaseOps::FindConst(particles_, "sbottom1sq");
     auto sb2 = ModelBaseOps::FindConst(particles_, "sbottom2sq");
 
@@ -332,13 +335,13 @@ deque< Models::PartialWidth > GravitinoWidths::widthSbottom(){
     double cc12 = 2.;
     double cc22 = 2. * sin(2. * model_.Susy.MixingAngles.thetaB);
     
-    deque< Models::PartialWidth > widths;
+    vector< Models::PartialWidth > widths;
     widths.push_back( Models::PartialWidth(parent_, { sb1, ModelBaseOps::FindConst(particles_, "bottomq") }, 3. * gscl(4.7, abs(sb1.Mass), cc11, cc21) ) );
     widths.push_back( Models::PartialWidth(parent_, { sb2, ModelBaseOps::FindConst(particles_, "bottomq") }, 3. * gscl(4.7, abs(sb2.Mass), cc12, cc22) ) );
     return widths;
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthStop(){
+vector< Models::PartialWidth > GravitinoWidths::widthStop(){
     auto st1 = ModelBaseOps::FindConst(particles_, "stop1sq");
     auto st2 = ModelBaseOps::FindConst(particles_, "stop2sq");
 
@@ -347,13 +350,13 @@ deque< Models::PartialWidth > GravitinoWidths::widthStop(){
     double cc12 = 2.;
     double cc22 = 2. * sin(2. * model_.Susy.MixingAngles.thetaT);
     
-    deque< Models::PartialWidth > widths;
+    vector< Models::PartialWidth > widths;
     widths.push_back( Models::PartialWidth(parent_, { st1, ModelBaseOps::FindConst(particles_, "topq") }, 3. * gscl(173.1, abs(st1.Mass), cc11, cc21) ) );
     widths.push_back( Models::PartialWidth(parent_, { st2, ModelBaseOps::FindConst(particles_, "topq") }, 3. * gscl(173.1, abs(st2.Mass), cc12, cc22) ) );
     return widths;
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthStau(){
+vector< Models::PartialWidth > GravitinoWidths::widthStau(){
     auto tau = ModelBaseOps::FindConst(particles_, "tau");
     auto stau1 = ModelBaseOps::FindConst(particles_, "stau1");
     auto stau2 = ModelBaseOps::FindConst(particles_, "stau2");
@@ -363,31 +366,31 @@ deque< Models::PartialWidth > GravitinoWidths::widthStau(){
     double cc12 = 2.;
     double cc22 = 2. * sin(2. * model_.Susy.MixingAngles.thetaL);
     
-    deque< Models::PartialWidth > widths;
+    vector< Models::PartialWidth > widths;
     widths.push_back( Models::PartialWidth(parent_, { stau1, tau }, gscl(tau.Mass, abs(stau1.Mass), cc11, cc21) ) );
     widths.push_back( Models::PartialWidth(parent_, { stau2, tau }, gscl(tau.Mass, abs(stau2.Mass), cc12, cc22) ) );
     return widths;
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthSneutrinos(){
+vector< Models::PartialWidth > GravitinoWidths::widthSneutrinos(){
     auto nuel = ModelBaseOps::FindConst(particles_, "sneutrinoselectronl");
     auto numu = ModelBaseOps::FindConst(particles_, "sneutrinosmuonl");
     auto nutau = ModelBaseOps::FindConst(particles_, "sneutrinostaul");
 
-    deque< Models::PartialWidth > widths;
+    vector< Models::PartialWidth > widths;
     widths.push_back( Models::PartialWidth(parent_, { nuel, ModelBaseOps::FindConst(particles_, "neutrinoelectron") }, gscl(0., abs(nuel.Mass), 2., 0.) ) );
     widths.push_back( Models::PartialWidth(parent_, { numu, ModelBaseOps::FindConst(particles_, "neutrinomuon") }, gscl(0., abs(numu.Mass), 2., 0.) ) );
     widths.push_back( Models::PartialWidth(parent_, { nutau, ModelBaseOps::FindConst(particles_, "neutrinotau") }, gscl(0., abs(nutau.Mass), 2., 0.) ) );
     return widths;
 }
 
-deque< Models::PartialWidth > GravitinoWidths::widthLightLeptons(){
+vector< Models::PartialWidth > GravitinoWidths::widthLightLeptons(){
     auto sel = ModelBaseOps::FindConst(particles_, "selectronl");
     auto ser = ModelBaseOps::FindConst(particles_, "selectronr");
     auto smul = ModelBaseOps::FindConst(particles_, "smuonl");
     auto smur = ModelBaseOps::FindConst(particles_, "smuonr");
 
-    deque< Models::PartialWidth > widths;
+    vector< Models::PartialWidth > widths;
     widths.push_back( Models::PartialWidth(parent_, { sel, ModelBaseOps::FindConst(particles_, "electron") }, gscl(0., abs(sel.Mass), 2., 0.) ) );
     widths.push_back( Models::PartialWidth(parent_, { ser, ModelBaseOps::FindConst(particles_, "electron") }, gscl(0., abs(ser.Mass), 2., 0.) ) );
     widths.push_back( Models::PartialWidth(parent_, { smul, ModelBaseOps::FindConst(particles_, "muon") }, gscl(0., abs(smul.Mass), 2., 0.) ) );

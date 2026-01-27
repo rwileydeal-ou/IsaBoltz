@@ -2,7 +2,10 @@
 
 using namespace std;
 
-AxinoWidths::AxinoWidths(const ModelBase& model, const deque< Models::Particle >& particles)
+AxinoWidths::AxinoWidths(
+    const ModelBase& model, 
+    const vector< Models::Particle >& particles
+)
     : model_(model),
     particles_(particles)
 {
@@ -13,7 +16,12 @@ AxinoWidths::AxinoWidths(const ModelBase& model, const deque< Models::Particle >
 }
 AxinoWidths::~AxinoWidths(){}
 
-Models::PartialWidth AxinoWidths::widthGluinoGluon(const Models::Particle& gluino, const Models::Particle& gluon, double fa, double alphaS){
+Models::PartialWidth AxinoWidths::widthGluinoGluon(
+    const Models::Particle& gluino, 
+    const Models::Particle& gluon, 
+    double fa, 
+    double alphaS
+){
     double tgl = 0;
     if (abs(gluino.Mass) < abs(parent_.Mass)){
         tgl = 8.0 * pow(alphaS, 2.0) * pow( abs(parent_.Mass), 3.0 ) * pow( (1.0 - pow( (gluino.Mass / parent_.Mass), 2.0) ), 3.0 ) / (128.0 * pow( M_PI, 3.0) * pow( fa, 2.0));

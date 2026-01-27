@@ -20,15 +20,6 @@ namespace Models{
         boost::uuids::uuid ScaleFactorId;
         double OmegaHSqr = 0.;
 
-        RelicDensity(const RelicDensity &relicDensity){
-            Id = relicDensity.Id;
-            InputId = relicDensity.InputId;
-            ParticleId = relicDensity.ParticleId;
-            ParticleEvolutionId = relicDensity.ParticleEvolutionId;
-            ScaleFactorId = relicDensity.ScaleFactorId;
-            OmegaHSqr = relicDensity.OmegaHSqr;
-        }
-
         RelicDensity(double omegaHSqr, const ParticleEvolution& pEvo){
             Id = boost::uuids::random_generator()();
             InputId = pEvo.InputId;
@@ -45,16 +36,6 @@ namespace Models{
             ParticleEvolutionId = particleEvoId;
             ScaleFactorId = scaleFactorId;
             OmegaHSqr = omegaHSqr;
-        }
-
-        RelicDensity& operator = (const RelicDensity &relicDensity){
-            Id = relicDensity.Id;
-            InputId = relicDensity.InputId;
-            ParticleId = relicDensity.ParticleId;
-            ParticleEvolutionId = relicDensity.ParticleEvolutionId;
-            ScaleFactorId = relicDensity.ScaleFactorId;
-            OmegaHSqr = relicDensity.OmegaHSqr;
-            return *this;
         }
 
         RelicDensity(){

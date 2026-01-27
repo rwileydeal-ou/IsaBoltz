@@ -44,19 +44,6 @@ namespace Models{
             Delta_Neff = deltaNeff;
             ParentId = boost::uuids::nil_generator()();
         }
-        DeltaNeff& operator = (const DeltaNeff &d){
-            for (auto &c : d.ChildrenIds){
-                ChildrenIds.push_back( c );
-            }
-            Id = d.Id;
-            ParentId = d.ParentId;
-            InputId = d.InputId;
-            ScaleFactorId = d.ScaleFactorId;
-            Delta_Neff = d.Delta_Neff;
-            ParticleId = d.ParticleId;
-            ParticleEvolutionId = d.ParticleEvolutionId;
-            return *this;
-        }
     };
 }
 

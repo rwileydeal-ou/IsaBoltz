@@ -4,28 +4,28 @@
 #include <Models/ModelBase.h>
 #include <Models/PartialWidth.h>
 #include <algorithm>
-#include <deque>
+#include <vector>
 
 class GravitinoWidths
 {
 private:
     const ModelBase& model_;
-    const std::deque< Models::Particle >& particles_;
+    const std::vector< Models::Particle >& particles_;
     Models::Particle parent_;
     Models::PartialWidth widthGluino();
     Models::PartialWidth widthAxinoAxion();
     Models::PartialWidth widthAxinoSaxion();
-    std::deque< Models::PartialWidth > widthLightSquarks();
-    std::deque< Models::PartialWidth > widthSbottom();
-    std::deque< Models::PartialWidth > widthStop();
-    std::deque< Models::PartialWidth > widthStau();
-    std::deque< Models::PartialWidth > widthSneutrinos();
-    std::deque< Models::PartialWidth > widthLightLeptons();
-    std::deque< Models::PartialWidth > widthNeutralinoZBoson();
-    std::deque< Models::PartialWidth > widthNeutralinoPhoton();
-    std::deque< Models::PartialWidth > widthCharginoWBoson();
-    std::deque< Models::PartialWidth > widthNeutralinoHiggs();
-    std::deque< Models::PartialWidth > widthCharginoHiggs();
+    std::vector< Models::PartialWidth > widthLightSquarks();
+    std::vector< Models::PartialWidth > widthSbottom();
+    std::vector< Models::PartialWidth > widthStop();
+    std::vector< Models::PartialWidth > widthStau();
+    std::vector< Models::PartialWidth > widthSneutrinos();
+    std::vector< Models::PartialWidth > widthLightLeptons();
+    std::vector< Models::PartialWidth > widthNeutralinoZBoson();
+    std::vector< Models::PartialWidth > widthNeutralinoPhoton();
+    std::vector< Models::PartialWidth > widthCharginoWBoson();
+    std::vector< Models::PartialWidth > widthNeutralinoHiggs();
+    std::vector< Models::PartialWidth > widthCharginoHiggs();
     double gPrime_;
     double g_;
     double gZ_;
@@ -37,7 +37,10 @@ private:
     double gscl(double mFermion, double mScalar, double cLLRR, double cLRRL);
     double gvec(double mFermion, double mVector, double cgg1, double cgg2, double cgh1, double cgh2, double chh1, double chh2);
 public:
-    GravitinoWidths(const ModelBase& model, const std::deque< Models::Particle >& particles);
+    GravitinoWidths(
+        const ModelBase& model, 
+        const std::vector< Models::Particle >& particles
+    );
     ~GravitinoWidths();
-    std::deque< Models::PartialWidth > Decays;
+    std::vector< Models::PartialWidth > Decays;
 };

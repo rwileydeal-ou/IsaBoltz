@@ -10,11 +10,11 @@
 #include <Models/ProductionMechanism.h>
 
 namespace Models{
-    enum GaugeGroup{ Electromagnetic, Color, RParity };
-    enum ParticleStatistics { Boson, Fermion };
+    enum class GaugeGroup{ None, Electromagnetic, Color, RParity };
+    enum class ParticleStatistics { None, Boson, Fermion };
 
     struct Charge{
-        GaugeGroup Group;
+        GaugeGroup Group = GaugeGroup::None;
         double Value = 0.;
     };
 
@@ -28,47 +28,17 @@ namespace Models{
         std::string Name = "";
         std::string Key = "";
         std::vector<Charge> Charges;
-        ParticleStatistics Statistics;
+        ParticleStatistics Statistics = ParticleStatistics::None;
         CoherentOsc CohOscComponents;
         double Spin = 0.;
         boost::uuids::uuid ScaleFactorId;
-        Particle(const Particle &p){
-            Id = p.Id;
-            InputId = p.InputId;
-            PdgCode = p.PdgCode;
-            Mass = p.Mass;
-            Width = p.Width;
-            Name = p.Name;
-            Key = p.Key;
-            for (auto &charge : p.Charges){
-                Charges.push_back(charge);
-            }
-            Statistics = p.Statistics;
-            Spin = p.Spin;
-            CohOscComponents = p.CohOscComponents;
-            ScaleFactorId = p.ScaleFactorId;
-        }
-        Particle& operator = (const Particle &p){
-            Id = p.Id;
-            InputId = p.InputId;
-            PdgCode = p.PdgCode;
-            Mass = p.Mass;
-            Width = p.Width;
-            Name = p.Name;
-            Key = p.Key;
-            for (auto charge : p.Charges){
-                Charges.push_back(charge);
-            }
-            Statistics = p.Statistics;
-            Spin = p.Spin;
-            CohOscComponents = p.CohOscComponents;
-            ScaleFactorId = p.ScaleFactorId;
-            return *this;
-        }
-        Particle(){
-            Id = boost::uuids::random_generator()();
-            InputId = boost::uuids::nil_generator()();
-            ScaleFactorId = boost::uuids::nil_generator()();
+
+        Particle()
+        : 
+            Id(boost::uuids::random_generator()()),
+            InputId(boost::uuids::nil_generator()()),
+            ScaleFactorId(boost::uuids::nil_generator()())
+        {
         }
     };
 }

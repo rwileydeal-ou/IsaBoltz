@@ -3,7 +3,12 @@
 SaxionSigV::SaxionSigV(/* args */){}
 SaxionSigV::~SaxionSigV(){ }
 
-SigmaV SaxionSigV::Calculate(const Models::Particle& saxion, const ModelBase& model, double T, std::shared_ptr< DataRelay > fortInterface){
+SigmaV SaxionSigV::Calculate(
+    const Models::Particle& saxion, 
+    const ModelBase& model, 
+    double T, 
+    std::shared_ptr< DataRelay > fortInterface
+){
     double crossSec = 0;
     switch (model.PQSector.AxionModel){
         case DFSZ:

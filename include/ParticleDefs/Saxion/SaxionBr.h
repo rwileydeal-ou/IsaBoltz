@@ -7,9 +7,14 @@
 class SaxionBr : public IBranchingRatio
 {
 private:
-    std::deque<Models::PartialWidth> handleDFSZ();
+    std::vector<Models::PartialWidth> handleDFSZ();
 public:
-    SaxionBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
+    SaxionBr(
+        Logger& logger, 
+        const Models::Particle& parent, 
+        const ModelBase& model, 
+        const std::vector< Models::Particle >& particles
+    );
     ~SaxionBr();
     BranchingFraction Calculate() override;
 };

@@ -11,7 +11,12 @@
 
 class AxinoBranchingRatioFactory : public BranchingRatioFactory {
 public:
-    AxinoBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
+    AxinoBranchingRatioFactory(
+        Logger& logger, 
+        const Models::Particle& parent, 
+        const ModelBase& model, 
+        const std::vector< Models::Particle >& particles
+    );
     ~AxinoBranchingRatioFactory();
     std::shared_ptr< IBranchingRatio > create_branching_ratio() override;
 };

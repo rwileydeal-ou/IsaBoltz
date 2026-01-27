@@ -1,6 +1,11 @@
 #include <ModelIndependent/BranchingRatios/BranchingRatioFactory.h>
 
-BranchingRatioFactory::BranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles) :
+BranchingRatioFactory::BranchingRatioFactory(
+    Logger& logger, 
+    const Models::Particle& parent, 
+    const ModelBase& model, 
+    const std::vector< Models::Particle >& particles
+) :
     logger_(logger),
     parent_(parent),
     model_(model),
@@ -9,9 +14,16 @@ BranchingRatioFactory::BranchingRatioFactory(Logger& logger, const Models::Parti
 }
 BranchingRatioFactory::~BranchingRatioFactory(){}
 
-DefaultBranchingRatioFactory::DefaultBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles) :
+DefaultBranchingRatioFactory::DefaultBranchingRatioFactory(
+    Logger& logger, 
+    const Models::Particle& parent, 
+    const ModelBase& model, 
+    const std::vector< Models::Particle >& particles
+) :
     BranchingRatioFactory(logger, parent, model, particles)
 {}
 DefaultBranchingRatioFactory::~DefaultBranchingRatioFactory(){}
 
-std::shared_ptr< IBranchingRatio > DefaultBranchingRatioFactory::create_branching_ratio(){ return std::make_shared< DefaultBranchingRatio >(logger_, parent_, model_, particles_); }
+std::shared_ptr< IBranchingRatio > DefaultBranchingRatioFactory::create_branching_ratio(){ 
+    return std::make_shared< DefaultBranchingRatio >(logger_, parent_, model_, particles_); 
+}

@@ -2,7 +2,10 @@
 
 using namespace std;
 
-CheckBBNCommand::CheckBBNCommand(Connection& connection, std::string enabledKey) :
+CheckBBNCommand::CheckBBNCommand(
+    Connection& connection, 
+    std::string enabledKey
+) :
     connection_(connection)
 {
     // need to first pull all particle evolutions from db
@@ -140,7 +143,7 @@ CheckBBNCommand::~CheckBBNCommand(){
 }
 
 Models::ScaleFactorPoint CheckBBNCommand::findScaleFactor( 
-    std::deque<Models::ScaleFactorPoint>& scaleFactors,  
+    std::vector<Models::ScaleFactorPoint>& scaleFactors,  
     boost::uuids::uuid scaleFactorId
 ){
     for (auto& scaleFactor : scaleFactors){
@@ -152,7 +155,7 @@ Models::ScaleFactorPoint CheckBBNCommand::findScaleFactor(
 }
 
 Models::TotalWidth CheckBBNCommand::findTotalWidth( 
-    std::deque<Models::TotalWidth>& totalWidths,  
+    std::vector<Models::TotalWidth>& totalWidths,  
     boost::uuids::uuid parentId
 ){
     for (auto& totalWidth : totalWidths){
@@ -165,7 +168,7 @@ Models::TotalWidth CheckBBNCommand::findTotalWidth(
 }
 
 Models::Particle CheckBBNCommand::findParticle( 
-    std::deque<Models::Particle>& particles,  
+    std::vector<Models::Particle>& particles,  
     boost::uuids::uuid particleId
 ){
     for (auto& particle : particles){

@@ -5,7 +5,12 @@
 class NeutralinoSigV : public ISigmaV
 {
 public:
-    SigmaV Calculate(const Models::Particle& neutralino, const ModelBase& model, double T, std::shared_ptr< DataRelay > fortInterface) override;
+    SigmaV Calculate(
+        const Models::Particle& neutralino, 
+        const ModelBase& model, 
+        double T, 
+        std::shared_ptr< DataRelay > fortInterface
+    ) override;
     NeutralinoSigV();
     ~NeutralinoSigV();
 };

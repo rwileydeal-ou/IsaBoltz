@@ -1,7 +1,7 @@
 #ifndef CallbackParticleEvolution_h
 #define CallbackParticleEvolution_h
 
-#include <deque>
+#include <vector>
 #include <boost/lexical_cast.hpp>
 #include <boost/pool/pool_alloc.hpp>
 #include <Models/ParticleEvolution.h>
@@ -17,7 +17,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque<Models::ParticleEvolution> ParticleEvolutions;
+            std::vector<Models::ParticleEvolution> ParticleEvolutions;
         } CallbackReturn;
         
         ParticleEvolution(/* args */);

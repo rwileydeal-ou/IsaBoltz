@@ -37,21 +37,27 @@ private:
     Models::TotalWidth totalWidth_;
     Models::TotalWidth pullTotalWidth();
     Models::ScaleFactorPoint scaleFactor_;
-    std::deque< Models::Particle > hadrons_;
-    std::deque< Models::Particle > pullHadrons();
-    std::deque< Models::PartialWidth > partialWidths_;
-    std::deque< Models::PartialWidth > pullPartialWidths();
+    std::vector< Models::Particle > hadrons_;
+    std::vector< Models::Particle > pullHadrons();
+    std::vector< Models::PartialWidth > partialWidths_;
+    std::vector< Models::PartialWidth > pullPartialWidths();
 
     unsigned int indexBr();
     double hadronicBranchingRatio();
     double relicDensityBeforeDecay();
     double interpolatedOmega(std::string infile, double logLifetime);
     
-    std::deque<std::deque<double>> parseBbnData(std::string infile);
+    std::vector<std::vector<double>> parseBbnData(std::string infile);
 
 public:
     ~CheckBBNReceiver();
-    CheckBBNReceiver(Connection& connection, Models::Particle& particle, const Models::ParticleEvolution& particleEvolution, const Models::ScaleFactorPoint& scaleFactor, const Models::TotalWidth& totalWidth);
+    CheckBBNReceiver(
+        Connection& connection, 
+        Models::Particle& particle, 
+        const Models::ParticleEvolution& particleEvolution, 
+        const Models::ScaleFactorPoint& scaleFactor, 
+        const Models::TotalWidth& totalWidth
+    );
     void Calculate() override;
     Models::CheckBBN getCheckBBN();
 };

@@ -1,6 +1,11 @@
 #include <ParticleDefs/Modulus/ModulusBr.h>
 
-ModulusBr::ModulusBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles) :
+ModulusBr::ModulusBr(
+    Logger& logger, 
+    const Models::Particle& parent, 
+    const ModelBase& model, 
+    const std::vector< Models::Particle >& particles
+) :
     IBranchingRatio(logger, parent, model, particles)
 {
 

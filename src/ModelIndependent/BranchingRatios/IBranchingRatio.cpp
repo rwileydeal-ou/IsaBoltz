@@ -2,8 +2,13 @@
 
 using namespace std;
 
-IBranchingRatio::IBranchingRatio(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles) 
-    : logger_(logger),
+IBranchingRatio::IBranchingRatio(
+    Logger& logger, 
+    const Models::Particle& parent, 
+    const ModelBase& model, 
+    const std::vector< Models::Particle >& particles
+) :
+    logger_(logger),
     model_(model),
     parent_(parent),
     particles_(particles)
@@ -12,7 +17,9 @@ IBranchingRatio::IBranchingRatio(Logger& logger, const Models::Particle& parent,
 }
 IBranchingRatio::~IBranchingRatio(){}
 
-Models::TotalWidth IBranchingRatio::calculateTotalWidth(deque< Models::PartialWidth >& partialWidths){
+Models::TotalWidth IBranchingRatio::calculateTotalWidth(
+    vector< Models::PartialWidth >& partialWidths
+){
     double totalDecayWidth = 0.;
     Models::TotalWidth totalWidth;
     if ( partialWidths.size() == 0 ){

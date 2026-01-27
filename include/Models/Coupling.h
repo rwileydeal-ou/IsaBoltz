@@ -25,13 +25,6 @@ namespace Models{
             Value = value;
             Key = key;
         }
-        Coupling& operator = (const Coupling &d){
-            Id = d.Id;
-            InputId = d.InputId;
-            Value = d.Value;
-            Key = d.Key;
-            return *this;
-        }
     };
 }
 

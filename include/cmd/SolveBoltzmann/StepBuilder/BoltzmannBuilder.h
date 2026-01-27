@@ -1,7 +1,7 @@
 #ifndef BoltzmannBuilder_h
 #define BoltzmannBuilder_h
 
-#include <deque>
+#include <vector>
 #include <iostream>
 #include <unordered_map>
 #include <boost/numeric/ublas/vector.hpp>
@@ -23,11 +23,11 @@
 struct ComponentBuilder{
     boost::uuids::uuid EvolutionId = boost::uuids::nil_generator()();
     long double NumberDensityEquation = 0.;
-    std::deque<long double, boost::pool_allocator<long double>> NumberDensityJacobian;
+    std::vector<long double, boost::pool_allocator<long double>> NumberDensityJacobian;
     long double EnergyDensityEquation = 0.;
-    std::deque<long double, boost::pool_allocator<long double>> EnergyDensityJacobian;
+    std::vector<long double, boost::pool_allocator<long double>> EnergyDensityJacobian;
     long double EntropyEquation = 0.;
-    std::deque<long double, boost::pool_allocator<long double>> EntropyJacobian;
+    std::vector<long double, boost::pool_allocator<long double>> EntropyJacobian;
 
     ComponentBuilder(int size){
         NumberDensityJacobian.resize( size );        

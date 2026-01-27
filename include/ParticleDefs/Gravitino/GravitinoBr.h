@@ -7,7 +7,12 @@
 class GravitinoBr : public IBranchingRatio
 {
 public:
-    GravitinoBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
+    GravitinoBr(
+        Logger& logger, 
+        const Models::Particle& parent, 
+        const ModelBase& model, 
+        const std::vector< Models::Particle >& particles
+    );
     ~GravitinoBr();
     BranchingFraction Calculate() override;
 };

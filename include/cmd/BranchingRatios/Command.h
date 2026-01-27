@@ -1,7 +1,7 @@
 #ifndef BranchingRatioCommand_h
 #define BranchingRatioCommand_h
 
-#include <deque>
+#include <vector>
 #include <memory>
 #include <boost/pool/pool_alloc.hpp>
 #include <cmd/ICommand.h>
@@ -14,7 +14,7 @@ private:
     Connection& connection_;
     std::shared_ptr< BranchingRatioReceiver > receiver_;
     Models::Particle particle_;
-    const std::deque< Models::Particle >& particles_;
+    const std::vector< Models::Particle >& particles_;
     bool postResult_;
     bool squashLogs_;
     void postSqlTotalWidth(
@@ -30,7 +30,7 @@ public:
     BranchingRatioCommand(
         Connection& connection, 
         Models::Particle& particle, 
-        const std::deque< Models::Particle >& particles, 
+        const std::vector< Models::Particle >& particles, 
         bool squashLogs = false
     );
     ~BranchingRatioCommand();

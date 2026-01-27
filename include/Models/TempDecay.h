@@ -20,16 +20,6 @@ namespace Models{
         double GStar = 0.;
         double GStarEntropic = 0.;
 
-        TempDecay(const TempDecay &temp){
-            Id = temp.Id;
-            InputId = temp.InputId;
-            ParticleId = temp.ParticleId;
-            ScaleFactorId = temp.ScaleFactorId;
-            Temperature = temp.Temperature;
-            GStar = temp.GStar;
-            GStarEntropic = temp.GStarEntropic;
-        }
-
         TempDecay( const Models::ScaleFactorPoint& point, const Particle& particle ){
             Id = boost::uuids::random_generator()();
             InputId = point.InputId;
@@ -48,17 +38,6 @@ namespace Models{
             Temperature = point.Temperature;
             GStar = point.GStar;
             GStarEntropic = point.GStarEntropic;
-        }
-
-        TempDecay& operator = (const TempDecay &temp){
-            Id = temp.Id;
-            InputId = temp.InputId;
-            ParticleId = temp.ParticleId;
-            ScaleFactorId = temp.ScaleFactorId;
-            Temperature = temp.Temperature;
-            GStar = temp.GStar;
-            GStarEntropic = temp.GStarEntropic;
-            return *this;
         }
 
         TempDecay(){

@@ -1,7 +1,7 @@
 #ifndef AxinoBr_h
 #define AxinoBr_h
 
-#include <deque>
+#include <vector>
 #include <Models/PartialWidth.h>
 #include <ModelIndependent/BranchingRatios/IBranchingRatio.h>
 #include <ParticleDefs/Axino/AxinoWidthsDFSZ.h>
@@ -9,9 +9,14 @@
 class AxinoBr : public IBranchingRatio
 {
 private:
-    std::deque< Models::PartialWidth > handleDFSZ();
+    std::vector< Models::PartialWidth > handleDFSZ();
 public:
-    AxinoBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
+    AxinoBr(
+        Logger& logger, 
+        const Models::Particle& parent, 
+        const ModelBase& model, 
+        const std::vector< Models::Particle >& particles
+    );
     ~AxinoBr();
     BranchingFraction Calculate() override;
     /*

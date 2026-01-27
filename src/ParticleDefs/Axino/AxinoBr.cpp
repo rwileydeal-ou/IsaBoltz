@@ -2,7 +2,12 @@
 
 using namespace std;
 
-AxinoBr::AxinoBr(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles) :
+AxinoBr::AxinoBr(
+    Logger& logger, 
+    const Models::Particle& parent, 
+    const ModelBase& model, 
+    const std::vector< Models::Particle >& particles
+) :
     IBranchingRatio(logger, parent, model, particles)
 {}
 AxinoBr::~AxinoBr(){}
@@ -20,7 +25,7 @@ BranchingFraction AxinoBr::Calculate(){
     return br;
 }
 
-deque< Models::PartialWidth > AxinoBr::handleDFSZ(){
+vector< Models::PartialWidth > AxinoBr::handleDFSZ(){
     AxinoWidthsDFSZ dfszWidths(model_, particles_);
     return dfszWidths.Decays;
 }

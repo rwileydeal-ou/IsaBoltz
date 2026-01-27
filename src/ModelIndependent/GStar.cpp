@@ -5,7 +5,11 @@ using namespace std;
 GStar::GStar(/* args */){}
 GStar::~GStar(){}
 
-double GStar::integralEval(double numFactor, double denomFactor, double t0, double tf, double dt){
+double GStar::integralEval(
+    double numFactor, 
+    double denomFactor, 
+    double t0, double tf, double dt
+){
     using namespace boost::math::quadrature;
 
     // avoid t = 0 singularity
@@ -45,7 +49,7 @@ double GStar::defaultIntegralEval(const double& numFactor, const double& denomFa
 }
 
 Models::Particle& GStar::findParticle(
-    const std::deque<Models::Particle>& particles,
+    const std::vector<Models::Particle>& particles,
     const std::string& key)
 {
 
@@ -56,7 +60,11 @@ Models::Particle& GStar::findParticle(
     throw_with_trace(logic_error("Could not find particle with key: " + key));
 }
 
-double GStar::calculateQCD(const std::deque< Models::Particle >& particles, const double& T, const CosmologicalTemperatures& temperatures){
+double GStar::calculateQCD(
+    const std::vector< Models::Particle >& particles, 
+    const double& T, 
+    const CosmologicalTemperatures& temperatures
+){
     double gQCD = 0.;
     if (T < temperatures.Hadronization){
         auto gPion = GStar::defaultIntegralEval(abs(findParticle(particles, "pion0").Mass) / T, -1. );
@@ -85,7 +93,11 @@ double GStar::calculateQCD(const std::deque< Models::Particle >& particles, cons
     return gQCD;
 }
 
-double GStar::calculateGaugeBosons(const std::deque< Models::Particle >& particles, const double& T, const CosmologicalTemperatures& temperatures){
+double GStar::calculateGaugeBosons(
+    const std::vector< Models::Particle >& particles, 
+    const double& T, 
+    const CosmologicalTemperatures& temperatures
+){
     auto wBoson = findParticle(particles, "wboson");
     auto zBoson = findParticle(particles, "zboson");
     auto gW = GStar::defaultIntegralEval(abs(wBoson.Mass) / T, -1. );
@@ -96,7 +108,11 @@ double GStar::calculateGaugeBosons(const std::deque< Models::Particle >& particl
     return gGauges;
 }
 
-double GStar::calculateLeptons(const std::deque< Models::Particle >& particles, const double& T, const CosmologicalTemperatures& temperatures){
+double GStar::calculateLeptons(
+    const std::vector< Models::Particle >& particles, 
+    const double& T, 
+    const CosmologicalTemperatures& temperatures
+){
     auto electron = findParticle(particles, "electron");
     auto muon = findParticle(particles, "muon");
     auto tau = findParticle(particles, "tau");
@@ -115,7 +131,11 @@ double GStar::calculateLeptons(const std::deque< Models::Particle >& particles, 
     return gLeptons;
 }
 
-double GStar::calculateSusy(const std::deque< Models::Particle >& particles, const double& T, const CosmologicalTemperatures& temperatures){
+double GStar::calculateSusy(
+    const std::vector< Models::Particle >& particles, 
+    const double& T, 
+    const CosmologicalTemperatures& temperatures
+){
     auto gluino = findParticle(particles, "gluino");
     auto higgsLight = findParticle(particles, "higgslight");
     auto higgsHeavy = findParticle(particles, "higgsheavy");
@@ -202,7 +222,10 @@ double GStar::calculateSusy(const std::deque< Models::Particle >& particles, con
 }
 
 
-double GStar::Calculate(const ModelBase& model, double T){
+double GStar::Calculate(
+    const ModelBase& model, 
+    double T
+){
     auto susy = GStar::calculateSusy(model.Particles, T, model.Cosmology.Temperatures);
     auto leptons = GStar::calculateLeptons(model.Particles, T, model.Cosmology.Temperatures);
     auto qcd = GStar::calculateQCD(model.Particles, T, model.Cosmology.Temperatures);
@@ -212,7 +235,10 @@ double GStar::Calculate(const ModelBase& model, double T){
     return gstr;
 }
 
-double GStar::CalculateEntropic(const ModelBase& model, double T){
+double GStar::CalculateEntropic(
+    const ModelBase& model, 
+    double T
+){
     double gstr = Calculate(model, T);
     if (T <= model.Cosmology.Temperatures.NeutrinoDecouple){
         return ( gstr - (7. / 8.) * 6. * ( pow(4. / 11., 4. / 3.) - (4. / 11.) ) );
@@ -220,7 +246,10 @@ double GStar::CalculateEntropic(const ModelBase& model, double T){
     return gstr;
 }
 
-double GStar::Calculate(Connection& connection, double T){
+double GStar::Calculate(
+    Connection& connection, 
+    double T
+){
     DbManager db(connection.SqlConnectionString, connection.Log);
     db.Open();
 
@@ -248,7 +277,10 @@ double GStar::Calculate(Connection& connection, double T){
     return gstr;
 }
 
-double GStar::CalculateEntropic(Connection& connection, double T){
+double GStar::CalculateEntropic(
+    Connection& connection, 
+    double T
+){
     double gstr = Calculate(connection, T);
     if (T <= connection.Model.Cosmology.Temperatures.NeutrinoDecouple){
         return ( gstr - (7. / 8.) * 6. * ( pow(4. / 11., 4. / 3.) - (4. / 11.) ) );
@@ -257,7 +289,11 @@ double GStar::CalculateEntropic(Connection& connection, double T){
     return gstr;
 }
 
-double GStar::Calculate(DbManager& db, Connection& connection, double T){
+double GStar::Calculate(
+    DbManager& db, 
+    Connection& connection, 
+    double T
+){
     Models::Particle p;
     auto statement = Statements::Particle(p, Statements::Read);
     auto filter = Filters::Particle( connection.InputId, Filters::WhereUUID::InputId );
@@ -281,7 +317,12 @@ double GStar::Calculate(DbManager& db, Connection& connection, double T){
     return gstr;
 }
 
-double GStar::CalculateEntropic(DbManager& db, Connection& connection, double T, double gstr){
+double GStar::CalculateEntropic(
+    DbManager& db, 
+    Connection& connection, 
+    double T, 
+    double gstr
+){
     if (T <= connection.Model.Cosmology.Temperatures.NeutrinoDecouple){
         return ( gstr - (7. / 8.) * 6. * ( pow(4. / 11., 4. / 3.) - (4. / 11.) ) );
     }
@@ -290,7 +331,11 @@ double GStar::CalculateEntropic(DbManager& db, Connection& connection, double T,
 }
 
 
-double GStar::Calculate(const std::deque< Models::Particle >& particles, Connection& connection, double T){
+double GStar::Calculate(
+    const std::vector< Models::Particle >& particles, 
+    Connection& connection, 
+    double T
+){
     auto susy = GStar::calculateSusy(particles, T, connection.Model.Cosmology.Temperatures);
     auto leptons = GStar::calculateLeptons(particles, T, connection.Model.Cosmology.Temperatures);
     auto qcd = GStar::calculateQCD(particles, T, connection.Model.Cosmology.Temperatures);
@@ -306,7 +351,11 @@ double GStar::Calculate(const std::deque< Models::Particle >& particles, Connect
     return gstr;
 }
 
-double GStar::CalculateEntropic(const std::deque< Models::Particle >& particles, Connection& connection, double T){
+double GStar::CalculateEntropic(
+    const std::vector< Models::Particle >& particles, 
+    Connection& connection, 
+    double T
+){
     double gstr = Calculate( particles, connection, T );
     if (T <= connection.Model.Cosmology.Temperatures.NeutrinoDecouple){
         return ( gstr - (7. / 8.) * 6. * ( pow(4. / 11., 4. / 3.) - (4. / 11.) ) );
@@ -315,7 +364,12 @@ double GStar::CalculateEntropic(const std::deque< Models::Particle >& particles,
     return gstr;
 }
 
-double GStar::CalculateEntropic(const std::deque< Models::Particle >& particles, Connection& connection, double T, double gstr){
+double GStar::CalculateEntropic(
+    const std::vector< Models::Particle >& particles, 
+    Connection& connection, 
+    double T, 
+    double gstr
+){
     if (T <= connection.Model.Cosmology.Temperatures.NeutrinoDecouple){
         return ( gstr - (7. / 8.) * 6. * ( pow(4. / 11., 4. / 3.) - (4. / 11.) ) );
     }

@@ -1,7 +1,7 @@
 #ifndef ModelBase_h
 #define ModelBase_h
 
-#include <deque>
+#include <vector>
 #include <algorithm>
 #include <boost/pool/pool_alloc.hpp>
 #include <Models/Particle.h>
@@ -211,13 +211,13 @@ struct ModelBase{
     double DeltaEW;
     int NW;
     int IsajetError;
-    std::deque< Models::Particle > Particles;
+    std::vector< Models::Particle > Particles;
 };
 
 class ModelBaseOps{
 public:
     static Models::Particle& Find (
-        std::deque< Models::Particle > &vec,
+        std::vector< Models::Particle > &vec,
         std::string key
     ) {
         auto result = std::find_if( vec.begin(), vec.end(),
@@ -226,7 +226,7 @@ public:
         return (*result);
     }
     static const Models::Particle& FindConst (
-        const std::deque< Models::Particle >& vec, 
+        const std::vector< Models::Particle >& vec, 
         const std::string& key
     ) {
         auto result = std::find_if( vec.begin(), vec.end(),

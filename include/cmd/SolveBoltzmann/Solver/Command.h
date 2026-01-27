@@ -44,23 +44,40 @@ private:
     Models::ScaleFactorPoint reheatPoint_;
     double finalTemp_;
     std::vector< std::string > enabledKeys_;
-    Models::ScaleFactorPoint pullReheatScaleFactorPoint(boost::uuids::uuid scaleFactorId);
+    Models::ScaleFactorPoint pullReheatScaleFactorPoint(
+        boost::uuids::uuid scaleFactorId
+    );
 
     typedef boost::numeric::ublas::vector<long double> state_type;
     typedef boost::numeric::odeint::rosenbrock4 <state_type> error_stepper_type;
 
-    Models::ParticleEvolution pullParticleEvolution( DbManager& db, std::string particleKey, ParticleProductionMechanism productionMechanism, boost::uuids::uuid scaleFactorId );
-    std::map< std::string, std::deque< Models::PartialWidth > > pullPartialWidths( const std::deque< Models::ParticleEvolution >& particleEvos );
-    std::map< std::string, Models::TotalWidth > pullTotalWidths( const std::deque< Models::ParticleEvolution >& particleEvos );
-    std::deque< Models::ParticleEvolution > pullParticleEvolutions();
-    std::deque< Models::Particle > pullParticles(
+    Models::ParticleEvolution pullParticleEvolution( 
+        DbManager& db, 
+        std::string particleKey, 
+        ParticleProductionMechanism productionMechanism, 
+        boost::uuids::uuid scaleFactorId 
+    );
+    std::map< 
+        std::string, 
+        std::vector< Models::PartialWidth > 
+    > pullPartialWidths( 
+        const std::vector< Models::ParticleEvolution >& particleEvos 
+    );
+    std::map< std::string, Models::TotalWidth > pullTotalWidths( 
+        const std::vector< Models::ParticleEvolution >& particleEvos 
+    );
+    std::vector< Models::ParticleEvolution > pullParticleEvolutions();
+    std::vector< Models::Particle > pullParticles(
         std::unordered_map< 
             boost::uuids::uuid, 
             Models::Particle, 
             boost::hash<boost::uuids::uuid> 
         >& particleCache
     );
-    void purgeSQL(int startOrdinal, int endOrdinal);
+    void purgeSQL(
+        int startOrdinal, 
+        int endOrdinal
+    );
 public:
     BoltzmannSolverCommand(
         Connection& connection, 

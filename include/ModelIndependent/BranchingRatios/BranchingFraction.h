@@ -1,7 +1,7 @@
 #ifndef BranchingFraction_h
 #define BranchingFraction_h
 
-#include <deque>
+#include <vector>
 #include <Models/TotalWidth.h>
 #include <Models/PartialWidth.h>
 #include <Models/Particle.h>
@@ -10,21 +10,8 @@
 struct BranchingFraction
 {
     Models::TotalWidth TotalWidth;
-    std::deque< Models::PartialWidth > PartialWidths;
+    std::vector< Models::PartialWidth > PartialWidths;
     
-    BranchingFraction(const BranchingFraction &b){
-        TotalWidth = b.TotalWidth;
-        for (auto &d : b.PartialWidths){
-            PartialWidths.push_back(d);
-        }
-    }
-    BranchingFraction& operator = (const BranchingFraction &b){
-        TotalWidth = b.TotalWidth;
-        for (auto &d : b.PartialWidths){
-            PartialWidths.push_back(d);
-        }
-        return *this;
-    }
     BranchingFraction(){
     }
 };

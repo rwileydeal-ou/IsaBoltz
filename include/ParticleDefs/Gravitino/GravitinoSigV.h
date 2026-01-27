@@ -4,7 +4,12 @@
 class GravitinoSigV : public ISigmaV
 {
 public:
-    SigmaV Calculate(const Models::Particle& gravitino, const ModelBase& model, double T, std::shared_ptr< DataRelay > fortInterface) override;
+    SigmaV Calculate(
+        const Models::Particle& gravitino, 
+        const ModelBase& model, 
+        double T, 
+        std::shared_ptr< DataRelay > fortInterface
+    ) override;
     GravitinoSigV(/* args */);
     ~GravitinoSigV();
 };

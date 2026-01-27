@@ -2,8 +2,11 @@
 
 using namespace std;
 
-NeutralinoWidths::NeutralinoWidths(const ModelBase& model, const std::deque< Models::Particle >& particles) 
-    : model_(model),
+NeutralinoWidths::NeutralinoWidths(
+    const ModelBase& model, 
+    const std::vector< Models::Particle >& particles
+) :
+    model_(model),
     particles_(particles)
 {
     auto axino = ModelBaseOps::FindConst(particles_, "axino");

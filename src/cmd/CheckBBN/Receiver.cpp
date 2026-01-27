@@ -54,8 +54,8 @@ Models::TotalWidth CheckBBNReceiver::pullTotalWidth(){
     return br;
 }
 
-std::deque< Models::PartialWidth > CheckBBNReceiver::pullPartialWidths(){
-    std::deque< Models::PartialWidth > children;
+std::vector< Models::PartialWidth > CheckBBNReceiver::pullPartialWidths(){
+    std::vector< Models::PartialWidth > children;
     Models::PartialWidth child;
 
     DbManager db(connection_); 
@@ -86,8 +86,8 @@ std::deque< Models::PartialWidth > CheckBBNReceiver::pullPartialWidths(){
     return children;
 }
 
-std::deque< Models::Particle > CheckBBNReceiver::pullHadrons(){
-    std::deque< Models::Particle > hadrons;
+std::vector< Models::Particle > CheckBBNReceiver::pullHadrons(){
+    std::vector< Models::Particle > hadrons;
     Models::Particle hadron;
 
     DbManager db(connection_); 
@@ -214,16 +214,16 @@ double CheckBBNReceiver::hadronicBranchingRatio(){
     return BRhad;
 }
 
-std::deque<std::deque<double>> CheckBBNReceiver::parseBbnData(
+std::vector<std::vector<double>> CheckBBNReceiver::parseBbnData(
     std::string infile
 ){
     std::ifstream file;
     file.open(infile);
     std::string line;
-    std::deque<std::deque<double>> fileData;
+    std::vector<std::vector<double>> fileData;
     while(getline(file, line)){
         auto split = FileIO::Split(line, " =\t\0");
-        std::deque<double> lineData;
+        std::vector<double> lineData;
         for (size_t i = 0; i < split.size(); ++i){
             double parsedData = FileParser::ParseDouble(split[i]);
             lineData.push_back( parsedData );
@@ -262,7 +262,7 @@ double CheckBBNReceiver::interpolatedOmega(
     double logLifetime
 ){
     unsigned int posBr = indexBr();
-    std::deque<std::deque<double>> fileData = parseBbnData(infile);
+    std::vector<std::vector<double>> fileData = parseBbnData(infile);
     unsigned int fileIndex = 0;
 
     double upperLifetime = 0.;

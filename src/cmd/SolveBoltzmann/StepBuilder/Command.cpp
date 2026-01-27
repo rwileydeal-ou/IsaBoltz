@@ -6,9 +6,9 @@ BoltzmannStepBuilderCommand::BoltzmannStepBuilderCommand(
     Connection& connection, 
     std::shared_ptr< DataRelay > fortranInterface, 
     const Models::ScaleFactorPoint& reheatPoint, 
-    const std::deque< Models::ParticleEvolution >& initialParticleEvolutions, 
-    std::deque< Models::Particle >& particles, 
-    std::map< std::string, std::deque< Models::PartialWidth > >& partialWidths, 
+    const std::vector< Models::ParticleEvolution >& initialParticleEvolutions, 
+    std::vector< Models::Particle >& particles, 
+    std::map< std::string, std::vector< Models::PartialWidth > >& partialWidths, 
     std::map< std::string, Models::TotalWidth >& totalWidths, 
     std::unordered_map< boost::uuids::uuid, Models::Particle, boost::hash<boost::uuids::uuid> >& particleCache
 ) :
@@ -76,7 +76,12 @@ void BoltzmannStepBuilderCommand::resetParticleData(){
                 particle.IsLSP = true;
             }
         }
-        particle.TotalWidth = (totalWidths_.find(particle.ParticleKey)->second).Width;
+        auto twIt = totalWidths_.find(particle.ParticleKey);
+        if (twIt != totalWidths_.end()) {
+            particle.TotalWidth = twIt->second.Width;
+        } else {
+            particle.TotalWidth = 0.;
+        }
         sqlDataToPost_.ParticleDatas.push_front(particle);
     }
 }
@@ -246,7 +251,13 @@ void BoltzmannStepBuilderCommand::calculateHubble(){
 }
 
 // This method updates the necessary IDs for internal data if there are temperature dependent masses
-void BoltzmannStepBuilderCommand::updateParticleMassAndId( ParticleData& particle, std::map<string, boost::uuids::uuid>& resetKeys, int index, const ParticleData& previousParticle, const Models::ScaleFactorPoint& previousPoint ){
+void BoltzmannStepBuilderCommand::updateParticleMassAndId( 
+    ParticleData& particle, 
+    std::map<string, boost::uuids::uuid>& resetKeys, 
+    int index, 
+    const ParticleData& previousParticle, 
+    const Models::ScaleFactorPoint& previousPoint 
+){
     if (!tempDependentMassEnabled_ || !particle.TempDependentMass){
         return;
     }
@@ -568,7 +579,7 @@ void BoltzmannStepBuilderCommand::checkDecayTransition( ParticleData& particle )
 void BoltzmannStepBuilderCommand::addComponents(){
     auto rad = currentParticleData_.front();
     if ( rad.ProductionMechanism != ParticleProductionMechanism::RADIATION ){
-        throw_with_trace( logic_error("Evolution deque corrupted") );
+        throw_with_trace( logic_error("Evolution vector corrupted") );
     }
 
     BoltzmannData data( currentParticleData_, currentPoint_, reheatPoint_, particles_, partialWidths_ );

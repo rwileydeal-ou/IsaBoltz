@@ -10,16 +10,26 @@ protected:
     Logger& logger_;
     const Models::Particle& parent_;
     const ModelBase& model_;
-    const std::deque< Models::Particle >& particles_;
+    const std::vector< Models::Particle >& particles_;
 public:
-    BranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
+    BranchingRatioFactory(
+        Logger& logger, 
+        const Models::Particle& parent, 
+        const ModelBase& model, 
+        const std::vector< Models::Particle >& particles
+    );
     ~BranchingRatioFactory();
     virtual std::shared_ptr< IBranchingRatio > create_branching_ratio() = 0;
 };
 
 class DefaultBranchingRatioFactory : public BranchingRatioFactory {
 public:
-    DefaultBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
+    DefaultBranchingRatioFactory(
+        Logger& logger, 
+        const Models::Particle& parent, 
+        const ModelBase& model, 
+        const std::vector< Models::Particle >& particles
+    );
     ~DefaultBranchingRatioFactory();
     std::shared_ptr< IBranchingRatio > create_branching_ratio() override;
 };

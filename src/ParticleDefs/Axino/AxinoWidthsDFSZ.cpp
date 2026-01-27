@@ -2,8 +2,11 @@
 
 using namespace std;
 
-AxinoWidthsDFSZ::AxinoWidthsDFSZ(const ModelBase& model, const std::deque< Models::Particle >& particles) 
-    : AxinoWidths(model, particles)
+AxinoWidthsDFSZ::AxinoWidthsDFSZ(
+    const ModelBase& model, 
+    const std::vector< Models::Particle >& particles
+) :
+    AxinoWidths(model, particles)
 {
     // do any running adjustments to params here (?) and attach to model_ field variable
 
@@ -109,7 +112,7 @@ double AxinoWidthsDFSZ::widthNeutralinoHiggsHADFSZ(double mNeutralino, double mA
     return axnha;
 }
 
-deque< Models::PartialWidth > AxinoWidthsDFSZ::widthNeutralinoHiggsDFSZ(double cH){
+vector< Models::PartialWidth > AxinoWidthsDFSZ::widthNeutralinoHiggsDFSZ(double cH){
     auto higgsLight = ModelBaseOps::FindConst(particles_, "higgslight");
     auto higgsHeavy = ModelBaseOps::FindConst(particles_, "higgsheavy");
     auto higgsPseudo = ModelBaseOps::FindConst(particles_, "higgspseudoscalar");
@@ -117,7 +120,7 @@ deque< Models::PartialWidth > AxinoWidthsDFSZ::widthNeutralinoHiggsDFSZ(double c
     auto neutralino2 = ModelBaseOps::FindConst(particles_, "neutralino2");
     auto neutralino3 = ModelBaseOps::FindConst(particles_, "neutralino3");
     auto neutralino4 = ModelBaseOps::FindConst(particles_, "neutralino4");
-    deque< Models::PartialWidth > higgses;
+    vector< Models::PartialWidth > higgses;
     double beta = atan(model_.Susy.TanBeta);
 
     double widthHL1 = widthNeutralinoHiggsHLDFSZ(neutralino1.Mass, parent_.Mass, higgsLight.Mass, model_.Susy.MixingAngles.alfah, model_.Susy.MixingAngles.zMix[0][0], model_.Susy.MixingAngles.zMix[0][1], model_.Susy.MixingAngles.zMix[0][2], model_.Susy.MixingAngles.zMix[0][3], model_.StandardModel.Couplings.gU1, model_.StandardModel.Couplings.gSU2, model_.PQSector.Potential.vPQ, model_.Susy.Couplings.mu, cH);
@@ -216,13 +219,13 @@ Models::PartialWidth AxinoWidthsDFSZ::widthHeavyCharginoHiggsDFSZ(double cH){
 }
 
 // from arXiv:1309.5365
-deque< Models::PartialWidth > AxinoWidthsDFSZ::widthNeutralinoZBosonDFSZ(){
+vector< Models::PartialWidth > AxinoWidthsDFSZ::widthNeutralinoZBosonDFSZ(){
     auto neutralino1 = ModelBaseOps::FindConst(particles_, "neutralino1");
     auto neutralino2 = ModelBaseOps::FindConst(particles_, "neutralino2");
     auto neutralino3 = ModelBaseOps::FindConst(particles_, "neutralino3");
     auto neutralino4 = ModelBaseOps::FindConst(particles_, "neutralino4");
     auto zBoson = ModelBaseOps::FindConst(particles_, "zboson");
-    deque< Models::PartialWidth > neutralinos;
+    vector< Models::PartialWidth > neutralinos;
 
     double width1 = widthNeutralinoZBosonDFSZ(neutralino1.Mass, parent_.Mass, zBoson.Mass, model_.StandardModel.Couplings.gU1, model_.StandardModel.Couplings.gSU2, model_.Susy.MixingAngles.zMix[0][0], model_.Susy.MixingAngles.zMix[0][1]);
     double width2 = widthNeutralinoZBosonDFSZ(neutralino2.Mass, parent_.Mass, zBoson.Mass, model_.StandardModel.Couplings.gU1, model_.StandardModel.Couplings.gSU2, model_.Susy.MixingAngles.zMix[1][0], model_.Susy.MixingAngles.zMix[1][1]);
@@ -263,7 +266,7 @@ double AxinoWidthsDFSZ::widthCharginoWBosonDFSZ(double mChargino, double mW, dou
     return axcw;
 }
 
-deque< Models::PartialWidth > AxinoWidthsDFSZ::widthCharginoWBosonDFSZ(){
+vector< Models::PartialWidth > AxinoWidthsDFSZ::widthCharginoWBosonDFSZ(){
     auto chargino1 = ModelBaseOps::FindConst(particles_, "chargino1");
     auto chargino2 = ModelBaseOps::FindConst(particles_, "chargino2");
     auto wBoson = ModelBaseOps::FindConst(particles_, "wboson");
@@ -286,7 +289,7 @@ deque< Models::PartialWidth > AxinoWidthsDFSZ::widthCharginoWBosonDFSZ(){
         (1.0/2.0) * ( - sgnw2 * sgnAxino * sgnGammaR * ( - sin(model_.Susy.MixingAngles.gammaR) * V0i[0] / sqrt(2.0) + cos(model_.Susy.MixingAngles.gammaR) * V0i[2] ) + sgnGammaL * ( sin(model_.Susy.MixingAngles.gammaL) * V0i[1] / sqrt(2.0) + cos(model_.Susy.MixingAngles.gammaL) * V0i[2] ) )
     };
 
-    deque< Models::PartialWidth > charginos;
+    vector< Models::PartialWidth > charginos;
     double width1 = widthCharginoWBosonDFSZ(chargino1.Mass, wBoson.Mass, parent_.Mass, model_.StandardModel.Couplings.gSU2, x0[0], y0[0]);
     double width2 = widthCharginoWBosonDFSZ(chargino2.Mass, wBoson.Mass, parent_.Mass, model_.StandardModel.Couplings.gSU2, x0[1], y0[1]);
     charginos.push_back( Models::PartialWidth( parent_, { chargino1, wBoson }, width1 ) );
@@ -319,7 +322,7 @@ double AxinoWidthsDFSZ::widthDownFermionSfermionDFSZ(double mSbottom, double mBo
     return axfsf;
 }
 
-deque< Models::PartialWidth > AxinoWidthsDFSZ::widthFermionSfermionDFSZ(){
+vector< Models::PartialWidth > AxinoWidthsDFSZ::widthFermionSfermionDFSZ(){
     auto sb1 = ModelBaseOps::FindConst(particles_, "sbottom1sq");
     auto sb2 = ModelBaseOps::FindConst(particles_, "sbottom2sq");
     auto st1 = ModelBaseOps::FindConst(particles_, "stop1sq");
@@ -359,7 +362,7 @@ deque< Models::PartialWidth > AxinoWidthsDFSZ::widthFermionSfermionDFSZ(){
         (1.0 / 2.0) * ( ( -im * AXD - THaxi * yBot * V0i[1] ) * sin( model_.Susy.MixingAngles.thetaB ) + ( im * BXD +(-THaxi) * yBot * V0i[1] ) * cos( model_.Susy.MixingAngles.thetaB ) )
     };
 
-    deque< Models::PartialWidth > fermionSfermions;
+    vector< Models::PartialWidth > fermionSfermions;
     double widthb1 = widthDownFermionSfermionDFSZ(sb1.Mass, model_.Masses.MSusy.botMSusy, parent_.Mass, model_.StandardModel.NC, ad[0], bd[0]);
     double widthb2 = widthDownFermionSfermionDFSZ(sb2.Mass, model_.Masses.MSusy.botMSusy, parent_.Mass, model_.StandardModel.NC, ad[1], bd[1]);
     double widtht1 = widthUpFermionSfermionDFSZ(st1.Mass, model_.Masses.MSusy.topMSusy, parent_.Mass, model_.StandardModel.NC, au[0], bu[0]);

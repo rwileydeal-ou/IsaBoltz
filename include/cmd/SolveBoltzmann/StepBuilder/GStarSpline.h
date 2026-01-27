@@ -1,5 +1,4 @@
 #pragma once
-#include <deque>
 #include <vector>
 #include <cmath>
 #include <mutex>
@@ -18,7 +17,7 @@ public:
 
     // Singleton accessor
     static const GStarSpline& instance();
-    static void initialize(const std::deque<Models::Particle>& particles,
+    static void initialize(const std::vector<Models::Particle>& particles,
                            Connection& connection);
 
     // Evaluate Gstar(T)
@@ -36,7 +35,7 @@ private:
 
     std::vector<Node> table_;
 
-    static const std::deque<Models::Particle>* particles_ptr_;
+    static const std::vector<Models::Particle>* particles_ptr_;
     static Connection* connection_ptr_;
     
     // Spline coefficients

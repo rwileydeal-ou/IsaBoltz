@@ -12,7 +12,12 @@
 
 class NeutralinoBranchingRatioFactory : public BranchingRatioFactory {
 public:
-    NeutralinoBranchingRatioFactory(Logger& logger, const Models::Particle& parent, const ModelBase& model, const std::deque< Models::Particle >& particles);
+    NeutralinoBranchingRatioFactory(
+        Logger& logger, 
+        const Models::Particle& parent, 
+        const ModelBase& model, 
+        const std::vector< Models::Particle >& particles
+    );
     ~NeutralinoBranchingRatioFactory();
     std::shared_ptr< IBranchingRatio > create_branching_ratio() override;
 };

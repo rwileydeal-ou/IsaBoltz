@@ -1,7 +1,7 @@
 #include <iostream>
 #include <cmath>
 #include <future>
-#include <deque>
+#include <vector>
 #define BOOST_ALLOW_DEPRECATED_HEADERS
 #define BOOST_BIND_GLOBAL_PLACEHOLDERS
 #include <boost/numeric/odeint.hpp>
@@ -13,7 +13,7 @@ class NeutralinoWidths
 {
 private:
     const ModelBase& model_;
-    const std::deque< Models::Particle >& particles_;
+    const std::vector< Models::Particle >& particles_;
     typedef std::vector<double> state_type;
     typedef boost::numeric::odeint::runge_kutta_cash_karp54<state_type> error_stepper_type;
     double phaseSpaceIntegral(double mAxino, double mNeutralino, double mFermion, double mZ, double GammaZ, double sgz, double gv, double ga, double Gz, double Gg, double Qe);
@@ -29,7 +29,10 @@ private:
     double gam12(double x1, double mAxino, double mNeutralino, double mFermion, double mZ, double sgz, double gv, double Gz, double Gg, double Qe, double GammaZ, double L5, double L6, double L7, double L8);
     double arccot(double arg);
 public:
-    NeutralinoWidths(const ModelBase& model, const std::deque< Models::Particle >& particles);
+    NeutralinoWidths(
+        const ModelBase& model, 
+        const std::vector< Models::Particle >& particles
+    );
     ~NeutralinoWidths();
-    std::deque< Models::PartialWidth > Decays;
+    std::vector< Models::PartialWidth > Decays;
 };

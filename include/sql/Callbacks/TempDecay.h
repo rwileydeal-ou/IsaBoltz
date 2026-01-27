@@ -1,7 +1,7 @@
 #ifndef CallbackTempDecay_h
 #define CallbackTempDecay_h
 
-#include <deque>
+#include <vector>
 #include <boost/lexical_cast.hpp>
 #include <boost/pool/pool_alloc.hpp>
 #include <boost/algorithm/string/classification.hpp>
@@ -18,7 +18,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque<Models::TempDecay> TempDecays;
+            std::vector<Models::TempDecay> TempDecays;
         } CallbackReturn;
         
         TempDecay(/* args */);

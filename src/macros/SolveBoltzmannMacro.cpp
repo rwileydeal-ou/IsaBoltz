@@ -35,7 +35,10 @@ void SolveBoltzmannMacro::setInitialConditions(const std::vector<std::string>& e
     initialConditions.Execute();
 }
 
-void SolveBoltzmannMacro::solveBoltzmannEqns(const std::vector<std::string>& enabledKeys, std::shared_ptr< DataRelay >& fortranInterface){
+void SolveBoltzmannMacro::solveBoltzmannEqns(
+    const std::vector<std::string>& enabledKeys, 
+    std::shared_ptr< DataRelay >& fortranInterface
+){
     double finalTemp = connection_.Model.Cosmology.Temperatures.Final;
     BoltzmannSolverCommand solveCmd(
         connection_, 

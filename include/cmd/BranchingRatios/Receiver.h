@@ -1,7 +1,7 @@
 #ifndef BranchingRatioReceiver_h
 #define BranchingRatioReceiver_h
 
-#include <deque>
+#include <vector>
 #include <iostream>
 #include <boost/pool/pool_alloc.hpp>
 #include <cmd/IReceiver.h>
@@ -24,11 +24,15 @@ private:
     Connection& connection_;
     Models::Particle& particle_;
     BranchingFraction branchingFraction_;
-    const std::deque< Models::Particle >& particles_;
+    const std::vector< Models::Particle >& particles_;
     void factorySetup(std::shared_ptr< BranchingRatioFactory >& branchingRatioFactory);
 public:
     ~BranchingRatioReceiver();
-    BranchingRatioReceiver(Connection& connection, Models::Particle& particle, const std::deque< Models::Particle >& particles);
+    BranchingRatioReceiver(
+        Connection& connection, 
+        Models::Particle& particle, 
+        const std::vector< Models::Particle >& particles
+    );
     void Calculate() override;
     BranchingFraction getBranchingFraction();
 };

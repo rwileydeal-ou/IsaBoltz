@@ -1,7 +1,7 @@
 #ifndef CallbackCrossSection_h
 #define CallbackCrossSection_h
 
-#include <deque>
+#include <vector>
 #include <boost/lexical_cast.hpp>
 #include <boost/pool/pool_alloc.hpp>
 #include <ModelIndependent/CrossSections/SigmaV.h>
@@ -16,7 +16,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque<SigmaV> crossSections;
+            std::vector<SigmaV> crossSections;
         } CallbackReturn;
         
         CrossSection(/* args */);

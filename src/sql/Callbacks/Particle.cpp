@@ -39,7 +39,7 @@ int Particle::Callback(void *data, int argc, char **argv, char **colName){
 
     // TODO: UPDATE THIS ONCE REVISED
     Models::Charge rparity;
-    rparity.Group = Models::RParity;
+    rparity.Group = Models::GaugeGroup::RParity;
     auto charges = jsonData.get_child("charges");
     for ( auto& c : charges ){
         rparity.Value = stof( c.second.get<string>( "value" ) );

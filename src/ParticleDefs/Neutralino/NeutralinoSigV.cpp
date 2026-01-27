@@ -5,7 +5,12 @@ using namespace std;
 NeutralinoSigV::NeutralinoSigV(){ }
 NeutralinoSigV::~NeutralinoSigV(){ }
 
-SigmaV NeutralinoSigV::Calculate(const Models::Particle& neutralino, const ModelBase& model, double T, std::shared_ptr< DataRelay > fortInterface){
+SigmaV NeutralinoSigV::Calculate(
+    const Models::Particle& neutralino, 
+    const ModelBase& model, 
+    double T, 
+    std::shared_ptr< DataRelay > fortInterface
+){
     double xF = T / abs(neutralino.Mass);
     // THIS IS DUE TO MACHINE LIMITS, AT LEAST FOR NOW
     // BELOW T~1 GEV, <SIG.V> DROPS TO ~0, SO JUST EXTRACT FROZEN VALUE AS APPROXIMATION

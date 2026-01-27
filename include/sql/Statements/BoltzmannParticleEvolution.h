@@ -17,7 +17,10 @@ namespace Statements{
         void validateCreate();
     public:
         void Validate() override;
-        BoltzmannParticleEvolution(const Models::ParticleEvolution& particleEvolution, StatementType statementType);
+        BoltzmannParticleEvolution(
+            const Models::ParticleEvolution& particleEvolution, 
+            StatementType statementType
+        );
         ~BoltzmannParticleEvolution();
     };
 }

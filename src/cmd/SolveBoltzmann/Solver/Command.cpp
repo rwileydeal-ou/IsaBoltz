@@ -2,7 +2,13 @@
 
 using namespace std;
 
-BoltzmannSolverCommand::BoltzmannSolverCommand(Connection& connection, std::shared_ptr< DataRelay > fortranInterface, boost::uuids::uuid reheatScaleFactorId, double finalTemp, std::vector< std::string > enabledKeys) : 
+BoltzmannSolverCommand::BoltzmannSolverCommand(
+    Connection& connection, 
+    std::shared_ptr< DataRelay > fortranInterface, 
+    boost::uuids::uuid reheatScaleFactorId, 
+    double finalTemp, 
+    std::vector< std::string > enabledKeys
+) : 
     connection_(connection)
 {
     reheatPoint_.Id = reheatScaleFactorId;
@@ -16,10 +22,20 @@ BoltzmannSolverCommand::~BoltzmannSolverCommand(){
 
 // this method pulls the particle evolution object for an initial ScaleFactor
 // must be unique
-Models::ParticleEvolution BoltzmannSolverCommand::pullParticleEvolution( DbManager& db, std::string particleKey, ParticleProductionMechanism productionMechanism, boost::uuids::uuid scaleFactorId ){
+Models::ParticleEvolution BoltzmannSolverCommand::pullParticleEvolution( 
+    DbManager& db, 
+    std::string particleKey, 
+    ParticleProductionMechanism productionMechanism, 
+    boost::uuids::uuid scaleFactorId 
+){
     Models::ParticleEvolution p;
     auto statement = Statements::BoltzmannParticleEvolution( p, Statements::StatementType::Read );
-    auto filter = Filters::ParticleEvolution( particleKey, productionMechanism, scaleFactorId, Filters::WhereUUID::ScaleFactorId );
+    auto filter = Filters::ParticleEvolution( 
+        particleKey, 
+        productionMechanism, 
+        scaleFactorId, 
+        Filters::WhereUUID::ScaleFactorId 
+    );
     statement.AddFilter( filter );
     auto cb = Callbacks::ParticleEvolution();
     db.Execute( statement, cb.Callback, cb.CallbackReturn );
@@ -30,9 +46,9 @@ Models::ParticleEvolution BoltzmannSolverCommand::pullParticleEvolution( DbManag
     return cb.CallbackReturn.ParticleEvolutions.front();
 }
 
-deque< Models::ParticleEvolution > BoltzmannSolverCommand::pullParticleEvolutions()
+vector< Models::ParticleEvolution > BoltzmannSolverCommand::pullParticleEvolutions()
 {
-    deque < Models::ParticleEvolution > particleEvolutions;
+    vector < Models::ParticleEvolution > particleEvolutions;
     // define since we need to also add radiation (always needed, so not given as an option)
     vector<string> enabledFields = enabledKeys_;
     // we also insert the radiation key at the beginning, so we always know the radiation index as 0
@@ -84,7 +100,7 @@ Models::ScaleFactorPoint BoltzmannSolverCommand::pullReheatScaleFactorPoint(boos
     return scaleFactor;
 }
 
-std::deque< Models::Particle > BoltzmannSolverCommand::pullParticles(
+std::vector< Models::Particle > BoltzmannSolverCommand::pullParticles(
     std::unordered_map< 
         boost::uuids::uuid, 
         Models::Particle, 
@@ -111,8 +127,10 @@ std::deque< Models::Particle > BoltzmannSolverCommand::pullParticles(
     return cb.CallbackReturn.Particles;
 }
 
-std::map< std::string, std::deque< Models::PartialWidth > > BoltzmannSolverCommand::pullPartialWidths( const std::deque< Models::ParticleEvolution >& particleEvos ){
-    std::map< std::string, std::deque< Models::PartialWidth > > partialWidths;
+std::map< std::string, std::vector< Models::PartialWidth > > BoltzmannSolverCommand::pullPartialWidths( 
+    const std::vector< Models::ParticleEvolution >& particleEvos 
+){
+    std::map< std::string, std::vector< Models::PartialWidth > > partialWidths;
     DbManager db(connection_);
     db.Open();
 
@@ -131,7 +149,9 @@ std::map< std::string, std::deque< Models::PartialWidth > > BoltzmannSolverComma
 }
 
 // use a map that uses particleKey to map to total width
-std::map< std::string, Models::TotalWidth > BoltzmannSolverCommand::pullTotalWidths( const std::deque< Models::ParticleEvolution >& particleEvos ){
+std::map< std::string, Models::TotalWidth > BoltzmannSolverCommand::pullTotalWidths( 
+    const std::vector< Models::ParticleEvolution >& particleEvos 
+){
     std::map<std::string, Models::TotalWidth> totalWidths;
     DbManager db(connection_);
     db.Open();

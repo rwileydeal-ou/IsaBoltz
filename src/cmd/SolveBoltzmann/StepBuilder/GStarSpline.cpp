@@ -20,11 +20,11 @@ GStarSpline::GStarSpline() {
     buildSpline();
 }
 
-const std::deque<Models::Particle>* GStarSpline::particles_ptr_ = nullptr;
+const std::vector<Models::Particle>* GStarSpline::particles_ptr_ = nullptr;
 Connection* GStarSpline::connection_ptr_ = nullptr;
 
 void GStarSpline::initialize(
-    const std::deque<Models::Particle>& particles,
+    const std::vector<Models::Particle>& particles,
     Connection& connection)
 {
     particles_ptr_  = &particles;

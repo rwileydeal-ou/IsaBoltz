@@ -20,29 +20,6 @@ namespace Models{
         double GStar = 0.;
         double GStarEntropic = 0.;
 
-        TempEquality(const TempEquality &temp){
-            Id = temp.Id;
-            InputId = temp.InputId;
-            ParticleId = temp.ParticleId;
-            ScaleFactorId = temp.ScaleFactorId;
-            ProductionMechanism = temp.ProductionMechanism;
-            Temperature = temp.Temperature;
-            GStar = temp.GStar;
-            GStarEntropic = temp.GStarEntropic;
-        }
-
-        TempEquality& operator = (const TempEquality &temp){
-            Id = temp.Id;
-            InputId = temp.InputId;
-            ParticleId = temp.ParticleId;
-            ScaleFactorId = temp.ScaleFactorId;
-            ProductionMechanism = temp.ProductionMechanism;
-            Temperature = temp.Temperature;
-            GStar = temp.GStar;
-            GStarEntropic = temp.GStarEntropic;
-            return *this;
-        }
-
         TempEquality(){
             Id = boost::uuids::random_generator()();
             InputId = boost::uuids::nil_generator()();

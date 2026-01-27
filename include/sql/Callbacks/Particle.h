@@ -1,7 +1,7 @@
 #ifndef CallbackParticle_h
 #define CallbackParticle_h
 
-#include <deque>
+#include <vector>
 #include <boost/lexical_cast.hpp>
 #include <boost/property_tree/ptree.hpp>
 #include <boost/property_tree/json_parser.hpp>
@@ -18,7 +18,7 @@ namespace Callbacks
         static int Callback(void *data, int argc, char **argv, char **colName);
         struct CallbackReturnImplementation : public ICallbackReturn
         {
-            std::deque< Models::Particle > Particles;
+            std::vector< Models::Particle > Particles;
         } CallbackReturn;
         
         Particle(/* args */);

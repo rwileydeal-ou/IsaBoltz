@@ -5,7 +5,12 @@ using namespace std;
 GravitinoSigV::GravitinoSigV(/* args */){}
 GravitinoSigV::~GravitinoSigV(){ }
 
-SigmaV GravitinoSigV::Calculate(const Models::Particle& gravitino, const ModelBase& model, double T, std::shared_ptr< DataRelay > fortInterface){
+SigmaV GravitinoSigV::Calculate(
+    const Models::Particle& gravitino, 
+    const ModelBase& model, 
+    double T, 
+    std::shared_ptr< DataRelay > fortInterface
+){
     double trhg1 = model.RunningParameters.trhg1v[0];
     double trhg2 = model.RunningParameters.trhg2v[0];
     double trhg3 = model.RunningParameters.trhg3v[0];

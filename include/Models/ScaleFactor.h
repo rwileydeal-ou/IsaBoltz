@@ -20,33 +20,11 @@ namespace Models
         long double GStarEntropic = 0.;
         int Ordinal = 0;
 
-        ScaleFactorPoint(){
-            Id = boost::uuids::random_generator()();
-            InputId = boost::uuids::nil_generator()();
-        }
-        ScaleFactorPoint(const ScaleFactorPoint& s){
-            Id = s.Id;
-            InputId = s.InputId;
-            Temperature = s.Temperature;
-            ScaleFactor = s.ScaleFactor;
-            Entropy = s.Entropy;
-            Hubble = s.Hubble;
-            GStar = s.GStar;
-            GStarEntropic = s.GStarEntropic;
-            Ordinal = s.Ordinal;
-        }
-        ScaleFactorPoint& operator = (const ScaleFactorPoint& s){
-            Id = s.Id;
-            InputId = s.InputId;
-            Temperature = s.Temperature;
-            ScaleFactor = s.ScaleFactor;
-            Entropy = s.Entropy;
-            Hubble = s.Hubble;
-            GStar = s.GStar;
-            GStarEntropic = s.GStarEntropic;
-            Ordinal = s.Ordinal;
-
-            return *this;
+        ScaleFactorPoint()
+        :
+            Id(boost::uuids::random_generator()()),
+            InputId(boost::uuids::nil_generator()())
+        {
         }
     };
 }

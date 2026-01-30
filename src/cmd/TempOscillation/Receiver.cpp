@@ -2,8 +2,14 @@
 
 using namespace std;
 
-TempOscillationReceiver::TempOscillationReceiver(Connection& connection, Models::Particle& particle, double tempReheat) :
+TempOscillationReceiver::TempOscillationReceiver(
+    Connection& connection, 
+    DbManager& db,
+    Models::Particle& particle, 
+    double tempReheat
+) :
     connection_(connection),
+    db_(db),
     particle_(particle)
 {
     tempReheat_ = tempReheat;
@@ -24,7 +30,7 @@ double TempOscillationReceiver::tempOsc_lessThan_tempReheat(double initialGuess,
 
     auto a = (initialGuess-T1) / initialGuess;
     while( (initialGuess-T1) / initialGuess > 0.01){
-        gstar = GStar::Calculate(connection_, initialGuess);
+        gstar = GStar::Calculate(db_, connection_, initialGuess);
 
         T1 = sqrt( 
             // need an extra sqrt(8 pi) since reduced Planck mass code default, while expression uses non-reduced mP
@@ -49,12 +55,12 @@ double TempOscillationReceiver::tempOsc_greaterThan_tempReheat(double initialGue
     double T1 = 0.;
     double dT = 0.;
 
-    double gstr_TReheat = GStar::Calculate(connection_, tempReheat_);
+    double gstr_TReheat = GStar::Calculate(db_, connection_, tempReheat_);
 
     auto a = (initialGuess-T1) / initialGuess;
     while( (initialGuess-T1) / initialGuess > 0.01){
         // calculate gstar at oscillation temp
-        gstar = GStar::Calculate(connection_, initialGuess);
+        gstar = GStar::Calculate(db_, connection_, initialGuess);
         
         T1 = pow(
             // need an extra sqrt(8 pi) since reduced Planck mass code default, while expression uses non-reduced mP
@@ -104,8 +110,8 @@ void TempOscillationReceiver::Calculate(){
             throw_with_trace( logic_error("No valid expressions for oscillation temperature!") );
         }
     }
-    tempOscillation_.GStar = GStar::Calculate(connection_, tempOscillation_.Temperature);
-    tempOscillation_.GStarEntropic = GStar::CalculateEntropic(connection_, tempOscillation_.Temperature);
+    tempOscillation_.GStar = GStar::Calculate(db_, connection_, tempOscillation_.Temperature);
+    tempOscillation_.GStarEntropic = GStar::CalculateEntropic(db_, connection_, tempOscillation_.Temperature);
 }
 
 Models::TempOscillation TempOscillationReceiver::getTempOscillation(){

@@ -15,7 +15,7 @@ class CascadeBranchingRatios
 private:
     Connection& connection_;
     const BoltzmannData& data_;
-    DbManager db_;
+    DbManager& db_;
 
     std::unordered_map<
         boost::uuids::uuid,
@@ -65,6 +65,7 @@ public:
     );
     CascadeBranchingRatios( 
         Connection& connection, 
+        DbManager& db,
         const BoltzmannData& data, 
         std::unordered_map< 
             boost::uuids::uuid, 

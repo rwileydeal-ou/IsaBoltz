@@ -2,8 +2,13 @@
 
 using namespace std;
 
-MssmSpectrumReceiver::MssmSpectrumReceiver(Connection& connection, std::shared_ptr< DataRelay > fortranInterface) :
-    connection_(connection)
+MssmSpectrumReceiver::MssmSpectrumReceiver(
+    Connection& connection, 
+    DbManager& db,
+    std::shared_ptr< DataRelay > fortranInterface
+) :
+    connection_(connection),
+    db_(db)
 {
     fortranInterface_ = fortranInterface;
 }
@@ -27,22 +32,17 @@ void MssmSpectrumReceiver::Calculate(){
         fortranInterface_ -> Retrieve( connection_.Model );
         
         // now we plunk the particle values into the db
-        DbManager db(connection_);
-        db.Open();
-
         std::deque< std::shared_ptr< Statements::IStatement >, boost::pool_allocator< std::shared_ptr< Statements::IStatement > > > statements; 
         for ( auto& p : connection_.Model.Particles ){
             p.InputId = connection_.InputId;
             statements.push_back( std::make_shared< Statements::Particle >( p, Statements::StatementType::Create ) );
         }
         if ( statements.size() > 0 ){
-            db.Execute( statements );
+            db_.Execute( statements );
         }
 
         auto inputParams = Statements::Inputs( connection_, Statements::StatementType::Create );
-        db.Execute( inputParams );
-
-        db.Close();
+        db_.Execute( inputParams );
     } catch (exception& e){
         connection_.Log.Error( e.what() );
     }

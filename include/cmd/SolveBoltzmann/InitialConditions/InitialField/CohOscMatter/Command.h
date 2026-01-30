@@ -14,12 +14,18 @@
 class CohOscMatterCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< CohOscMatterReceiver > receiver_;
     Models::Particle particle_;
     std::shared_ptr< Models::ScaleFactorPoint > initialPoint_;
     void postBoltzmannParticleEvolution( const Models::ParticleEvolution& particleEvolution);
 public:
-    CohOscMatterCommand(Connection& connection, const Models::Particle& particle, std::shared_ptr< Models::ScaleFactorPoint > initialPoint);
+    CohOscMatterCommand(
+        Connection& connection, 
+        DbManager& db,
+        const Models::Particle& particle, 
+        std::shared_ptr< Models::ScaleFactorPoint > initialPoint
+    );
     ~CohOscMatterCommand();
     void Execute() override;
 };

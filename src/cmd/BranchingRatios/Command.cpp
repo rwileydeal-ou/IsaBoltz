@@ -4,11 +4,13 @@ using namespace std;
 
 BranchingRatioCommand::BranchingRatioCommand(
     Connection& connection, 
+    DbManager& db,
     Models::Particle& particle, 
     const std::vector< Models::Particle >& particles, 
     bool squashLogs
 ) :
     connection_(connection),
+    db_(db),
     particle_(particle),
     particles_(particles)
 {
@@ -20,31 +22,26 @@ BranchingRatioCommand::~BranchingRatioCommand(){
 }
 
 void BranchingRatioCommand::postSqlTotalWidth(
-    DbManager& db, 
     BranchingFraction& result
 ){
     auto statement = Statements::TotalWidth( result.TotalWidth, Statements::StatementType::Create );
-    db.Execute( statement );
+    db_.Execute( statement );
 }
 
 void BranchingRatioCommand::postSqlPartialWidths(
-    DbManager& db, 
     BranchingFraction& result
 ){
     for (auto& width : result.PartialWidths){
         width.TotalWidthId = result.TotalWidth.Id;
         auto statement = Statements::PartialWidth( width, Statements::StatementType::Create );
-        db.Execute( statement );
+        db_.Execute( statement );
     } 
 }
 
 void BranchingRatioCommand::postResult(){
     auto result = receiver_ -> getBranchingFraction();
-    DbManager db(connection_);
-    db.Open();
-    postSqlTotalWidth(db, result);
-    postSqlPartialWidths(db, result);
-    db.Close();
+    postSqlTotalWidth(result);
+    postSqlPartialWidths(result);
 }
 
 void BranchingRatioCommand::Execute(){

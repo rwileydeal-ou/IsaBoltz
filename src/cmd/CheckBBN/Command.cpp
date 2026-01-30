@@ -4,13 +4,13 @@ using namespace std;
 
 CheckBBNCommand::CheckBBNCommand(
     Connection& connection, 
+    DbManager& db,
     std::string enabledKey
 ) :
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     // need to first pull all particle evolutions from db
-    DbManager db(connection_);
-    db.Open();
     Models::ParticleEvolution particleEvolution;
     Models::ScaleFactorPoint scaleFactor;
     Models::TotalWidth totalWidth;
@@ -39,7 +39,7 @@ CheckBBNCommand::CheckBBNCommand(
     );
     statementEvo.AddFilter( filterEvo );
     auto cbEvo = Callbacks::ParticleEvolution();
-    db.Execute( statementEvo, cbEvo.Callback, cbEvo.CallbackReturn );
+    db_.Execute( statementEvo, cbEvo.Callback, cbEvo.CallbackReturn );
 
     if ( cbEvo.CallbackReturn.ParticleEvolutions.size() == 0 ){
         throw_with_trace( logic_error("Could not find ParticleEvolutions") );
@@ -57,7 +57,7 @@ CheckBBNCommand::CheckBBNCommand(
     );
     statementScales.AddFilter( filterScales );
     auto cbScales = Callbacks::ScaleFactor();
-    db.Execute( 
+    db_.Execute( 
         statementScales, 
         cbScales.Callback, 
         cbScales.CallbackReturn 
@@ -75,7 +75,7 @@ CheckBBNCommand::CheckBBNCommand(
     );
     statementParticles.AddFilter( filterParticles );
     auto cbParticles = Callbacks::Particle();
-    db.Execute( 
+    db_.Execute( 
         statementParticles, 
         cbParticles.Callback, 
         cbParticles.CallbackReturn 
@@ -93,7 +93,7 @@ CheckBBNCommand::CheckBBNCommand(
     );
     statementWidths.AddFilter( filterWidths );
     auto cbWidths = Callbacks::TotalWidth();
-    db.Execute( 
+    db_.Execute( 
         statementWidths, 
         cbWidths.Callback, 
         cbWidths.CallbackReturn 
@@ -130,9 +130,9 @@ CheckBBNCommand::CheckBBNCommand(
         }
     }
 
-    db.Close();
     this -> receiver_ = std::make_shared< CheckBBNReceiver >( 
         connection_, 
+        db_,
         particle_, 
         particleEvolution, 
         scaleFactor, 
@@ -183,11 +183,8 @@ void CheckBBNCommand::Execute(){
     this -> receiver_ -> Calculate();
     auto bbn = receiver_ -> getCheckBBN();
 
-    DbManager db(connection_.SqlConnectionString, connection_.Log);
-    db.Open();
     auto statement = Statements::CheckBBN( bbn, Statements::Create );
-    db.Execute( statement );
-    db.Close();
+    db_.Execute( statement );
 
     ostringstream logEntry;
     logEntry << "BBN constraint for " << particle_.Key << ": " << bbn.ConstraintSatisfied;

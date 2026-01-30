@@ -23,16 +23,30 @@
 class SolveBoltzmannMacro : public Macro {
 private:
     Connection& connection_;
+    DbManager& db_;
     CommandWithPayload cmd_;
     std::shared_ptr< Sender > invoker_;
     bool interactiveMode_;
     std::shared_ptr< Models::ScaleFactorPoint > reheatPoint_;
     std::shared_ptr< MssmSpectrumCommand > spectraCmd_;
 
-    void setInitialConditions(const std::vector<std::string>& enabledKeys, std::shared_ptr< DataRelay >& fortranInterface);
-    void solveBoltzmannEqns(const std::vector<std::string>& enabledKeys, std::shared_ptr< DataRelay >& fortranInterface);
+    void setInitialConditions(
+        const std::vector<std::string>& enabledKeys, 
+        std::shared_ptr< DataRelay >& fortranInterface
+    );
+    void solveBoltzmannEqns(
+        const std::vector<std::string>& enabledKeys, 
+        std::shared_ptr< DataRelay >& fortranInterface
+    );
 public:
-    SolveBoltzmannMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, bool interactiveMode, Connection& connection);
+    SolveBoltzmannMacro(
+        CommandWithPayload cmd, 
+        std::shared_ptr< Sender > invoker, 
+        std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+        bool interactiveMode, 
+        Connection& connection,
+        DbManager& db
+    );
     ~SolveBoltzmannMacro();
     void Execute() override;
 };

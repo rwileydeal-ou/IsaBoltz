@@ -10,10 +10,15 @@
 class CriticalAbundanceCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< CriticalAbundanceReceiver > receiver_;
     Models::Particle particle_;
 public:
-    CriticalAbundanceCommand(Connection& connection, Models::Particle& particle);
+    CriticalAbundanceCommand(
+        Connection& connection, 
+        DbManager& db,
+        Models::Particle& particle
+    );
     ~CriticalAbundanceCommand();
     void Execute() override;
 };

@@ -70,7 +70,7 @@ private:
     /* 
         Data for configuration 
     */
-    DbManager db_;
+    DbManager& db_;
     Connection& connection_;
     std::shared_ptr< DataRelay > fortranInterface_;
 
@@ -114,7 +114,11 @@ private:
         Methods used for initialization 
     */
     void resetParticleData();
-    ParticleData pullParticleEvolution( std::string particleKey, ParticleProductionMechanism productionMechanism, boost::uuids::uuid scaleFactorId );
+    ParticleData pullParticleEvolution( 
+        std::string particleKey, 
+        ParticleProductionMechanism productionMechanism, 
+        boost::uuids::uuid scaleFactorId 
+    );
     Models::ScaleFactorPoint pullPreviousScaleFactorPoint( int ordinal );
 
     /* 
@@ -150,6 +154,7 @@ private:
 public:
     BoltzmannStepBuilderCommand(
         Connection& connection, 
+        DbManager& db,
         std::shared_ptr< DataRelay > fortranInterface, 
         const Models::ScaleFactorPoint& reheatPoint, 
         const std::vector< Models::ParticleEvolution >& initialParticleEvolutions, 

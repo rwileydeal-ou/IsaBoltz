@@ -35,9 +35,18 @@ private:
     ModelBase model_;
     ModelBase defaultModel_;
     ModelBase getParams();
-    void handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > invoker);
+    void handleCmd(
+        CommandWithPayload cmd, 
+        std::shared_ptr< Sender > invoker,
+        DbManager& db
+    );
 public:
-    ProcessClient(bool interactiveMode, Logger& logger, std::string sqlConnectionString, boost::uuids::uuid inputId);
+    ProcessClient(
+        bool interactiveMode, 
+        Logger& logger, 
+        std::string sqlConnectionString, 
+        boost::uuids::uuid inputId
+    );
     ~ProcessClient();
     void Handle(std::vector<CommandWithPayload> cmds);
     static CommandWithPayload getCmdFromString(std::string cmd, std::string payload);

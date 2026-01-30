@@ -247,49 +247,6 @@ double GStar::CalculateEntropic(
 }
 
 double GStar::Calculate(
-    Connection& connection, 
-    double T
-){
-    DbManager db(connection.SqlConnectionString, connection.Log);
-    db.Open();
-
-    Models::Particle p;
-    auto statement = Statements::Particle(p, Statements::Read);
-    auto filter = Filters::Particle( connection.InputId, Filters::WhereUUID::InputId );
-    statement.AddFilter( filter );
-    auto cb = Callbacks::Particle();
-    db.Execute(statement, cb.Callback, cb.CallbackReturn);
-
-    db.Close();
-    if (cb.CallbackReturn.Particles.size() == 0){
-        throw_with_trace( logic_error("Could not find particles!") );
-    }
-
-    auto particles = cb.CallbackReturn.Particles;
-
-    auto susy = GStar::calculateSusy(particles, T, connection.Model.Cosmology.Temperatures);
-    auto leptons = GStar::calculateLeptons(particles, T, connection.Model.Cosmology.Temperatures);
-    auto qcd = GStar::calculateQCD(particles, T, connection.Model.Cosmology.Temperatures);
-    auto gb = GStar::calculateGaugeBosons(particles, T, connection.Model.Cosmology.Temperatures);
-    double gstr = (susy + leptons + qcd + gb);
-
-    connection.Log.Trace("Calculated g_{*}=" + to_string(gstr) + " at T=" + to_string(T) + " GeV");
-    return gstr;
-}
-
-double GStar::CalculateEntropic(
-    Connection& connection, 
-    double T
-){
-    double gstr = Calculate(connection, T);
-    if (T <= connection.Model.Cosmology.Temperatures.NeutrinoDecouple){
-        return ( gstr - (7. / 8.) * 6. * ( pow(4. / 11., 4. / 3.) - (4. / 11.) ) );
-    }
-    connection.Log.Trace("Calculated g_{*S}=" + to_string(gstr) + " at T=" + to_string(T) + " GeV");
-    return gstr;
-}
-
-double GStar::Calculate(
     DbManager& db, 
     Connection& connection, 
     double T
@@ -314,6 +271,18 @@ double GStar::Calculate(
     double gstr = (susy + leptons + qcd + gb);
 
     connection.Log.Trace("Calculated g_{*}=" + to_string(gstr) + " at T=" + to_string(T) + " GeV");
+    return gstr;
+}
+
+double GStar::CalculateEntropic(
+    DbManager& db, 
+    Connection& connection, 
+    double T
+){
+    double gstr = Calculate(db, connection, T);
+    if (T <= connection.Model.Cosmology.Temperatures.NeutrinoDecouple){
+        return ( gstr - (7. / 8.) * 6. * ( pow(4. / 11., 4. / 3.) - (4. / 11.) ) );
+    }
     return gstr;
 }
 

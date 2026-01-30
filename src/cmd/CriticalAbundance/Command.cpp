@@ -2,11 +2,19 @@
 
 using namespace std;
 
-CriticalAbundanceCommand::CriticalAbundanceCommand(Connection& connection, Models::Particle& particle) :
-    connection_(connection)
+CriticalAbundanceCommand::CriticalAbundanceCommand(
+    Connection& connection, 
+    DbManager& db,
+    Models::Particle& particle
+) :
+    connection_(connection),
+    db_(db)
 {
     particle_ = particle;
-    this -> receiver_ = std::make_shared< CriticalAbundanceReceiver >( connection_ );
+    this -> receiver_ = std::make_shared< CriticalAbundanceReceiver >( 
+        connection_,
+        db_
+    );
 }
 CriticalAbundanceCommand::~CriticalAbundanceCommand(){
 }

@@ -4,12 +4,14 @@ using namespace std;
 
 BoltzmannSolverCommand::BoltzmannSolverCommand(
     Connection& connection, 
+    DbManager& db,
     std::shared_ptr< DataRelay > fortranInterface, 
     boost::uuids::uuid reheatScaleFactorId, 
     double finalTemp, 
     std::vector< std::string > enabledKeys
 ) : 
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     reheatPoint_.Id = reheatScaleFactorId;
     finalTemp_ = finalTemp;
@@ -23,7 +25,6 @@ BoltzmannSolverCommand::~BoltzmannSolverCommand(){
 // this method pulls the particle evolution object for an initial ScaleFactor
 // must be unique
 Models::ParticleEvolution BoltzmannSolverCommand::pullParticleEvolution( 
-    DbManager& db, 
     std::string particleKey, 
     ParticleProductionMechanism productionMechanism, 
     boost::uuids::uuid scaleFactorId 
@@ -38,7 +39,7 @@ Models::ParticleEvolution BoltzmannSolverCommand::pullParticleEvolution(
     );
     statement.AddFilter( filter );
     auto cb = Callbacks::ParticleEvolution();
-    db.Execute( statement, cb.Callback, cb.CallbackReturn );
+    db_.Execute( statement, cb.Callback, cb.CallbackReturn );
 
     if ( cb.CallbackReturn.ParticleEvolutions.size() != 1 ){
         throw_with_trace( logic_error("Could not find unique ParticleEvolution") );
@@ -55,8 +56,6 @@ vector< Models::ParticleEvolution > BoltzmannSolverCommand::pullParticleEvolutio
     enabledFields.insert(enabledFields.begin(), "photon");
 
     // now we pull all the ParticleEvolutions for the initial condition ScaleFactorID
-    DbManager db(connection_);
-    db.Open();
     for (auto& key : enabledFields){
         auto keyComponents = FileIO::Split(key, "_");
         string particleKey = ( keyComponents.size() > 1 ) ? keyComponents[1] : keyComponents[0];
@@ -68,9 +67,10 @@ vector< Models::ParticleEvolution > BoltzmannSolverCommand::pullParticleEvolutio
         } else{
             production = ParticleProductionMechanism::THERMAL;
         }
-        particleEvolutions.push_back( pullParticleEvolution( db, particleKey, production, reheatPoint_.Id ) );
+        particleEvolutions.push_back( 
+            pullParticleEvolution( particleKey, production, reheatPoint_.Id ) 
+        );
     }
-    db.Close();
 
     // we also need to do a validation that the "enabledFields" length is the same as the number of ParticleEvolutions pulled
     // otherwise something BAD happened
@@ -80,16 +80,15 @@ vector< Models::ParticleEvolution > BoltzmannSolverCommand::pullParticleEvolutio
     return particleEvolutions;
 }
 
-Models::ScaleFactorPoint BoltzmannSolverCommand::pullReheatScaleFactorPoint(boost::uuids::uuid scaleFactorId){
+Models::ScaleFactorPoint BoltzmannSolverCommand::pullReheatScaleFactorPoint(
+    boost::uuids::uuid scaleFactorId
+){
     Models::ScaleFactorPoint scaleFactor;
-    DbManager db(connection_);
-    db.Open();
     auto statement = Statements::ScaleFactor( scaleFactor, Statements::Read );
     auto filter = Filters::ScaleFactor( scaleFactorId, Filters::WhereUUID::Id );
     statement.AddFilter( filter );
     auto cb = Callbacks::ScaleFactor();
-    db.Execute( statement, cb.Callback, cb.CallbackReturn );
-    db.Close();
+    db_.Execute( statement, cb.Callback, cb.CallbackReturn );
 
     // better be unique!
     if (cb.CallbackReturn.ScaleFactors.size() != 1){
@@ -108,14 +107,11 @@ std::vector< Models::Particle > BoltzmannSolverCommand::pullParticles(
     >& particleCache
 ){
     Models::Particle p;
-    DbManager db(connection_);
-    db.Open();
     auto statement = Statements::Particle(p, Statements::Read);
     auto filter = Filters::Particle( connection_.InputId, Filters::WhereUUID::InputId );
     statement.AddFilter( filter );
     auto cb = Callbacks::Particle();
-    db.Execute(statement, cb.Callback, cb.CallbackReturn);
-    db.Close();
+    db_.Execute(statement, cb.Callback, cb.CallbackReturn);
 
     if (cb.CallbackReturn.Particles.size() == 0){
         throw_with_trace( logic_error("Could not find particles!") );
@@ -131,8 +127,6 @@ std::map< std::string, std::vector< Models::PartialWidth > > BoltzmannSolverComm
     const std::vector< Models::ParticleEvolution >& particleEvos 
 ){
     std::map< std::string, std::vector< Models::PartialWidth > > partialWidths;
-    DbManager db(connection_);
-    db.Open();
 
     Models::PartialWidth p;
     for (auto& evo : particleEvos){
@@ -140,11 +134,10 @@ std::map< std::string, std::vector< Models::PartialWidth > > BoltzmannSolverComm
         auto filter = Filters::PartialWidth( connection_.InputId, evo.ParticleId );
         statement.AddFilter( filter );
         auto cb = Callbacks::PartialWidth();
-        db.Execute( statement, cb.Callback, cb.CallbackReturn );
+        db_.Execute( statement, cb.Callback, cb.CallbackReturn );
 
         partialWidths.insert( { evo.ParticleKey, cb.CallbackReturn.PartialWidths } );
     }
-    db.Close();
     return partialWidths;
 }
 
@@ -153,8 +146,6 @@ std::map< std::string, Models::TotalWidth > BoltzmannSolverCommand::pullTotalWid
     const std::vector< Models::ParticleEvolution >& particleEvos 
 ){
     std::map<std::string, Models::TotalWidth> totalWidths;
-    DbManager db(connection_);
-    db.Open();
 
     Models::TotalWidth p;
     for (auto& evo : particleEvos){
@@ -165,14 +156,13 @@ std::map< std::string, Models::TotalWidth > BoltzmannSolverCommand::pullTotalWid
         auto filter = Filters::TotalWidth( connection_.InputId, evo.ParticleId );
         statement.AddFilter( filter );
         auto cb = Callbacks::TotalWidth();
-        db.Execute( statement, cb.Callback, cb.CallbackReturn );
+        db_.Execute( statement, cb.Callback, cb.CallbackReturn );
 
         if ( cb.CallbackReturn.TotalWidths.size() != 1){
             throw_with_trace( logic_error("Could not find unique TotalWidth") );
         }
         totalWidths.insert( {evo.ParticleKey, cb.CallbackReturn.TotalWidths.front()} );
     }
-    db.Close();
     return totalWidths;
 }
 
@@ -216,6 +206,7 @@ void BoltzmannSolverCommand::Execute(){
     // delegate building the step to the proper command
     BoltzmannStepBuilderCommand stepSolver(
         connection_, 
+        db_,
         fortranInterface_,
         reheatPoint_, 
         particleEvolutions,

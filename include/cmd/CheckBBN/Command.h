@@ -11,6 +11,7 @@
 class CheckBBNCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     boost::uuids::uuid scaleFactorId_;
     std::shared_ptr< CheckBBNReceiver > receiver_;
     Models::Particle particle_;
@@ -29,6 +30,7 @@ private:
 public:
     CheckBBNCommand(
         Connection& connection, 
+        DbManager& db,
         std::string enabledKey
     );
     ~CheckBBNCommand();

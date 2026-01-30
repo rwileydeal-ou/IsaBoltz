@@ -18,6 +18,7 @@ class TempDecayReceiver : public IReceiver
 {
 private: 
     Connection& connection_;
+    DbManager& db_;
     Models::Particle particle_;
     Models::TempDecay tempDecay_;
     double gstar_;
@@ -25,8 +26,16 @@ private:
     double suddenWidth(const Models::TotalWidth& totalWidth, double initialGuess);
 public:
     ~TempDecayReceiver();
-    TempDecayReceiver(Connection& connection, Models::Particle& particle);
-    TempDecayReceiver(Connection& connection, boost::uuids::uuid particleId);
+    TempDecayReceiver(
+        Connection& connection, 
+        DbManager& db,
+        Models::Particle& particle
+    );
+    TempDecayReceiver(
+        Connection& connection, 
+        DbManager& db,
+        boost::uuids::uuid particleId
+    );
     void Calculate() override;
     Models::TempDecay getTempDecay();
 };

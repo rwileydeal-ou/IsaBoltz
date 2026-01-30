@@ -12,12 +12,20 @@
 class ThermalMatterCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< ThermalMatterReceiver > receiver_;
     Models::Particle particle_;
     std::shared_ptr< Models::ScaleFactorPoint > initialPoint_;
-    void postBoltzmannParticleEvolution( const Models::ParticleEvolution& particleEvolution);
+    void postBoltzmannParticleEvolution( 
+        const Models::ParticleEvolution& particleEvolution
+    );
 public:
-    ThermalMatterCommand(Connection& connection, const Models::Particle& particle, std::shared_ptr< Models::ScaleFactorPoint > initialPoint);
+    ThermalMatterCommand(
+        Connection& connection, 
+        DbManager& db,
+        const Models::Particle& particle, 
+        std::shared_ptr< Models::ScaleFactorPoint > initialPoint
+    );
     ~ThermalMatterCommand();
     void Execute() override;
 };

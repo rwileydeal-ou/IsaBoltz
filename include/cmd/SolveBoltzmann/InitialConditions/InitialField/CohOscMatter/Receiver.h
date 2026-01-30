@@ -22,10 +22,18 @@ private:
     double y1Initial(bool isOn, double mass, double entropyInitial, double rho0);
     double y2Initial(double mass, double tempReheat);
     double tempOscillate(double mass, double tempReheat, double hubble);
-    double rho0(Models::Particle& particle, const ModelBase& model, std::shared_ptr< Models::ScaleFactorPoint > initialPoint);
+    double rho0(
+        Models::Particle& particle, 
+        const ModelBase& model, 
+        std::shared_ptr< Models::ScaleFactorPoint > initialPoint
+    );
 public:
     ~CohOscMatterReceiver();
-    CohOscMatterReceiver(Connection& connection, std::shared_ptr< Models::ScaleFactorPoint > initialPoint, const Models::Particle& particle);
+    CohOscMatterReceiver(
+        Connection& connection, 
+        std::shared_ptr< Models::ScaleFactorPoint > initialPoint, 
+        const Models::Particle& particle
+    );
     void Calculate() override;
     Models::ParticleEvolution getBoltzmannParticleEvolution();
 };

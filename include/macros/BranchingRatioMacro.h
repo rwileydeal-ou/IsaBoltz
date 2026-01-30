@@ -13,12 +13,20 @@
 class BranchingRatioMacro : public Macro {
 private:
     Connection& connection_;
+    DbManager& db_;
     CommandWithPayload cmd_;
     std::shared_ptr< MssmSpectrumCommand > spectraCmd_;
     std::shared_ptr< Sender > invoker_;
     bool interactiveMode_;
 public:
-    BranchingRatioMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, Connection& connection, bool interactiveMode);
+    BranchingRatioMacro(
+        CommandWithPayload cmd, 
+        std::shared_ptr< Sender > invoker, 
+        std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+        Connection& connection, 
+        DbManager& db_,
+        bool interactiveMode
+    );
     ~BranchingRatioMacro();
     void Execute() override;
 };

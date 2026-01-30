@@ -14,6 +14,7 @@
 class CrossSectionMacro : public Macro {
 private:
     Connection& connection_;
+    DbManager& db_;
     CommandWithPayload cmd_;
     std::shared_ptr< MssmSpectrumCommand > spectraCmd_;
     std::shared_ptr< Sender > invoker_;
@@ -22,7 +23,14 @@ private:
     // data
     std::shared_ptr< double > temp_;
 public:
-    CrossSectionMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, Connection& connection, bool interactiveMode);
+    CrossSectionMacro(
+        CommandWithPayload cmd, 
+        std::shared_ptr< Sender > invoker, 
+        std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+        Connection& connection, 
+        DbManager& db,
+        bool interactiveMode
+    );
     ~CrossSectionMacro();
     void Execute() override;
 };

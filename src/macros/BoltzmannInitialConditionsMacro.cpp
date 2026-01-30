@@ -2,9 +2,19 @@
 
 using namespace std;
 
-BoltzmannInitialConditionsMacro::BoltzmannInitialConditionsMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, vector<string> enabledKeys, std::shared_ptr< Models::ScaleFactorPoint > initialPoint, bool interactiveMode, std::shared_ptr< DataRelay > fortranInterface, Connection& connection) : 
+BoltzmannInitialConditionsMacro::BoltzmannInitialConditionsMacro(
+    CommandWithPayload cmd, 
+    std::shared_ptr< Sender > invoker, 
+    vector<string> enabledKeys, 
+    std::shared_ptr< Models::ScaleFactorPoint > initialPoint, 
+    bool interactiveMode, 
+    std::shared_ptr< DataRelay > fortranInterface, 
+    Connection& connection,
+    DbManager& db
+) : 
     Macro(interactiveMode),
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     cmd_ = cmd;
     invoker_ = invoker;
@@ -20,6 +30,7 @@ BoltzmannInitialConditionsMacro::~BoltzmannInitialConditionsMacro(){
 void BoltzmannInitialConditionsMacro::Execute(){
     InitialPointCommand initialCmd( 
         connection_, 
+        db_,
         initialPoint_ 
     );
 
@@ -38,6 +49,7 @@ void BoltzmannInitialConditionsMacro::Execute(){
             uniqueKeys.push_back( particleKey );
             BranchingRatioCommand brCmd( 
                 connection_, 
+                db_,
                 particle, 
                 connection_.Model.Particles 
             );
@@ -58,6 +70,7 @@ void BoltzmannInitialConditionsMacro::Execute(){
         if (keyComponents[0] == "cohosc"){
             CohOscMatterCommand cohoscCmd( 
                 connection_, 
+                db_,
                 particle, 
                 initialPoint_ 
             );
@@ -66,6 +79,7 @@ void BoltzmannInitialConditionsMacro::Execute(){
             // and here we add the cross section command
             CrossSectionCommand crossSecCmd( 
                 connection_, 
+                db_,
                 particle, 
                 std::make_shared<double>(initialPoint_ -> Temperature), 
                 fortranInterface_, 
@@ -75,6 +89,7 @@ void BoltzmannInitialConditionsMacro::Execute(){
 
             ThermalMatterCommand thermalCmd( 
                 connection_, 
+                db_,
                 particle, 
                 initialPoint_ 
             );
@@ -85,6 +100,7 @@ void BoltzmannInitialConditionsMacro::Execute(){
     // and here we calculate the initial state for radiation
     RadiationCommand radCmd( 
         connection_, 
+        db_,
         initialPoint_
     );
     radCmd.Execute();

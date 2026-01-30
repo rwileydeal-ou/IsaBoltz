@@ -1,11 +1,22 @@
 #include <macros/DeltaNeffMacro.h>
 
-DeltaNeffMacro::DeltaNeffMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, Connection& connection, bool interactiveMode) : 
+DeltaNeffMacro::DeltaNeffMacro(
+    CommandWithPayload cmd, 
+    std::shared_ptr< Sender > invoker, 
+    std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+    Connection& connection, 
+    DbManager& db,
+    bool interactiveMode
+) : 
     Macro(interactiveMode),
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     if (!spectraCmd){
-        spectraCmd = std::make_shared< MssmSpectrumCommand >( connection_ );
+        spectraCmd = std::make_shared< MssmSpectrumCommand >( 
+            connection_,
+            db_
+        );
         invoker -> AddCommand( spectraCmd );
     }
 
@@ -39,16 +50,34 @@ void DeltaNeffMacro::Execute(){
             } else if (splitKey[0] == "cohosc"){
                 // decay temp depends on total width, so need BRs
                 invoker_ -> AddCommand( 
-                    std::make_shared< BranchingRatioCommand >( connection_, *particle, connection_.Model.Particles ) 
+                    std::make_shared< BranchingRatioCommand >( 
+                        connection_, 
+                        db_, 
+                        *particle, 
+                        connection_.Model.Particles 
+                    ) 
                 );
                 invoker_ -> AddCommand( 
-                    std::make_shared< TempDecayCommand >( connection_, *particle )
+                    std::make_shared< TempDecayCommand >( 
+                        connection_, 
+                        db_,
+                        *particle 
+                    )
                 );
                 invoker_ -> AddCommand(
-                    std::make_shared< TempOscillationCommand >( connection_, *particle )
+                    std::make_shared< TempOscillationCommand >( 
+                        connection_,
+                        db_,
+                        *particle 
+                    )
                 );
                 invoker_ -> AddCommand(
-                    std::make_shared< TempEqualityCommand >( connection_, *particle, ParticleProductionMechanism::COHERENT_OSCILLATION)
+                    std::make_shared< TempEqualityCommand >( 
+                        connection_, 
+                        db_,
+                        *particle, 
+                        ParticleProductionMechanism::COHERENT_OSCILLATION
+                    )
                 );
 
                 vector< vector< boost::uuids::uuid > > childIdPairs;
@@ -59,7 +88,12 @@ void DeltaNeffMacro::Execute(){
                 } 
 
                 invoker_ -> AddCommand(
-                    std::make_shared< DeltaNeffCommand >( connection_, *particle, childIdPairs)
+                    std::make_shared< DeltaNeffCommand >( 
+                        connection_, 
+                        db_, 
+                        *particle, 
+                        childIdPairs
+                    )
                 );
             } else{
                 throw_with_trace( NotImplementedException() );

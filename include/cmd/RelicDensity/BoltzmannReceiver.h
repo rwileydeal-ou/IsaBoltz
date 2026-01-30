@@ -26,6 +26,7 @@ private:
     double cohosc_relicDensity();
     double thermal_relicDensity();
     double radiation_relicDensity();
+    DbManager& db_;
 
     // these are used for numerical integration, to be revised later
     typedef std::vector<double> state_type;
@@ -33,7 +34,13 @@ private:
     double getRhoNf(double mass, double rhoN, double x0, double xF);
 public:
     ~BoltzmannRelicDensityReceiver();
-    BoltzmannRelicDensityReceiver( Connection& connection, const Models::ParticleEvolution& particleEvo, const Models::Particle& particle, const Models::ScaleFactorPoint& finalScaleFactorPoint );
+    BoltzmannRelicDensityReceiver( 
+        Connection& connection, 
+        DbManager& db,
+        const Models::ParticleEvolution& particleEvo, 
+        const Models::Particle& particle, 
+        const Models::ScaleFactorPoint& finalScaleFactorPoint 
+    );
 };
 
 #endif

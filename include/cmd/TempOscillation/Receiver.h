@@ -13,6 +13,7 @@ class TempOscillationReceiver : public IReceiver
 {
 private: 
     Connection& connection_;
+    DbManager& db_;
     Models::Particle& particle_;
     Models::TempOscillation tempOscillation_;
     double tempReheat_;
@@ -22,7 +23,12 @@ private:
     double tempOsc_greaterThan_tempReheat(double initialGuess, double& gstar);    
 public:
     ~TempOscillationReceiver();
-    TempOscillationReceiver(Connection& connection, Models::Particle& particle, double tempReheat);
+    TempOscillationReceiver(
+        Connection& connection, 
+        DbManager& db,
+        Models::Particle& particle, 
+        double tempReheat
+    );
     void Calculate() override;
     Models::TempOscillation getTempOscillation();
 };

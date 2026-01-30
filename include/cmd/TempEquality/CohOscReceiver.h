@@ -18,6 +18,7 @@ class CohOscTempEqualityReceiver : public TempEqualityReceiver
 {
 private: 
     Connection& connection_;
+    DbManager& db_;
     Models::Particle& particle_;
     Models::TempOscillation pullTempOsc();
     double tempEquality() override;
@@ -26,7 +27,12 @@ private:
     double tempEq_TR_lessThan_Te_lessThan_tempOsc(double initialGuess);
 public:
     ~CohOscTempEqualityReceiver();
-    CohOscTempEqualityReceiver(Connection& connection, Models::Particle& particle, double tempReheat);
+    CohOscTempEqualityReceiver(
+        Connection& connection, 
+        DbManager& db,
+        Models::Particle& particle, 
+        double tempReheat
+    );
 };
 
 #endif

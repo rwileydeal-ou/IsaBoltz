@@ -4,8 +4,14 @@ using namespace std;
 
 // This receiver class calculates the initial conditions (at T_RH) for thermally produced matter
 // This requires the cross section to have been previously calculated for the particle at T_RH (using the appropriate command)
-ThermalMatterReceiver::ThermalMatterReceiver(Connection& connection, std::shared_ptr< Models::ScaleFactorPoint > initialPoint, const Models::Particle& particle) :
-    connection_(connection)
+ThermalMatterReceiver::ThermalMatterReceiver(
+    Connection& connection, 
+    DbManager& db,
+    std::shared_ptr< Models::ScaleFactorPoint > initialPoint, 
+    const Models::Particle& particle
+) :
+    connection_(connection),
+    db_(db)
 {
     particle_ = particle;
     initialPoint_ = initialPoint;
@@ -65,14 +71,11 @@ double ThermalMatterReceiver::tempDecouple(double crossSection, double nEq, doub
 
 SigmaV ThermalMatterReceiver::getCrossSection(){
     SigmaV sigV;
-    DbManager db(connection_);
-    db.Open();
     auto statement = Statements::CrossSection(sigV, Statements::Read);
     auto filter = Filters::CrossSection(connection_.InputId, particle_.Id, initialPoint_->Id);
     statement.AddFilter( filter );
     auto cb = Callbacks::CrossSection();
-    db.Execute( statement, cb.Callback, cb.CallbackReturn );
-    db.Close();
+    db_.Execute( statement, cb.Callback, cb.CallbackReturn );
 
     if ( cb.CallbackReturn.crossSections.size() <= 0 ) {
         connection_.Log.Warn("Could not find cross section!");

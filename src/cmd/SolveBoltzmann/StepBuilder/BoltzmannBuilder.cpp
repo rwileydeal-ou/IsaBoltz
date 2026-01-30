@@ -4,12 +4,13 @@ using namespace std;
 
 BoltzmannBuilder::BoltzmannBuilder(
     Connection& connection, 
+    DbManager& db,
     const BoltzmannData& data,
     std::unordered_map< boost::uuids::uuid, Models::Particle, boost::hash<boost::uuids::uuid> >& particleCache
 ) : 
     connection_(connection),
     data_(data),
-    db_(connection),
+    db_(db),
     particleCache_(particleCache)
 {
 }
@@ -50,7 +51,7 @@ void BoltzmannBuilder::calculate_particle_entropy(
     const ParticleData& rad,
     ComponentBuilder& builder
 ){
-    auto cascadeBr = CascadeBranchingRatios(connection_, data_, particleCache_);
+    auto cascadeBr = CascadeBranchingRatios(connection_, db_, data_, particleCache_);
     long double widthXmass = cascadeBr.Calculate(particle, rad) * particle.TotalWidth * particle.Mass;
     long double expTerm = expl( particle.Y1 + 3. * t - rad.Y1 );
     if ( particle.ProductionMechanism == ParticleProductionMechanism::COHERENT_OSCILLATION ){
@@ -192,7 +193,7 @@ void BoltzmannBuilder::calculate_inverse_decay(
     long double preFactor = parent.TotalWidth * parent.Mass / ( hubble * ( parent.EnergyDensity + nRegularizer_ ) );
     long double postFactor = 0.;
 
-    auto cascadeBr = CascadeBranchingRatios(connection_, data_, particleCache_);
+    auto cascadeBr = CascadeBranchingRatios(connection_, db_, data_, particleCache_);
     
     if ( daughter.ProductionMechanism == ParticleProductionMechanism::THERMAL ){
         if ( (int)parent.Charges[0].Value == -1 && (int)daughter.Charges[0].Value == -1 ){
@@ -291,7 +292,7 @@ void BoltzmannBuilder::calculate_injection_contribution(
     long double n2 = daughter.NumberDensity;
     long double rhoN2 = daughter.EnergyDensity / ( daughter.NumberDensity + nRegularizer_ );
 
-    auto cascadeBr = CascadeBranchingRatios(connection_, data_, particleCache_);
+    auto cascadeBr = CascadeBranchingRatios(connection_, db_, data_, particleCache_);
     long double widthXmass2 = cascadeBr.Calculate( daughter, parent ) * daughter.TotalWidth * daughter.Mass;
 
     // if "parent" is R-even, assume 2 identical particles in final state so need to multiply n and rho by 2

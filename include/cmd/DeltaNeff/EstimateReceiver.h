@@ -35,6 +35,7 @@
 class EstimateDeltaNeffReceiver : public DeltaNeffReceiver
 {
 private: 
+    DbManager& db_;
     Models::Particle parent_;
     std::vector< std::vector< boost::uuids::uuid > > childrenIdPairs_;
 
@@ -48,7 +49,13 @@ private:
     double calculateDeltaNeff() override;
 public:
     ~EstimateDeltaNeffReceiver();
-    EstimateDeltaNeffReceiver(Connection& connection, const Models::ParticleEvolution& particleEvo, const Models::Particle& parent, std::vector< std::vector< boost::uuids::uuid > > childrenIdPairs);
+    EstimateDeltaNeffReceiver(
+        Connection& connection, 
+        DbManager& db,
+        const Models::ParticleEvolution& particleEvo, 
+        const Models::Particle& parent, 
+        std::vector< std::vector< boost::uuids::uuid > > childrenIdPairs
+    );
 };
 
 #endif

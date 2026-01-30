@@ -12,10 +12,15 @@
 class TempOscillationCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< TempOscillationReceiver > receiver_;
     Models::Particle particle_;
 public:
-    TempOscillationCommand(Connection& connection, Models::Particle& particle);
+    TempOscillationCommand(
+        Connection& connection, 
+        DbManager& db,
+        Models::Particle& particle
+    );
     ~TempOscillationCommand();
     void Execute() override;
 };

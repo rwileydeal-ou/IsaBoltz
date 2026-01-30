@@ -41,7 +41,7 @@ class BoltzmannBuilder
 private:
     Connection& connection_;
     const BoltzmannData& data_;
-    DbManager db_;
+    DbManager& db_;
 
     long double nRegularizer_ = 1e-100L;
     std::unordered_map<
@@ -116,7 +116,8 @@ public:
         const ParticleData &rad
     );
     BoltzmannBuilder( 
-        Connection& connection, 
+        Connection& connection,
+        DbManager& db,
         const BoltzmannData& data, 
         std::unordered_map< 
             boost::uuids::uuid, 

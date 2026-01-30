@@ -3,7 +3,12 @@
 using namespace std;
 using namespace boost::filesystem;
 
-ProcessClient::ProcessClient(bool interactiveMode, Logger& logger, std::string sqlConnectionString, boost::uuids::uuid inputId) :
+ProcessClient::ProcessClient(
+    bool interactiveMode, 
+    Logger& logger, 
+    std::string sqlConnectionString, 
+    boost::uuids::uuid inputId
+) :
     logger_(logger)
 {
     sqlConnectionString_ = sqlConnectionString;
@@ -73,7 +78,11 @@ ModelBase ProcessClient::getParams(){
     return inputs;
 }
 
-void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > invoker){
+void ProcessClient::handleCmd(
+    CommandWithPayload cmd, 
+    std::shared_ptr< Sender > invoker,
+    DbManager& db
+){
     if ( !initializedParams_ ){
         model_ = getParams();
 
@@ -99,7 +108,10 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
         } break;
         case SupportedCommands::SPECTRUM: {
             if (! this -> spectraCmd_){
-                spectraCmd_ = std::make_shared< MssmSpectrumCommand >(connection_);
+                spectraCmd_ = std::make_shared< MssmSpectrumCommand >(
+                    connection_,
+                    db
+                );
                 invoker->AddCommand( spectraCmd_ );
             }
         } break;
@@ -109,6 +121,7 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
                 invoker,
                 this -> spectraCmd_,
                 connection_,
+                db,
                 interactiveMode_
             );
         } break;
@@ -118,6 +131,7 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
                 invoker,
                 this -> spectraCmd_,
                 connection_,
+                db,
                 interactiveMode_
             );
         } break;
@@ -127,6 +141,7 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
                 invoker,
                 this -> spectraCmd_,
                 connection_,
+                db,
                 interactiveMode_
             );
         } break;
@@ -136,6 +151,7 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
                 invoker,
                 this -> spectraCmd_,
                 connection_,
+                db,
                 interactiveMode_
             );
         } break;
@@ -145,6 +161,7 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
                 invoker,
                 this -> spectraCmd_,
                 connection_,
+                db,
                 interactiveMode_
             );
         } break;
@@ -154,6 +171,7 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
                 invoker,
                 this -> spectraCmd_,
                 connection_,
+                db,
                 interactiveMode_
             );
         } break;
@@ -163,7 +181,8 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
                 invoker,
                 this -> spectraCmd_,
                 interactiveMode_, 
-                connection_
+                connection_,
+                db
             );
         } break;
         case SupportedCommands::DELTA_NEFF: {
@@ -172,6 +191,7 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
                 invoker,
                 this -> spectraCmd_,
                 connection_,
+                db,
                 interactiveMode_ 
             );
         } break;
@@ -187,10 +207,11 @@ void ProcessClient::handleCmd(CommandWithPayload cmd, std::shared_ptr< Sender > 
 // This method processes the cmds and writes the results to the boost ptree 
 void ProcessClient::Handle(vector<CommandWithPayload> cmds){
     try{
+        DbManager db(connection_);
         std::shared_ptr< Sender > invoker = std::make_shared< Sender >();
 
         for (auto& cmd : cmds){
-            handleCmd(cmd, invoker);
+            handleCmd(cmd, invoker, db);
         }
         connection_.Log.Info("Finished processing");
     } catch( boost::numeric::ublas::internal_logic& e ){

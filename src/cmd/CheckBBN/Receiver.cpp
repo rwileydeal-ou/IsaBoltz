@@ -2,12 +2,14 @@
 
 CheckBBNReceiver::CheckBBNReceiver(
     Connection& connection, 
+    DbManager& db,
     Models::Particle& particle, 
     const Models::ParticleEvolution& particleEvolution, 
     const Models::ScaleFactorPoint& scaleFactor, 
     const Models::TotalWidth& totalWidth
 ) :
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     particle_ = particle;
     particleEvolution_ = particleEvolution;
@@ -25,8 +27,6 @@ CheckBBNReceiver::~CheckBBNReceiver(){
 
 Models::TotalWidth CheckBBNReceiver::pullTotalWidth(){
     Models::TotalWidth br;
-    DbManager db(connection_);
-    db.Open();
 
     auto statement = Statements::TotalWidth(
         br, 
@@ -39,12 +39,11 @@ Models::TotalWidth CheckBBNReceiver::pullTotalWidth(){
     );
     statement.AddFilter(filter);
     auto cb = Callbacks::TotalWidth();
-    db.Execute(
+    db_.Execute(
         statement, 
         cb.Callback, 
         cb.CallbackReturn
     );
-    db.Close();
 
     if (cb.CallbackReturn.TotalWidths.size() != 1){
         throw_with_trace( std::logic_error("Could not find unique TotalWidth") );
@@ -58,9 +57,6 @@ std::vector< Models::PartialWidth > CheckBBNReceiver::pullPartialWidths(){
     std::vector< Models::PartialWidth > children;
     Models::PartialWidth child;
 
-    DbManager db(connection_); 
-    db.Open();
-
     auto statement = Statements::PartialWidth(
         child, 
         Statements::StatementType::Read
@@ -72,12 +68,11 @@ std::vector< Models::PartialWidth > CheckBBNReceiver::pullPartialWidths(){
     );
     statement.AddFilter( filter );
     auto cb = Callbacks::PartialWidth();
-    db.Execute( 
+    db_.Execute( 
         statement, 
         cb.Callback, 
         cb.CallbackReturn 
     );
-    db.Close();
 
     for (size_t i=0; i < cb.CallbackReturn.PartialWidths.size(); ++i){
         children.push_back( cb.CallbackReturn.PartialWidths[i] );
@@ -90,9 +85,6 @@ std::vector< Models::Particle > CheckBBNReceiver::pullHadrons(){
     std::vector< Models::Particle > hadrons;
     Models::Particle hadron;
 
-    DbManager db(connection_); 
-    db.Open();
-
     auto statement = Statements::Particle(
         hadron, 
         Statements::StatementType::Read
@@ -103,12 +95,11 @@ std::vector< Models::Particle > CheckBBNReceiver::pullHadrons(){
     );
     statement.AddFilter( filter );
     auto cb = Callbacks::Particle();
-    db.Execute( 
+    db_.Execute( 
         statement, 
         cb.Callback, 
         cb.CallbackReturn 
     );
-    db.Close();
 
     for (size_t i=0; i < cb.CallbackReturn.Particles.size(); ++i){
         auto p = cb.CallbackReturn.Particles[i];

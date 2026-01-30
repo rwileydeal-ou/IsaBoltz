@@ -19,10 +19,15 @@ class MssmSpectrumReceiver : public IReceiver
 {
 private: 
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< DataRelay > fortranInterface_;
 public:
     ~MssmSpectrumReceiver();
-    MssmSpectrumReceiver(Connection& connection, std::shared_ptr< DataRelay > fortranInterface);
+    MssmSpectrumReceiver(
+        Connection& connection, 
+        DbManager& db,
+        std::shared_ptr< DataRelay > fortranInterface
+    );
     void Calculate() override;
 };
 

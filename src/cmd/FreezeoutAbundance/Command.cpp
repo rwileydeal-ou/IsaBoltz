@@ -2,12 +2,23 @@
 
 using namespace std;
 
-FreezeoutAbundanceCommand::FreezeoutAbundanceCommand(Connection& connection, Models::Particle& particle, boost::uuids::uuid scaleFactorId) :
-    connection_(connection)
+FreezeoutAbundanceCommand::FreezeoutAbundanceCommand(
+    Connection& connection, 
+    DbManager& db,
+    Models::Particle& particle, 
+    boost::uuids::uuid scaleFactorId
+) :
+    connection_(connection),
+    db_(db)
 {
     particle_ = particle;
     scaleFactorId_ = scaleFactorId;
-    this -> receiver_ = std::make_shared< FreezeoutAbundanceReceiver >( connection_, particle_, scaleFactorId_ );
+    this -> receiver_ = std::make_shared< FreezeoutAbundanceReceiver >( 
+        connection_, 
+        db_,
+        particle_, 
+        scaleFactorId_ 
+    );
 }
 FreezeoutAbundanceCommand::~FreezeoutAbundanceCommand(){
 }

@@ -2,12 +2,23 @@
 
 using namespace std;
 
-CriticalAbundanceMacro::CriticalAbundanceMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, Connection& connection, bool interactiveMode) : 
+CriticalAbundanceMacro::CriticalAbundanceMacro(
+    CommandWithPayload cmd, 
+    std::shared_ptr< Sender > invoker, 
+    std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+    Connection& connection, 
+    DbManager& db,
+    bool interactiveMode
+) : 
     Macro(interactiveMode),
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     if (!spectraCmd){
-        spectraCmd = std::make_shared< MssmSpectrumCommand >( connection_ );
+        spectraCmd = std::make_shared< MssmSpectrumCommand >( 
+            connection_,
+            db_
+        );
         invoker -> AddCommand( spectraCmd );
     }
 
@@ -40,13 +51,23 @@ void CriticalAbundanceMacro::Execute(){
         auto particle = &ModelBaseOps::Find( connection_.Model.Particles, key);        
 
         invoker_ -> AddCommand(
-            std::make_shared< BranchingRatioCommand >( connection_, *particle, connection_.Model.Particles )
+            std::make_shared< BranchingRatioCommand >( 
+                connection_, 
+                db_, 
+                *particle, 
+                connection_.Model.Particles 
+            )
         );
 
         std::shared_ptr< double > tempDecay = std::make_shared<double>();
         tempDecays_.push_back( tempDecay );
         invoker_ -> AddCommand(
-            std::make_shared< TempDecayCommand >( connection_, *particle, tempDecay )
+            std::make_shared< TempDecayCommand >( 
+                connection_, 
+                db_,
+                *particle, 
+                tempDecay
+            )
         );
 
         for (auto& lsp : enabledDaughterKeys){
@@ -60,11 +81,21 @@ void CriticalAbundanceMacro::Execute(){
             }
 
             invoker_ -> AddCommand(
-                std::make_shared< CrossSectionCommand >( connection_, particleLSP, tempDecay, fortranStuff )
+                std::make_shared< CrossSectionCommand >( 
+                    connection_, 
+                    db_,
+                    particleLSP, 
+                    tempDecay, 
+                    fortranStuff 
+                )
             );
 
             invoker_ -> AddCommand( 
-                std::make_shared< CriticalAbundanceCommand >( connection_, *particle ) 
+                std::make_shared< CriticalAbundanceCommand >( 
+                    connection_, 
+                    db_,
+                    *particle 
+                ) 
             );
         }
     }

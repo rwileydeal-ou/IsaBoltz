@@ -20,6 +20,7 @@
 class CrossSectionCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     boost::uuids::uuid scaleFactorId_;
     std::shared_ptr< CrossSectionReceiver > receiver_;
     Models::Particle particle_;
@@ -32,6 +33,7 @@ private:
 public:
     CrossSectionCommand(
         Connection& connection, 
+        DbManager& db,
         const Models::Particle& particle, 
         ::shared_ptr< double > temperature, 
         std::shared_ptr< DataRelay > fortranInterface, 
@@ -39,6 +41,7 @@ public:
     );
     CrossSectionCommand(
         Connection& connection, 
+        DbManager& db,
         const Models::Particle& particle, 
         std::shared_ptr< double > temperature, 
         std::shared_ptr< DataRelay > fortranInterface, 
@@ -47,6 +50,7 @@ public:
     );
     CrossSectionCommand(
         Connection& connection, 
+        DbManager& db,
         boost::uuids::uuid particleId, 
         std::shared_ptr< double > temperature, 
         std::shared_ptr< DataRelay > fortranInterface, 

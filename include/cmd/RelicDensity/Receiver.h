@@ -22,7 +22,12 @@ protected:
     virtual double calculateRelicDensity() = 0;
 public:
     ~RelicDensityReceiver();
-    RelicDensityReceiver( Connection& connection, const Models::ParticleEvolution& particleEvo, const Models::Particle& particle, const Models::ScaleFactorPoint& finalScaleFactorPoint );
+    RelicDensityReceiver( 
+        Connection& connection, 
+        const Models::ParticleEvolution& particleEvo, 
+        const Models::Particle& particle, 
+        const Models::ScaleFactorPoint& finalScaleFactorPoint 
+    );
     void Calculate() override;
     Models::RelicDensity getRelicDensity();
 };

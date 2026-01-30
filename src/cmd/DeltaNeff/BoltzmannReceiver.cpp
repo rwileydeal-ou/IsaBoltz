@@ -1,6 +1,11 @@
 #include <cmd/DeltaNeff/BoltzmannReceiver.h>
 
-BoltzmannDeltaNeffReceiver::BoltzmannDeltaNeffReceiver( Connection& connection, const Models::ParticleEvolution& particleEvo, const Models::Particle& particle, const Models::ScaleFactorPoint& finalScaleFactorPoint ) :
+BoltzmannDeltaNeffReceiver::BoltzmannDeltaNeffReceiver( 
+    Connection& connection, 
+    const Models::ParticleEvolution& particleEvo, 
+    const Models::Particle& particle, 
+    const Models::ScaleFactorPoint& finalScaleFactorPoint 
+) :
     DeltaNeffReceiver( connection, particleEvo ),
     particle_(particle),
     finalScaleFactorPoint_(finalScaleFactorPoint)

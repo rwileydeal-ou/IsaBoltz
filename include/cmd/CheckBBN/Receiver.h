@@ -31,6 +31,7 @@ class CheckBBNReceiver : public IReceiver
 {
 private: 
     Connection& connection_;
+    DbManager& db_;
     Models::Particle particle_;
     Models::ParticleEvolution particleEvolution_;
     Models::CheckBBN checkBBN_;
@@ -53,6 +54,7 @@ public:
     ~CheckBBNReceiver();
     CheckBBNReceiver(
         Connection& connection, 
+        DbManager& db,
         Models::Particle& particle, 
         const Models::ParticleEvolution& particleEvolution, 
         const Models::ScaleFactorPoint& scaleFactor, 

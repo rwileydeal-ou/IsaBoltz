@@ -2,7 +2,11 @@
 
 using namespace std;
 
-RadiationReceiver::RadiationReceiver(Connection& connection, std::shared_ptr< Models::ScaleFactorPoint > initialPoint, const Models::Particle& particle) :
+RadiationReceiver::RadiationReceiver(
+    Connection& connection, 
+    std::shared_ptr< Models::ScaleFactorPoint > initialPoint, 
+    const Models::Particle& particle
+) :
     connection_(connection)
 {
     particle_ = particle;

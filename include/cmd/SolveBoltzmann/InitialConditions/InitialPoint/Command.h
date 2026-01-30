@@ -12,11 +12,19 @@
 class InitialPointCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< InitialPointReceiver > receiver_;
     std::shared_ptr< Models::ScaleFactorPoint > initialPoint_;
 public:
-    InitialPointCommand(Connection& connection);
-    InitialPointCommand(Connection& connection, std::shared_ptr< Models::ScaleFactorPoint > initialPoint);
+    InitialPointCommand(
+        Connection& connection,
+        DbManager& db
+    );
+    InitialPointCommand(
+        Connection& connection, 
+        DbManager& db,
+        std::shared_ptr< Models::ScaleFactorPoint > initialPoint
+    );
     ~InitialPointCommand();
     void Execute() override;
 };

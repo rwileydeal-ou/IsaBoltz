@@ -1,11 +1,22 @@
 #include <macros/TempDecayMacro.h>
 
-TempDecayMacro::TempDecayMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, Connection& connection, bool interactiveMode) : 
+TempDecayMacro::TempDecayMacro(
+    CommandWithPayload cmd, 
+    std::shared_ptr< Sender > invoker, 
+    std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+    Connection& connection, 
+    DbManager& db,
+    bool interactiveMode
+) : 
     Macro(interactiveMode),
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     if (!spectraCmd){
-        spectraCmd = std::make_shared< MssmSpectrumCommand >( connection_ );
+        spectraCmd = std::make_shared< MssmSpectrumCommand >( 
+            connection_,
+            db_
+        );
         invoker -> AddCommand( spectraCmd );
     }
 
@@ -25,10 +36,19 @@ void TempDecayMacro::Execute(){
         auto particle = &ModelBaseOps::Find(connection_.Model.Particles, key);        
         // decay temp depends on total width, so need BRs
         invoker_ -> AddCommand( 
-            std::make_shared< BranchingRatioCommand >( connection_, *particle, connection_.Model.Particles ) 
+            std::make_shared< BranchingRatioCommand >( 
+                connection_, 
+                db_, 
+                *particle, 
+                connection_.Model.Particles 
+            ) 
         );
         invoker_ -> AddCommand( 
-            std::make_shared< TempDecayCommand >( connection_, *particle )
+            std::make_shared< TempDecayCommand >( 
+                connection_, 
+                db_,
+                *particle 
+            )
         );
     }
 } 

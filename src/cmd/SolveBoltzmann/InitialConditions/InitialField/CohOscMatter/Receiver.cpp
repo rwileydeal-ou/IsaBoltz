@@ -2,7 +2,11 @@
 
 using namespace std;
 
-CohOscMatterReceiver::CohOscMatterReceiver(Connection& connection, std::shared_ptr< Models::ScaleFactorPoint > initialPoint, const Models::Particle& particle) :
+CohOscMatterReceiver::CohOscMatterReceiver(
+    Connection& connection, 
+    std::shared_ptr< Models::ScaleFactorPoint > initialPoint, 
+    const Models::Particle& particle
+) :
     connection_(connection)
 {
     particle_ = particle;
@@ -52,7 +56,11 @@ double CohOscMatterReceiver::tempOscillate(double mass, double tempReheat, doubl
 }
 
 // TODO: we'll have to revise this to make modular, will work for now
-double CohOscMatterReceiver::rho0(Models::Particle& particle, const ModelBase& model, std::shared_ptr< Models::ScaleFactorPoint > initialPoint){
+double CohOscMatterReceiver::rho0(
+    Models::Particle& particle, 
+    const ModelBase& model, 
+    std::shared_ptr< Models::ScaleFactorPoint > initialPoint
+){
     double amplitude = 0.;
     if (particle.Key == "axion"){
         double fTheta = pow( log( exp(1.) / (1. - pow(model.PQSector.Theta_I / M_PI, 2.) ) ), 7./6. );

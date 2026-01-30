@@ -10,11 +10,17 @@
 class FreezeoutAbundanceCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< FreezeoutAbundanceReceiver > receiver_; 
     Models::Particle particle_;
     boost::uuids::uuid scaleFactorId_;
 public:
-    FreezeoutAbundanceCommand(Connection& connection, Models::Particle& particle, boost::uuids::uuid scaleFactorId);
+    FreezeoutAbundanceCommand(
+        Connection& connection, 
+        DbManager& db,
+        Models::Particle& particle, 
+        boost::uuids::uuid scaleFactorId
+    );
     ~FreezeoutAbundanceCommand();
     void Execute() override;
 };

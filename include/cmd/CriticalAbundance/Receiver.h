@@ -15,12 +15,16 @@ class CriticalAbundanceReceiver : public IReceiver
 {
 private: 
     Connection& connection_;
+    DbManager& db_;
     SigmaV crossSection_;
     double criticalAbundance_;
     double criticalNumberDensity_;
 public:
     ~CriticalAbundanceReceiver();
-    CriticalAbundanceReceiver(Connection& connection);
+    CriticalAbundanceReceiver(
+        Connection& connection,
+        DbManager& db
+    );
     void Calculate() override;
     double getCriticalAbundance();
     double getCriticalNumberDensity();

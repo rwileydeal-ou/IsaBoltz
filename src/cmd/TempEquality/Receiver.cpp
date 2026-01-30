@@ -1,7 +1,13 @@
 #include <cmd/TempEquality/Receiver.h>
 
-TempEqualityReceiver::TempEqualityReceiver(Connection& connection, Models::Particle& particle, double tempReheat) :
+TempEqualityReceiver::TempEqualityReceiver(
+    Connection& connection, 
+    DbManager& db,
+    Models::Particle& particle, 
+    double tempReheat
+) :
     connection_(connection),
+    db_(db),
     particle_(particle)
 {
     tempReheat_ = tempReheat;
@@ -13,8 +19,8 @@ TempEqualityReceiver::~TempEqualityReceiver(){
 
 void TempEqualityReceiver::Calculate(){
     tempEquality_.Temperature = tempEquality();
-    tempEquality_.GStar = GStar::Calculate(connection_, tempEquality_.Temperature);
-    tempEquality_.GStarEntropic = GStar::CalculateEntropic(connection_, tempEquality_.Temperature);
+    tempEquality_.GStar = GStar::Calculate(db_, connection_, tempEquality_.Temperature);
+    tempEquality_.GStarEntropic = GStar::CalculateEntropic(db_, connection_, tempEquality_.Temperature);
 }
 
 Models::TempEquality TempEqualityReceiver::getTempEquality(){

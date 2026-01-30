@@ -1,14 +1,21 @@
 #include <cmd/RelicDensity/BoltzmannReceiver.h>
 
-BoltzmannRelicDensityReceiver::BoltzmannRelicDensityReceiver( Connection& connection, const Models::ParticleEvolution& particleEvo, const Models::Particle& particle, const Models::ScaleFactorPoint& finalScaleFactorPoint ) :
-    RelicDensityReceiver(connection, particleEvo, particle, finalScaleFactorPoint)
+BoltzmannRelicDensityReceiver::BoltzmannRelicDensityReceiver( 
+    Connection& connection, 
+    DbManager& db,
+    const Models::ParticleEvolution& particleEvo, 
+    const Models::Particle& particle, 
+    const Models::ScaleFactorPoint& finalScaleFactorPoint 
+) :
+    RelicDensityReceiver(connection, particleEvo, particle, finalScaleFactorPoint),
+    db_(db)
 {
     // TODO: don't hardcode this!!!
     currentTemperature_ = 2.34816e-13;
-    currentGStarEntropic_ = GStar::CalculateEntropic(connection_, currentTemperature_);
+    currentGStarEntropic_ = GStar::CalculateEntropic( db_, connection_, currentTemperature_);
 
     initialTemperature_ = finalScaleFactorPoint_.Temperature;
-    initialGStarEntropic_ = GStar::CalculateEntropic( connection_, finalScaleFactorPoint_.Temperature );
+    initialGStarEntropic_ = GStar::CalculateEntropic( db_, connection_, finalScaleFactorPoint_.Temperature );
 
     rhoCriticalh2_ = 8.0992e-47;
 }

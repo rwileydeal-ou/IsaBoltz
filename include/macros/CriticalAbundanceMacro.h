@@ -17,13 +17,21 @@
 class CriticalAbundanceMacro : public Macro {
 private:
     Connection& connection_;
+    DbManager& db_;
     CommandWithPayload cmd_;
     std::shared_ptr< MssmSpectrumCommand > spectraCmd_;
     std::shared_ptr< Sender > invoker_;
     bool interactiveMode_;
     std::vector< std::shared_ptr< double > > tempDecays_;
 public:
-    CriticalAbundanceMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, Connection& connection, bool interactiveMode);
+    CriticalAbundanceMacro(
+        CommandWithPayload cmd, 
+        std::shared_ptr< Sender > invoker, 
+        std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+        Connection& connection, 
+        DbManager& db,
+        bool interactiveMode
+    );
     ~CriticalAbundanceMacro();
     void Execute() override;
 };

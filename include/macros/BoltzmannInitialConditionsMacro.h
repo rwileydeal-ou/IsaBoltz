@@ -21,6 +21,7 @@
 class BoltzmannInitialConditionsMacro : public Macro {
 private:
     Connection& connection_;
+    DbManager& db_;
     CommandWithPayload cmd_;
     std::shared_ptr< Sender > invoker_;
     std::shared_ptr< Models::ScaleFactorPoint > initialPoint_;
@@ -28,7 +29,16 @@ private:
     bool interactiveMode_;
     std::vector< std::string > enabledKeys_;
 public:
-    BoltzmannInitialConditionsMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::vector<std::string> enabledKeys, std::shared_ptr< Models::ScaleFactorPoint > initialPoint, bool interactiveMode, std::shared_ptr< DataRelay > fortranInterface, Connection& connection);
+    BoltzmannInitialConditionsMacro(
+        CommandWithPayload cmd, 
+        std::shared_ptr< Sender > invoker, 
+        std::vector<std::string> enabledKeys, 
+        std::shared_ptr< Models::ScaleFactorPoint > initialPoint, 
+        bool interactiveMode, 
+        std::shared_ptr< DataRelay > fortranInterface, 
+        Connection& connection,
+        DbManager& db
+    );
     ~BoltzmannInitialConditionsMacro();
     void Execute() override;
 };

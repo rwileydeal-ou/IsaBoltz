@@ -20,7 +20,7 @@
 class DeltaNeffCommand : public ICommand {
 private:
     Connection& connection_;
-    DbManager db_;
+    DbManager& db_;
     std::shared_ptr< DeltaNeffReceiver > receiver_;
     Models::ParticleEvolution particleEvo_;
     Models::Particle particle_;
@@ -28,10 +28,12 @@ private:
 public:
     DeltaNeffCommand(
         Connection& connection, 
+        DbManager& db,
         std::string particleKey
     );
     DeltaNeffCommand(
         Connection& connection, 
+        DbManager& db,
         Models::Particle& particle, 
         std::vector< std::vector< boost::uuids::uuid > > childrenIdPairs
     );

@@ -4,6 +4,7 @@ using namespace std;
 
 BoltzmannStepBuilderCommand::BoltzmannStepBuilderCommand(
     Connection& connection, 
+    DbManager& db,
     std::shared_ptr< DataRelay > fortranInterface, 
     const Models::ScaleFactorPoint& reheatPoint, 
     const std::vector< Models::ParticleEvolution >& initialParticleEvolutions, 
@@ -12,8 +13,8 @@ BoltzmannStepBuilderCommand::BoltzmannStepBuilderCommand(
     std::map< std::string, Models::TotalWidth >& totalWidths, 
     std::unordered_map< boost::uuids::uuid, Models::Particle, boost::hash<boost::uuids::uuid> >& particleCache
 ) :
-    db_(connection),
     connection_(connection),
+    db_(db),
     reheatPoint_(reheatPoint),
     particles_(particles),
     partialWidths_(partialWidths),
@@ -30,11 +31,9 @@ BoltzmannStepBuilderCommand::BoltzmannStepBuilderCommand(
     currentParticleData_.reserve( initialParticleEvolutions.size() );
 
     resetParticleData();
-    db_.Open();
 }
 
 BoltzmannStepBuilderCommand::~BoltzmannStepBuilderCommand(){
-    db_.Close();
 }
 
 
@@ -425,7 +424,15 @@ void BoltzmannStepBuilderCommand::calculateCrossSection( ParticleData& particle 
     part.Key = particle.ParticleKey;
 
     if ( particle.CrossSectionCmd == nullptr ){
-        particle.CrossSectionCmd = std::make_shared< CrossSectionCommand >( connection_, part, std::make_shared< double >(currentPoint_.Temperature), fortranInterface_, currentPoint_.Id, true );
+        particle.CrossSectionCmd = std::make_shared< CrossSectionCommand >( 
+            connection_, 
+            db_,
+            part, 
+            std::make_shared< double >(currentPoint_.Temperature), 
+            fortranInterface_, 
+            currentPoint_.Id, 
+            true 
+        );
         // wait to post til later, do in batch
         particle.CrossSectionCmd -> PostResult(false);
     }
@@ -447,7 +454,7 @@ void BoltzmannStepBuilderCommand::handleTemperatureDependence( ParticleData& par
         throw logic_error("Failed to find particle");
     }
 
-    BranchingRatioCommand brCmd( connection_, *newParticle, particles_, true );
+    BranchingRatioCommand brCmd( connection_, db_, *newParticle, particles_, true );
     brCmd.PostResult(false);
     brCmd.Execute();
     auto brResult = brCmd.getResult();
@@ -583,7 +590,7 @@ void BoltzmannStepBuilderCommand::addComponents(){
     }
 
     BoltzmannData data( currentParticleData_, currentPoint_, reheatPoint_, particles_, partialWidths_ );
-    BoltzmannBuilder b(connection_, data, particleCache_);
+    BoltzmannBuilder b(connection_, db_, data, particleCache_);
 
     int i = 0;
 

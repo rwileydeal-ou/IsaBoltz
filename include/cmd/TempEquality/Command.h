@@ -13,11 +13,17 @@
 class TempEqualityCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< TempEqualityReceiver > receiver_;
     Models::Particle particle_;
     ParticleProductionMechanism production_;
 public:
-    TempEqualityCommand(Connection& connection, Models::Particle& particle, ParticleProductionMechanism productionMechanism);
+    TempEqualityCommand(
+        Connection& connection, 
+        DbManager& db,
+        Models::Particle& particle, 
+        ParticleProductionMechanism productionMechanism
+    );
     ~TempEqualityCommand();
     void Execute() override;
 };

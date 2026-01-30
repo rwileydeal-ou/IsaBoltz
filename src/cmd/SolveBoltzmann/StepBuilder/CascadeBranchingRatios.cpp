@@ -4,12 +4,13 @@ using namespace std;
 
 CascadeBranchingRatios::CascadeBranchingRatios(
     Connection& connection, 
+    DbManager& db,
     const BoltzmannData& data,
     std::unordered_map< boost::uuids::uuid, Models::Particle, boost::hash<boost::uuids::uuid> >& particleCache
 ) : 
     connection_(connection),
     data_(data),
-    db_(connection),
+    db_(db),
     particleCache_(particleCache)
 {
 }
@@ -38,14 +39,12 @@ const Models::Particle& CascadeBranchingRatios::pullParticle(
     }
 
     // ---- 3. Fallback to DB (should happen only once per unknown particle) ----
-    db_.Open();
     Models::Particle p;
     auto statement = Statements::Particle(p, Statements::StatementType::Read);
     auto filter = Filters::Particle(particleId, Filters::WhereUUID::Id);
     statement.AddFilter(filter);
     auto cb = Callbacks::Particle();
     db_.Execute(statement, cb.Callback, cb.CallbackReturn);
-    db_.Close();
 
     if (cb.CallbackReturn.Particles.size() != 1)
         throw std::logic_error("Could not pull unique particle");

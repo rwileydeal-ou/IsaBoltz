@@ -1,11 +1,22 @@
 #include <macros/CrossSectionMacro.h>
 
-CrossSectionMacro::CrossSectionMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, Connection& connection, bool interactiveMode) : 
+CrossSectionMacro::CrossSectionMacro(
+    CommandWithPayload cmd, 
+    std::shared_ptr< Sender > invoker, 
+    std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+    Connection& connection, 
+    DbManager& db,
+    bool interactiveMode
+) : 
     Macro(interactiveMode),
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     if (!spectraCmd){
-        spectraCmd = std::make_shared< MssmSpectrumCommand >( connection_ );
+        spectraCmd = std::make_shared< MssmSpectrumCommand >( 
+            connection_,
+            db_
+        );
         invoker -> AddCommand( spectraCmd );
     }
 
@@ -36,7 +47,13 @@ void CrossSectionMacro::Execute(){
             );
         }
         invoker_ -> AddCommand( 
-            std::make_shared< CrossSectionCommand >( connection_, particle, temp_, fortranStuff ) 
+            std::make_shared< CrossSectionCommand >( 
+                connection_, 
+                db_,
+                particle, 
+                temp_, 
+                fortranStuff 
+            ) 
         );
     }
 }

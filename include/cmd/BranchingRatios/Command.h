@@ -12,23 +12,23 @@
 class BranchingRatioCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< BranchingRatioReceiver > receiver_;
     Models::Particle particle_;
     const std::vector< Models::Particle >& particles_;
     bool postResult_;
     bool squashLogs_;
     void postSqlTotalWidth(
-        DbManager& db, 
         BranchingFraction& result
     );
     void postSqlPartialWidths(
-        DbManager& db, 
         BranchingFraction& result
     );
     void postResult();
 public:
     BranchingRatioCommand(
         Connection& connection, 
+        DbManager& db,
         Models::Particle& particle, 
         const std::vector< Models::Particle >& particles, 
         bool squashLogs = false

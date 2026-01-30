@@ -13,11 +13,16 @@ class InitialPointReceiver : public IReceiver
 {
 private: 
     Connection& connection_;
+    DbManager& db_;
     Models::ScaleFactorPoint initialPoint_;
     boost::property_tree::ptree& outputTree_;
 public:
     ~InitialPointReceiver();
-    InitialPointReceiver(Connection& connection, boost::property_tree::ptree& model_tree);
+    InitialPointReceiver(
+        Connection& connection, 
+        DbManager& db,
+        boost::property_tree::ptree& model_tree
+    );
     void Calculate() override;
     Models::ScaleFactorPoint getInitialPoint();
 };

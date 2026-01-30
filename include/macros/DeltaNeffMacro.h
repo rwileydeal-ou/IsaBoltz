@@ -19,11 +19,19 @@
 class DeltaNeffMacro : public Macro {
 private:
     Connection& connection_;
+    DbManager& db_;
     CommandWithPayload cmd_;
     std::shared_ptr< Sender > invoker_;
     bool interactiveMode_;
 public:
-    DeltaNeffMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, Connection& connection, bool interactiveMode);
+    DeltaNeffMacro(
+        CommandWithPayload cmd, 
+        std::shared_ptr< Sender > invoker, 
+        std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+        Connection& connection, 
+        DbManager& db,
+        bool interactiveMode
+    );
     ~DeltaNeffMacro();
     void Execute() override;
 };

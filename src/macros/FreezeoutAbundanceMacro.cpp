@@ -2,12 +2,23 @@
 
 using namespace std;
 
-FreezeoutAbundanceMacro::FreezeoutAbundanceMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, Connection& connection, bool interactiveMode) : 
+FreezeoutAbundanceMacro::FreezeoutAbundanceMacro(
+    CommandWithPayload cmd, 
+    std::shared_ptr< Sender > invoker, 
+    std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+    Connection& connection, 
+    DbManager& db,
+    bool interactiveMode
+) : 
     Macro(interactiveMode),
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     if (!spectraCmd){
-        spectraCmd = std::make_shared< MssmSpectrumCommand >( connection_ );
+        spectraCmd = std::make_shared< MssmSpectrumCommand >( 
+            connection_,
+            db_
+        );
         invoker -> AddCommand( spectraCmd );
     }
 
@@ -46,11 +57,23 @@ void FreezeoutAbundanceMacro::Execute(){
 
         auto scaleId = boost::uuids::random_generator()();
         invoker_ -> AddCommand(
-            std::make_shared< CrossSectionCommand >( connection_, particle, tempFreezeout, fortranStuff, scaleId )
+            std::make_shared< CrossSectionCommand >( 
+                connection_, 
+                db_,
+                particle, 
+                tempFreezeout, 
+                fortranStuff, 
+                scaleId 
+            )
         );
 
         invoker_ -> AddCommand( 
-            std::make_shared< FreezeoutAbundanceCommand >( connection_, particle, scaleId )
+            std::make_shared< FreezeoutAbundanceCommand >( 
+                connection_, 
+                db_,
+                particle, 
+                scaleId 
+            )
         );
     }
 }

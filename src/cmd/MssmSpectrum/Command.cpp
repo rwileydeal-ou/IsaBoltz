@@ -1,10 +1,18 @@
 #include <cmd/MssmSpectrum/Command.h>
 
-MssmSpectrumCommand::MssmSpectrumCommand(Connection& connection) : 
-    connection_(connection) 
+MssmSpectrumCommand::MssmSpectrumCommand(
+    Connection& connection,
+    DbManager& db
+) : 
+    connection_(connection),
+    db_(db)
 {
     this -> fortLib_ = std::make_shared< DataRelay >(connection_.Log);
-    this -> receiver_ = std::make_shared< MssmSpectrumReceiver >( connection_, fortLib_ );
+    this -> receiver_ = std::make_shared< MssmSpectrumReceiver >( 
+        connection_, 
+        db_,
+        fortLib_ 
+    );
     this -> receiver_ -> Calculate();
 }
 

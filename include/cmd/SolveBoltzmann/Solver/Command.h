@@ -40,6 +40,7 @@
 class BoltzmannSolverCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< DataRelay > fortranInterface_;
     Models::ScaleFactorPoint reheatPoint_;
     double finalTemp_;
@@ -52,7 +53,6 @@ private:
     typedef boost::numeric::odeint::rosenbrock4 <state_type> error_stepper_type;
 
     Models::ParticleEvolution pullParticleEvolution( 
-        DbManager& db, 
         std::string particleKey, 
         ParticleProductionMechanism productionMechanism, 
         boost::uuids::uuid scaleFactorId 
@@ -81,6 +81,7 @@ private:
 public:
     BoltzmannSolverCommand(
         Connection& connection, 
+        DbManager& db_,
         std::shared_ptr< DataRelay > fortranInterface, 
         boost::uuids::uuid reheatScaleFactorId, 
         double finalTemp, 

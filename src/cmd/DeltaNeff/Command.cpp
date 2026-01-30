@@ -4,11 +4,12 @@ using namespace std;
 
 DeltaNeffCommand::DeltaNeffCommand(
     Connection& connection, 
+    DbManager& db,
     Models::Particle& particle, 
     std::vector< std::vector< boost::uuids::uuid > > childrenIdPairs
 ) :
     connection_(connection),
-    db_(connection)
+    db_(db)
 {
     particle_ = particle;
     Models::ParticleEvolution particleEvo;
@@ -16,6 +17,7 @@ DeltaNeffCommand::DeltaNeffCommand(
     particleEvo.InputId = connection.InputId;
     this -> receiver_ = std::make_shared< EstimateDeltaNeffReceiver >( 
         connection_, 
+        db_,
         particleEvo, 
         particle_, 
         childrenIdPairs 
@@ -23,13 +25,14 @@ DeltaNeffCommand::DeltaNeffCommand(
 }
 // This constructor computes Delta Neff for <enabledKey>
 // Assumes there is already a ParticleEvolution object in the database, computes DeltaNeff from 
-DeltaNeffCommand::DeltaNeffCommand(Connection& connection, std::string enabledKey) :
+DeltaNeffCommand::DeltaNeffCommand(
+    Connection& connection, 
+    DbManager& db,
+    std::string enabledKey
+) :
     connection_(connection),
-    db_(connection)
-{
-    // need to pull particle evolution from db in this case
-    db_.Open();
-    
+    db_(db)
+{    
     // first pull final scale factor
     auto statementScale = Statements::ScaleFactor( 
         finalScaleFactorPoint_, 
@@ -121,7 +124,6 @@ DeltaNeffCommand::DeltaNeffCommand(Connection& connection, std::string enabledKe
     );
 }
 DeltaNeffCommand::~DeltaNeffCommand(){
-    db_.Close();
 }
 
 void DeltaNeffCommand::Execute(){

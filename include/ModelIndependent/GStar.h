@@ -67,14 +67,11 @@ public:
         double T
     );
     static double Calculate(
+        DbManager& db, 
         Connection& connection, 
         double T
     );
     static double CalculateEntropic(
-        Connection& connection, 
-        double T
-    );
-    static double Calculate(
         DbManager& db, 
         Connection& connection, 
         double T

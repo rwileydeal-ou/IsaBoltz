@@ -13,6 +13,7 @@ class TempEqualityReceiver : public IReceiver
 {
 private: 
     Connection& connection_;
+    DbManager& db_;
     Models::Particle& particle_;
 protected:
     Models::TempEquality tempEquality_;
@@ -20,7 +21,12 @@ protected:
     virtual double tempEquality() = 0;
 public:
     ~TempEqualityReceiver();
-    TempEqualityReceiver(Connection& connection, Models::Particle& particle, double tempReheat);
+    TempEqualityReceiver(
+        Connection& connection, 
+        DbManager& db,
+        Models::Particle& particle, 
+        double tempReheat
+    );
     void Calculate() override;
     Models::TempEquality getTempEquality();
 };

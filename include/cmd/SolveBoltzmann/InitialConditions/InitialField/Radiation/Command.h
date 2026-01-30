@@ -15,13 +15,18 @@
 class RadiationCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< RadiationReceiver > receiver_;
     Models::Particle particle_;
     std::shared_ptr< Models::ScaleFactorPoint > initialPoint_;
     void pullParticle();
     void postBoltzmannParticleEvolution( const Models::ParticleEvolution& particleEvolution);
 public:
-    RadiationCommand(Connection& connection, std::shared_ptr< Models::ScaleFactorPoint > initialPoint);
+    RadiationCommand(
+        Connection& connection, 
+        DbManager& db,
+        std::shared_ptr< Models::ScaleFactorPoint > initialPoint
+    );
     ~RadiationCommand();
     void Execute() override;
 };

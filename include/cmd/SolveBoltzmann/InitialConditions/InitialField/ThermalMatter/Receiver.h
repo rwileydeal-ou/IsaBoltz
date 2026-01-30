@@ -19,6 +19,7 @@ class ThermalMatterReceiver : public IReceiver
 {
 private: 
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< Models::ScaleFactorPoint > initialPoint_;
     Models::Particle particle_;
     Models::ParticleEvolution boltzmannParticleEvolution_;
@@ -28,7 +29,12 @@ private:
     SigmaV getCrossSection();
 public:
     ~ThermalMatterReceiver();
-    ThermalMatterReceiver(Connection& connection, std::shared_ptr< Models::ScaleFactorPoint > initialPoint, const Models::Particle& particle);
+    ThermalMatterReceiver(
+        Connection& connection, 
+        DbManager& db,
+        std::shared_ptr< Models::ScaleFactorPoint > initialPoint, 
+        const Models::Particle& particle
+    );
     void Calculate() override;
     Models::ParticleEvolution getBoltzmannParticleEvolution();
 };

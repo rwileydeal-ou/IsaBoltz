@@ -1,17 +1,17 @@
 #include <cmd/CriticalAbundance/Receiver.h>
 
-CriticalAbundanceReceiver::CriticalAbundanceReceiver(Connection& connection) : 
-    connection_(connection)
+CriticalAbundanceReceiver::CriticalAbundanceReceiver(
+    Connection& connection,
+    DbManager& db
+) : 
+    connection_(connection),
+    db_(db)
 {
-    DbManager db(connection_);
-    db.Open();
     auto statement = Statements::CrossSection(crossSection_, Statements::StatementType::Read);
     auto cb = Callbacks::CrossSection();
     auto filter = Filters::CrossSection(connection_.InputId, connection_.InputId, connection_.InputId);
     statement.AddFilter( filter );
-    db.Execute( statement, cb.Callback, cb.CallbackReturn );
-
-    db.Close();
+    db_.Execute( statement, cb.Callback, cb.CallbackReturn );
 
     crossSection_ = cb.CallbackReturn.crossSections.front();
 }
@@ -20,8 +20,8 @@ CriticalAbundanceReceiver::~CriticalAbundanceReceiver(){
 
 void CriticalAbundanceReceiver::Calculate(){
     double tempDecay = crossSection_.Temperature;
-    double gStr = GStar::Calculate(connection_, tempDecay);
-    double gStrEnt = GStar::CalculateEntropic(connection_, tempDecay);
+    double gStr = GStar::Calculate(db_, connection_, tempDecay);
+    double gStrEnt = GStar::CalculateEntropic(db_, connection_, tempDecay);
 
     criticalAbundance_ = 45. / (2. * M_PI * connection_.Model.Constants.mPlanck * sqrt( 10. ) )
         * sqrt(gStr) / ( ( crossSection_.CrossSection ) * gStrEnt * tempDecay );

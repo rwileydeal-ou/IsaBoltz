@@ -1,7 +1,12 @@
 #include <cmd/SolveBoltzmann/InitialConditions/InitialPoint/Receiver.h>
 
-InitialPointReceiver::InitialPointReceiver(Connection& connection, boost::property_tree::ptree& model_tree) :
+InitialPointReceiver::InitialPointReceiver(
+    Connection& connection, 
+    DbManager& db,
+    boost::property_tree::ptree& model_tree
+) :
     connection_(connection),
+    db_(db),
     outputTree_(model_tree)
 {
     initialPoint_.InputId = connection_.InputId;
@@ -12,8 +17,8 @@ InitialPointReceiver::~InitialPointReceiver(){
 
 void InitialPointReceiver::Calculate(){
     initialPoint_.Temperature = connection_.Model.Cosmology.Temperatures.Reheat;
-    initialPoint_.GStar = GStar::Calculate(connection_, connection_.Model.Cosmology.Temperatures.Reheat);
-    initialPoint_.GStarEntropic = GStar::CalculateEntropic(connection_, connection_.Model.Cosmology.Temperatures.Reheat);
+    initialPoint_.GStar = GStar::Calculate(db_, connection_, connection_.Model.Cosmology.Temperatures.Reheat);
+    initialPoint_.GStarEntropic = GStar::CalculateEntropic(db_, connection_, connection_.Model.Cosmology.Temperatures.Reheat);
     initialPoint_.ScaleFactor = 1.;
     
     // This is technically S(TR) / R_0^3, we keep this defn for entropy throughout

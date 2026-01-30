@@ -26,14 +26,25 @@
 class RelicDensityCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< RelicDensityReceiver > receiver_;
     Models::ParticleEvolution particleEvo_;
     Models::Particle particle_;
     Models::ScaleFactorPoint finalScaleFactorPoint_;
     void postRelicDensity( const Models::RelicDensity& relicDensity );
 public:
-    RelicDensityCommand(Connection& connection, const Models::ParticleEvolution& particleEvo, const Models::Particle& particle, const Models::ScaleFactorPoint& finalScaleFactorPoint );
-    RelicDensityCommand(Connection& connection, std::string enabledKey);
+    RelicDensityCommand(
+        Connection& connection, 
+        DbManager& db,
+        const Models::ParticleEvolution& particleEvo, 
+        const Models::Particle& particle, 
+        const Models::ScaleFactorPoint& finalScaleFactorPoint 
+    );
+    RelicDensityCommand(
+        Connection& connection, 
+        DbManager& db,
+        std::string enabledKey
+    );
     ~RelicDensityCommand();
     void Execute() override;
 };

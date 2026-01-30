@@ -2,12 +2,23 @@
 
 using namespace std;
 
-TempEqualityMacro::TempEqualityMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, Connection& connection, bool interactiveMode) : 
+TempEqualityMacro::TempEqualityMacro(
+    CommandWithPayload cmd, 
+    std::shared_ptr< Sender > invoker, 
+    std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+    Connection& connection, 
+    DbManager& db,
+    bool interactiveMode
+) : 
     Macro(interactiveMode),
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     if (! spectraCmd){
-        spectraCmd = std::make_shared< MssmSpectrumCommand >( connection_ );
+        spectraCmd = std::make_shared< MssmSpectrumCommand >( 
+            connection_,
+            db_
+        );
         invoker -> AddCommand( spectraCmd );
     }
 
@@ -29,14 +40,28 @@ void TempEqualityMacro::Execute(){
             auto particle = &ModelBaseOps::Find(connection_.Model.Particles, splitKey[1]);
             if (splitKey[0] == "thermal"){
                 invoker_ -> AddCommand( 
-                    std::make_shared< TempEqualityCommand >( connection_, *particle, ParticleProductionMechanism::THERMAL ) 
+                    std::make_shared< TempEqualityCommand >( 
+                        connection_, 
+                        db_,
+                        *particle, 
+                        ParticleProductionMechanism::THERMAL 
+                    ) 
                 );
             } else if (splitKey[0] == "cohosc"){
                 invoker_ -> AddCommand( 
-                    std::make_shared< TempOscillationCommand >( connection_, *particle ) 
+                    std::make_shared< TempOscillationCommand >( 
+                        connection_, 
+                        db_,
+                        *particle 
+                    ) 
                 );
                 invoker_ -> AddCommand( 
-                    std::make_shared< TempEqualityCommand >( connection_, *particle, ParticleProductionMechanism::COHERENT_OSCILLATION ) 
+                    std::make_shared< TempEqualityCommand >( 
+                        connection_, 
+                        db_,
+                        *particle, 
+                        ParticleProductionMechanism::COHERENT_OSCILLATION 
+                    ) 
                 );
             } else{
                 throw_with_trace( NotImplementedException() );

@@ -2,15 +2,32 @@
 
 using namespace std;
 
-InitialPointCommand::InitialPointCommand(Connection& connection) :
-    connection_(connection)
+InitialPointCommand::InitialPointCommand(
+    Connection& connection,
+    DbManager& db
+) :
+    connection_(connection),
+    db_(db)
 {
-    this -> receiver_ = std::make_shared< InitialPointReceiver >( connection_, connection_.OutputTree );
+    this -> receiver_ = std::make_shared< InitialPointReceiver >( 
+        connection_,
+        db_,
+        connection_.OutputTree 
+    );
 }
-InitialPointCommand::InitialPointCommand(Connection& connection, std::shared_ptr< Models::ScaleFactorPoint > initialPoint) :
-    connection_(connection)
+InitialPointCommand::InitialPointCommand(
+    Connection& connection, 
+    DbManager& db,
+    std::shared_ptr< Models::ScaleFactorPoint > initialPoint
+) :
+    connection_(connection),
+    db_(db)
 {
-    this -> receiver_ = std::make_shared< InitialPointReceiver >( connection_, connection_.OutputTree );
+    this -> receiver_ = std::make_shared< InitialPointReceiver >( 
+        connection_, 
+        db_,
+        connection_.OutputTree 
+    );
     this -> initialPoint_ = initialPoint;
 } 
 
@@ -28,11 +45,8 @@ void InitialPointCommand::Execute(){
     (*initialPoint_).ScaleFactor = a.ScaleFactor;
     (*initialPoint_).Temperature = a.Temperature;
 
-    DbManager db(connection_);
-    db.Open();
     auto statement = Statements::ScaleFactor( *initialPoint_, Statements::Create );
-    db.Execute( statement );
-    db.Close();
+    db_.Execute( statement );
 
     ostringstream logEntry;
     logEntry << "Initial temperature: " << initialPoint_ -> Temperature << " GeV";

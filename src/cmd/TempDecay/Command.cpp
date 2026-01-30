@@ -2,17 +2,28 @@
 
 using namespace std;
 
-TempDecayCommand::TempDecayCommand(Connection& connection, Models::Particle& particle) :
-    connection_(connection)
+TempDecayCommand::TempDecayCommand(
+    Connection& connection, 
+    DbManager& db,
+    Models::Particle& particle
+) :
+    connection_(connection),
+    db_(db)
 {
     particle_ = particle;
-    this -> receiver_ = std::make_shared< TempDecayReceiver >( connection_, particle_ );
+    this -> receiver_ = std::make_shared< TempDecayReceiver >( connection_, db_, particle_ );
 }
-TempDecayCommand::TempDecayCommand(Connection& connection, Models::Particle& particle, std::shared_ptr< double > tempDecay) :
-    connection_(connection)
+TempDecayCommand::TempDecayCommand(
+    Connection& connection, 
+    DbManager& db,
+    Models::Particle& particle, 
+    std::shared_ptr< double > tempDecay
+) :
+    connection_(connection),
+    db_(db)
 {
     particle_ = particle;
-    this -> receiver_ = std::make_shared< TempDecayReceiver >( connection_, particle_ );
+    this -> receiver_ = std::make_shared< TempDecayReceiver >( connection_, db_, particle_ );
     this -> tempDecay_ = tempDecay;
 }
 TempDecayCommand::~TempDecayCommand(){
@@ -27,11 +38,8 @@ void TempDecayCommand::Execute(){
         tempDecay_ = std::make_shared<double>(a.Temperature);
     }
 
-    DbManager db(connection_.SqlConnectionString, connection_.Log);
-    db.Open();
     auto statement = Statements::TempDecay( a, Statements::Create );
-    db.Execute( statement );
-    db.Close();
+    db_.Execute( statement );
 
     ostringstream logEntry;
     logEntry << "Decay temperature for " << particle_.Key << ": " << *tempDecay_ << " GeV";

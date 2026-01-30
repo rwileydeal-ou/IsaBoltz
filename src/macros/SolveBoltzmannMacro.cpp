@@ -1,11 +1,22 @@
 #include <macros/SolveBoltzmannMacro.h>
 
-SolveBoltzmannMacro::SolveBoltzmannMacro(CommandWithPayload cmd, std::shared_ptr< Sender > invoker, std::shared_ptr< MssmSpectrumCommand >& spectraCmd, bool interactiveMode, Connection& connection) :
+SolveBoltzmannMacro::SolveBoltzmannMacro(
+    CommandWithPayload cmd, 
+    std::shared_ptr< Sender > invoker, 
+    std::shared_ptr< MssmSpectrumCommand >& spectraCmd, 
+    bool interactiveMode, 
+    Connection& connection,
+    DbManager& db
+) :
     Macro(interactiveMode),
-    connection_(connection)
+    connection_(connection),
+    db_(db)
 {
     if (!spectraCmd){
-        spectraCmd = std::make_shared< MssmSpectrumCommand >(connection_);
+        spectraCmd = std::make_shared< MssmSpectrumCommand >(
+            connection_,
+            db_
+        );
         invoker -> AddCommand( spectraCmd );
     }
 
@@ -19,7 +30,10 @@ SolveBoltzmannMacro::SolveBoltzmannMacro(CommandWithPayload cmd, std::shared_ptr
 SolveBoltzmannMacro::~SolveBoltzmannMacro(){
 }
 
-void SolveBoltzmannMacro::setInitialConditions(const std::vector<std::string>& enabledKeys, std::shared_ptr< DataRelay >& fortranInterface){
+void SolveBoltzmannMacro::setInitialConditions(
+    const std::vector<std::string>& enabledKeys, 
+    std::shared_ptr< DataRelay >& fortranInterface
+){
     // for now, we're just starting the initial conditions at reheat
     // TODO: configure with possibly inflationary scenario, or other initial condition options(?)
     BoltzmannInitialConditionsMacro initialConditions(
@@ -29,7 +43,8 @@ void SolveBoltzmannMacro::setInitialConditions(const std::vector<std::string>& e
         reheatPoint_,
         interactiveMode_,
         fortranInterface,
-        connection_
+        connection_,
+        db_
     );
 
     initialConditions.Execute();
@@ -42,6 +57,7 @@ void SolveBoltzmannMacro::solveBoltzmannEqns(
     double finalTemp = connection_.Model.Cosmology.Temperatures.Final;
     BoltzmannSolverCommand solveCmd(
         connection_, 
+        db_,
         fortranInterface,
         reheatPoint_ -> Id, 
         finalTemp, 
@@ -63,24 +79,28 @@ void SolveBoltzmannMacro::Execute(){
     for ( auto& key : enabledKeys ){
         RelicDensityCommand oh2Cmd(
             connection_, 
+            db_,
             key 
         );
         oh2Cmd.Execute();
 
         DeltaNeffCommand dneffCmd(
             connection_,
+            db_,
             key
         );
         dneffCmd.Execute();
 
         CheckBBNCommand checkBBNCmd(
             connection_,
+            db_,
             key
         );
         checkBBNCmd.Execute();
     }
     RelicDensityCommand oh2RadCmd(
         connection_, 
+        db_,
         "photon"
     );
     oh2RadCmd.Execute();

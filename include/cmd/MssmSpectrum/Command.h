@@ -10,11 +10,15 @@
 class MssmSpectrumCommand : public ICommand {
 private:
     Connection& connection_;
+    DbManager& db_;
     std::shared_ptr< MssmSpectrumReceiver > receiver_;
     std::shared_ptr< DataRelay > fortLib_;
 public:
     std::shared_ptr< DataRelay > getFortranInterface();
-    MssmSpectrumCommand(Connection& connection);
+    MssmSpectrumCommand(
+        Connection& connection,
+        DbManager& db
+    );
     ~MssmSpectrumCommand();
     void Execute() override;
 };

@@ -1,9 +1,15 @@
 #include <cmd/TempEquality/CohOscReceiver.h>
 
-CohOscTempEqualityReceiver::CohOscTempEqualityReceiver(Connection& connection, Models::Particle& particle, double tempReheat) :
+CohOscTempEqualityReceiver::CohOscTempEqualityReceiver(
+    Connection& connection, 
+    DbManager& db,
+    Models::Particle& particle, 
+    double tempReheat
+) :
     connection_(connection),
+    db_(db),
     particle_(particle),
-    TempEqualityReceiver(connection, particle, tempReheat)
+    TempEqualityReceiver(connection, db_, particle, tempReheat)
 {
     tempEquality_.ProductionMechanism = ParticleProductionMechanism::COHERENT_OSCILLATION;
 }
@@ -12,7 +18,7 @@ CohOscTempEqualityReceiver::~CohOscTempEqualityReceiver(){
 
 // This method calculates Temp_eq for coh. osc. fields if T_e < T_osc < T_R
 double CohOscTempEqualityReceiver::tempEq_lessThan_tempOsc_lessThan_TR(double tempOsc){
-    double gstr = GStar::Calculate( connection_, tempOsc );
+    double gstr = GStar::Calculate( db_, connection_, tempOsc );
     // here we're assuming that the field has started to oscillate
     double tempEq = 1.5 * pow(
         particle_.CohOscComponents.Amplitude / connection_.Model.Constants.mPlanck, 2.)
@@ -24,11 +30,11 @@ double CohOscTempEqualityReceiver::tempEq_lessThan_tempOsc_lessThan_TR(double te
 double CohOscTempEqualityReceiver::tempEq_TR_lessThan_Te_lessThan_tempOsc(double initialGuess){
     double T1 = 0.;
     double dT = 0.;
-    double gstrTR = GStar::Calculate(connection_, tempReheat_);
+    double gstrTR = GStar::Calculate(db_, connection_, tempReheat_);
     
     auto a = (initialGuess-T1) / initialGuess;
     while( (initialGuess-T1) / initialGuess > 0.01){
-        double gstrTe = GStar::Calculate(connection_, initialGuess);
+        double gstrTe = GStar::Calculate(db_, connection_, initialGuess);
 
         T1 = pow( 
             2. * pow(connection_.Model.Constants.mPlanck, 2.) * gstrTR 
@@ -53,7 +59,7 @@ double CohOscTempEqualityReceiver::tempEq_greaterThan_tempOsc(double initialGues
 
     auto a = (initialGuess-T1) / initialGuess;
     while( (initialGuess-T1) / initialGuess > 0.01){
-        double gstr = GStar::Calculate(connection_, initialGuess);
+        double gstr = GStar::Calculate(db_, connection_, initialGuess);
 
         T1 = sqrt( 
             particle_.CohOscComponents.Amplitude * particle_.Mass 
@@ -73,14 +79,11 @@ double CohOscTempEqualityReceiver::tempEq_greaterThan_tempOsc(double initialGues
 Models::TempOscillation CohOscTempEqualityReceiver::pullTempOsc(){
     Models::TempOscillation tempOsc;
  
-    DbManager db(connection_);
-    db.Open();
     auto statement = Statements::TempOsc(tempOsc, Statements::StatementType::Read);
     auto filter = Filters::TempOsc(connection_.InputId, particle_.Id);
     statement.AddFilter( filter );
     auto cb = Callbacks::TempOsc();
-    db.Execute( statement, cb.Callback, cb.CallbackReturn );
-    db.Close();
+    db_.Execute( statement, cb.Callback, cb.CallbackReturn );
 
     if (cb.CallbackReturn.TempOscs.size() != 1){
         throw_with_trace( std::logic_error("Could not find unique TempOscillate") );

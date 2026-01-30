@@ -1,6 +1,9 @@
 #include <cmd/DeltaNeff/Receiver.h>
 
-DeltaNeffReceiver::DeltaNeffReceiver( Connection& connection, const Models::ParticleEvolution& particleEvo ) :
+DeltaNeffReceiver::DeltaNeffReceiver( 
+    Connection& connection, 
+    const Models::ParticleEvolution& particleEvo 
+) :
     connection_(connection),
     particleEvo_(particleEvo)
 {

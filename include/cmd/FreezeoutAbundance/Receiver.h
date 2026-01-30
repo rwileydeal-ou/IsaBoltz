@@ -15,6 +15,7 @@ class FreezeoutAbundanceReceiver : public IReceiver
 {
 private: 
     Connection& connection_;
+    DbManager& db_;
     Models::Particle& particle_;
     boost::uuids::uuid scaleFactorId_;
     double freezeoutAbundance_;
@@ -22,7 +23,12 @@ private:
     SigmaV getCrossSection();
 public:
     ~FreezeoutAbundanceReceiver();
-    FreezeoutAbundanceReceiver(Connection& connection, Models::Particle& particle, boost::uuids::uuid scaleFactorId);
+    FreezeoutAbundanceReceiver(
+        Connection& connection, 
+        DbManager& db,
+        Models::Particle& particle, 
+        boost::uuids::uuid scaleFactorId
+    );
     void Calculate() override;
     double getFreezeoutAbundance();
     double getFreezeoutNumberDensity();

@@ -2,7 +2,7 @@
 #           Run Options             #
 #####################################
 
-Cluster             =   True        # set to True to run on the cluster, set to False to run locally
+Cluster             =   False        # set to True to run on the cluster, set to False to run locally
 #Scheduler           =   Slurm       # currently unused - for future implementation to use with other schedulers/clusters
 CombineFiles        =   True        # set to True to combine multiple scan points to single file
 
@@ -25,5 +25,5 @@ Email               =   wileydeal@wisc.edu # email address to receive updates on
 #          Logging Config           #
 #####################################
 
-LogLevel            =   info
+LogLevel            =   debug
 

@@ -107,25 +107,17 @@ public:
     // Core Radau5 Implicit Step Implementation
     //----------------------------------------------------------------------
     template<class System, class Jacobian>
-    controlled_step_result_type try_step(
-        System &system,
-        Jacobian &jacobian,
-        state_type &x,
-        time_type &t,
-        time_type &dt
-    )
+    controlled_step_result_type try_step(System &system, Jacobian &jacobian,
+                                         state_type &x, time_type &t, time_type &dt)
     {
         using namespace boost::numeric::ublas;
         const size_t n = x.size();
         assert(n > 0);
 
         const value_type dt_min = 1e-16;
-        const int max_retries = 5;
         const int max_newton = 7;
-        const value_type newton_tol = 1e-4;
-        const value_type max_dt = 1.0;
 
-        // Radau IIA coefficients
+        // ----- Radau IIA coefficients -----
         const value_type sq6 = std::sqrt(6.0);
         const value_type c[3] = { (4.0 - sq6)/10.0, (4.0 + sq6)/10.0, 1.0 };
         const value_type a[3][3] = {
@@ -136,172 +128,132 @@ public:
         const value_type b[3] = { a[2][0], a[2][1], a[2][2] };
         const value_type b_hat[3] = { 0.19681547722366, 0.39442431473909, 0.21132486540519 };
 
-        // Stage storage (preallocated)
-        state_type K[3] = { state_type(n, 0.0), state_type(n, 0.0), state_type(n, 0.0) };
-        state_type F[3] = { state_type(n, 0.0), state_type(n, 0.0), state_type(n, 0.0) };
+        // ----- Hairer–Wanner reduced system eigenvalues -----
+        const value_type lambda1 = 0.1858923020;
+        const value_type lambda2r = 0.5;
+        const value_type lambda2i = 0.2886751346; // sqrt(1/12)
 
-        // Block Jacobian matrix (preallocated)
-        matrix_type M(3*n, 3*n);
-        vector<value_type> rhs(3*n);
+        // Stage vectors
+        state_type K1(n, 0.0), K2r(n, 0.0), K2i(n, 0.0);
+        state_type F1(n, 0.0), F2r(n, 0.0), F2i(n, 0.0);
 
-        bool step_success = false;
-        bool jacobian_needs_update = true;
+        state_type f0(n);
+        system(x, f0, t);
 
-        for(int retry = 0; retry < max_retries; ++retry)
+        // Initial guess
+        K1 = K2r = K2i = f0;
+
+        // Jacobian
+        jacobian(x, m_J, t);
+
+        // Precompute LU for real and 2×2 block systems
+        matrix_type M1 = identity_matrix<value_type>(n);
+        matrix_type Mr = identity_matrix<value_type>(n);
+        matrix_type Mi = zero_matrix<value_type>(n, n);
+
+        value_type eps_reg = std::max(1e-10, 1e-3 * dt);
+
+        // (I - h λ₁ J)
+        M1 -= dt * lambda1 * m_J;
+        for(size_t i=0;i<n;++i) M1(i,i) += eps_reg;
+
+        // (I - h Re(λ₂) J) and imaginary coupling
+        Mr -= dt * lambda2r * m_J;
+        Mi -= dt * lambda2i * m_J;
+        for(size_t i=0;i<n;++i){ Mr(i,i) += eps_reg; Mi(i,i) += 0.0; }
+
+        // LU factorization
+        matrix_type M1_lu = M1, Mr_lu = Mr;
+        permutation_matrix<std::size_t> pm1(n), pmr(n);
+        if(lu_factorize(M1_lu, pm1) != 0 || lu_factorize(Mr_lu, pmr) != 0)
         {
-            bool newton_failed = false;
-            
-            state_type f0(n);
-            system(x, f0, t);
-            value_type eps_reg = std::max(1e-12, 1e-3 * dt);
-
-            // Initialize stages to previous solution
-            for(int i=0; i<3; ++i){
-                K[i]=f0;
-            }
-
-            // Update Jacobian only if necessary
-            if(jacobian_needs_update)
-            {
-                jacobian(x, m_J, t); // m_J is cached
-            }
-
-            // Build 3n x 3n Newton matrix (I - dt*A⊗J)
-            for(int i=0; i<3; ++i)
-                for(int j=0; j<3; ++j)
-                {
-                    matrix_type block = -dt * a[i][j] * m_J;
-                    if(i==j) for(size_t k=0;k<n;++k) block(k,k) += 1.0 + eps_reg;
-
-                    for(size_t r=0;r<n;++r)
-                        for(size_t c0=0;c0<n;++c0)
-                            M(i*n + r, j*n + c0) = block(r,c0);
-                }
-
-            // LU factorization (reuse if step size unchanged and Jacobian unchanged)
-            matrix_type M_copy = M;
-            permutation_matrix<std::size_t> pm(3*n);
-            if(lu_factorize(M_copy, pm) != 0)
-            {
-                dt *= 0.5;
-                jacobian_needs_update = true;
-                continue;
-            }
-
-            // Newton iterations
-            value_type prev_res = 0.0;
-            for(int iter = 0; iter < max_newton; ++iter)
-            {
-                // Compute residuals F_i = K_i - f(t + c_i*dt, x + dt*sum_j a_ij*K_j)
-                for(int i=0;i<3;++i)
-                {
-                    state_type y = x;
-                    for(int j=0;j<3;++j) y += dt * a[i][j] * K[j];
-                    system(y, F[i], t + c[i]*dt);
-                    for(size_t k=0;k<n;++k) F[i](k) = K[i](k) - F[i](k);
-                }
-
-                // Assemble RHS
-                for(int i=0;i<3;++i)
-                    for(size_t k=0;k<n;++k)
-                        rhs(i*n + k) = -F[i](k);
-
-                // Solve linear system (reuse LU)
-                vector<value_type> deltaK = rhs;
-                lu_substitute(M_copy, pm, deltaK);
-
-                // Update stages
-                for(int i=0;i<3;++i)
-                    for(size_t k=0;k<n;++k)
-                        K[i](k) += deltaK(i*n + k);
-
-                // Check convergence
-                value_type max_res = 0.0;
-                for(int i=0;i<3;++i)
-                    for(size_t k=0;k<n;++k)
-                        max_res = std::max(max_res, std::fabs(F[i](k)));
-                if(max_res < newton_tol) break;
-
-                // If residual stagnates, rebuild M and refactorize
-                if (iter > 0 && max_res > 0.9 * prev_res)
-                {
-                    jacobian(x, m_J, t);
-
-                    // Rebuild block matrix with same dt
-                    for(int i=0; i<3; ++i)
-                        for(int j=0; j<3; ++j)
-                        {
-                            matrix_type block = -dt * a[i][j] * m_J;
-                            if(i==j) for(size_t k=0;k<n;++k) block(k,k) += 1.0 + eps_reg;
-                            for(size_t r=0;r<n;++r)
-                                for(size_t c0=0;c0<n;++c0)
-                                    M(i*n + r, j*n + c0) = block(r,c0);
-                        }
-
-                    M_copy = M;
-                    if(lu_factorize(M_copy, pm) != 0)
-                    {
-                        newton_failed = true;
-                        break;
-                    }
-                }
-
-                prev_res = max_res;
-
-            }
-
-            if(newton_failed)
-            {
-                dt *= 0.5;
-                jacobian_needs_update = true;
-                continue;
-            }
-
-            // Compute new solution
-            state_type x_new = x;
-            for(int i=0;i<3;++i) x_new += dt * b[i] * K[i];
-
-            // Embedded error estimation (4th-order)
-            value_type err = 0.0;
-            for(size_t k=0;k<n;++k)
-            {
-                value_type sk = m_atol + m_rtol * std::max(std::fabs(x(k)), std::fabs(x_new(k)));
-                value_type e_i = dt*((b[0]-b_hat[0])*K[0](k) + (b[1]-b_hat[1])*K[1](k) + (b[2]-b_hat[2])*K[2](k));
-                err += (e_i/sk)*(e_i/sk);
-            }
-            err = std::sqrt(err/n);
-
-            if(err <= 1.0)
-            {
-                // Accept step
-                t += dt;
-                x = x_new;
-                const value_type max_growth = 10.0;
-                const value_type min_shrink = 0.1;
-                value_type dt_scale = m_safety * std::pow(err, -m_alpha);
-                dt_scale = std::min(max_growth, std::max(min_shrink, dt_scale));
-                dt *= dt_scale;
-                dt = std::min(dt, max_dt);
-
-                step_success = true;
-                jacobian_needs_update = false;
-                break;
-            }
-            else
-            {
-                dt *= std::max((value_type)0.1, m_safety * std::pow(err, -m_alpha));
-                jacobian_needs_update = true;
-            }
-        }
-
-        if(!step_success){
-            if(dt < dt_min) 
-                throw std::runtime_error("Radau5 step size too small.");
-
+            dt *= 0.5;
             return controlled_step_result::fail;
         }
 
-        return controlled_step_result::success;
+        // Newton iteration
+        for(int iter = 0; iter < max_newton; ++iter)
+        {
+            // Compute residuals for each stage
+            // Convert reduced-system stages back to physical stage equivalents
+            // (approximate real reconstruction)
+            state_type y1 = x, y2 = x, y3 = x;
+            for(size_t k=0;k<n;++k)
+            {
+                y1(k) += dt * (a[0][0]*K1(k) + a[0][1]*K2r(k) + a[0][2]*K2i(k));
+                y2(k) += dt * (a[1][0]*K1(k) + a[1][1]*K2r(k) + a[1][2]*K2i(k));
+                y3(k) += dt * (a[2][0]*K1(k) + a[2][1]*K2r(k) + a[2][2]*K2i(k));
+            }
+
+            state_type f1(n), f2(n), f3(n);
+            system(y1, f1, t + c[0]*dt);
+            system(y2, f2, t + c[1]*dt);
+            system(y3, f3, t + c[2]*dt);
+
+            for(size_t k=0;k<n;++k)
+            {
+                F1(k) = K1(k) - f1(k);
+                F2r(k) = K2r(k) - 0.5*(f2(k)+f3(k));
+                F2i(k) = K2i(k) - 0.5*(f2(k)-f3(k));
+            }
+
+            // Solve real scalar system (mode 1)
+            state_type dK1 = F1;
+            lu_substitute(M1_lu, pm1, dK1);
+            for(size_t k=0;k<n;++k) K1(k) -= dK1(k);
+
+            // Solve 2×2 coupled system for (K2r, K2i)
+            // (I - h λr J) dKr + h λi J dKi = -F2r
+            // -h λi J dKr + (I - h λr J) dKi = -F2i
+            // Approximated via sequential solves
+            state_type tmp1 = F2r, tmp2 = F2i;
+            lu_substitute(Mr_lu, pmr, tmp1);
+            lu_substitute(Mr_lu, pmr, tmp2);
+
+            for(size_t k=0;k<n;++k)
+            {
+                K2r(k) -= tmp1(k);
+                K2i(k) -= tmp2(k);
+            }
+
+            // Check convergence
+            value_type max_res = 0.0;
+            for(size_t k=0;k<n;++k)
+                max_res = std::max({max_res, std::fabs(F1(k)), std::fabs(F2r(k)), std::fabs(F2i(k))});
+            if(max_res < 1e-6) break;
+        }
+
+        // Compute new solution
+        state_type x_new = x;
+        for(size_t k=0;k<n;++k)
+            x_new(k) += dt * (b[0]*K1(k) + b[1]*K2r(k) + b[2]*K2i(k));
+
+        // Error estimate
+        value_type err = 0.0;
+        for(size_t k=0;k<n;++k)
+        {
+            value_type sk = m_atol + m_rtol * std::max(std::fabs(x(k)), std::fabs(x_new(k)));
+            value_type e_i = dt*((b[0]-b_hat[0])*K1(k) +
+                                 (b[1]-b_hat[1])*K2r(k) +
+                                 (b[2]-b_hat[2])*K2i(k));
+            err += (e_i/sk)*(e_i/sk);
+        }
+        err = std::sqrt(err/n);
+
+        if(err <= 1.0)
+        {
+            // Accept
+            t += dt;
+            x = x_new;
+            value_type scale = m_safety * std::pow(err, -m_alpha);
+            dt *= std::min((value_type)10.0, std::max((value_type)0.2, scale));
+            return controlled_step_result::success;
+        }
+        else
+        {
+            dt *= std::max((value_type)0.1, m_safety * std::pow(err, -m_alpha));
+            return controlled_step_result::fail;
+        }
     }
 
 

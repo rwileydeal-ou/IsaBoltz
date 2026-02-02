@@ -25,7 +25,7 @@ void DbManager::Open(){
     logger_.Debug( "Opening db: " + connectionString_ );
 
     auto result = sqlite3_open(connectionString_.c_str(), &db_);
-    sqlite3_busy_timeout(db_, 5000); // 5 seconds
+    sqlite3_busy_timeout(db_, 500000); // 500 seconds
     if ( result != SQLITE_OK ){
         logger_.Error("SQL error " + to_string(result));
         sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr);
@@ -239,7 +239,7 @@ string DbManager::create_Input_table(){
 
 string DbManager::create_Particle_table(){
     string cmd = "CREATE TABLE Particle("  \
-    "PK INTEGER PRIMARY KEY AUTOINCREMENT," \
+    "PK INTEGER PRIMARY KEY," \
     "ID             TEXT    NOT NULL," \
     "InputID        TEXT    NOT NULL," \
     "ParticleKey    TEXT    NOT NULL," \
@@ -257,7 +257,7 @@ string DbManager::create_Particle_table(){
 
 string DbManager::create_ParticleEvolution_table(){
     string cmd = "CREATE TABLE ParticleEvolution("  \
-    "PK INTEGER PRIMARY KEY AUTOINCREMENT," \
+    "PK INTEGER PRIMARY KEY," \
     "ID             TEXT    NOT NULL," \
     "InputID        TEXT    NOT NULL," \
     "ParticleKey    TEXT    NOT NULL," \
@@ -295,7 +295,7 @@ string DbManager::create_PartialWidth_table(){
 
 string DbManager::create_TotalWidth_table(){
     string cmd = "CREATE TABLE TotalWidth("  \
-    "PK INTEGER PRIMARY KEY AUTOINCREMENT," \
+    "PK INTEGER PRIMARY KEY," \
     "ID             TEXT    NOT NULL," \
     "InputID        TEXT    NOT NULL," \
     "PartialWidthIDs TEXT," \
@@ -310,7 +310,7 @@ string DbManager::create_TotalWidth_table(){
 
 string DbManager::create_SigmaV_table(){
     string cmd = "CREATE TABLE SigmaV("  \
-    "PK INTEGER PRIMARY KEY AUTOINCREMENT," \
+    "PK INTEGER PRIMARY KEY," \
     "ID             TEXT    NOT NULL," \
     "InputID        TEXT    NOT NULL," \
     "ParticleID     TEXT    NOT NULL," \
@@ -324,7 +324,7 @@ string DbManager::create_SigmaV_table(){
 
 string DbManager::create_ScaleFactor_table(){
     string cmd = "CREATE TABLE ScaleFactor("  \
-    "PK INTEGER PRIMARY KEY AUTOINCREMENT," \
+    "PK INTEGER PRIMARY KEY," \
     "ID             TEXT    NOT NULL," \
     "InputID        TEXT    NOT NULL," \
     "Temperature    REAL," \

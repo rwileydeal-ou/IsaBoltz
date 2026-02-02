@@ -265,7 +265,7 @@ void DbManager::Configure(){
         throw_with_trace( exception() );
     }
     sqlite3_exec(db_, "PRAGMA synchronous = OFF", NULL, NULL, &zErrMsg );
-    sqlite3_exec(db_, "PRAGMA journal_mode = WAL", NULL, NULL, &zErrMsg );
+    sqlite3_exec(db_, "PRAGMA journal_mode = DELETE", NULL, NULL, &zErrMsg );
 }
 
 string DbManager::create_Input_table(){

@@ -24,17 +24,12 @@ DbManager::~DbManager()
 void DbManager::Open(){
     logger_.Debug( "Opening db: " + connectionString_ );
 
-    while( true ){
-        auto result = sqlite3_open(connectionString_.c_str(), &db_);
-        if ( result != SQLITE_OK ){
-            if ( result == SQLITE_LOCKED || result == SQLITE_BUSY || result == SQLITE_CANTOPEN ){
-                std::this_thread::sleep_for(std::chrono::milliseconds(10));
-                continue;
-            } 
-            logger_.Error("SQL error " + to_string(result));
-            throw_with_trace( exception() );
-        }
-        break;
+    auto result = sqlite3_open(connectionString_.c_str(), &db_);
+    sqlite3_busy_timeout(db_, 5000); // 5 seconds
+    if ( result != SQLITE_OK ){
+        logger_.Error("SQL error " + to_string(result));
+        sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr);
+        throw_with_trace( exception() );
     }
 }
 
@@ -50,33 +45,24 @@ void DbManager::executeStatementPtr(
     if (!statementStr.empty()){
         logger_.Debug("Executing SQL statement: '" + statementStr + "'");
 
-        while(true){
-            char *zErrMsg = 0;
-            auto res1 = sqlite3_exec(db_, "BEGIN TRANSACTION;", NULL, NULL, NULL);
-            if (res1 == SQLITE_LOCKED || res1 == SQLITE_BUSY || res1 == SQLITE_CANTOPEN ){
-                std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                continue;
-            } 
-
-            auto result = sqlite3_exec(db_, statementStr.c_str(), NULL, NULL, &zErrMsg);
-    
-            if( result != SQLITE_OK ){
-                if (result == SQLITE_LOCKED || result == SQLITE_BUSY || result == SQLITE_CANTOPEN ){
-                    std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                    continue;
-                } 
-                std::string err;
-                if (zErrMsg != nullptr){
-                    err = string(zErrMsg);
-                }
-                logger_.Error("SQL error " + to_string(result) + ": " + err);
-                sqlite3_free(zErrMsg);
-                sqlite3_close(db_);
-                throw_with_trace( exception() );
-            }
-            sqlite3_exec(db_, "END TRANSACTION;", NULL, NULL, NULL);
-            break;
+        char *zErrMsg = 0;
+        auto res1 = sqlite3_exec(db_, "BEGIN IMMEDIATE;", NULL, NULL, NULL);
+        if (res1 != SQLITE_OK) {
+            throw_with_trace(exception());
         }
+        auto result = sqlite3_exec(db_, statementStr.c_str(), NULL, NULL, &zErrMsg);
+
+        if( result != SQLITE_OK ){
+            std::string err;
+            if (zErrMsg != nullptr){
+                err = string(zErrMsg);
+            }
+            logger_.Error("SQL error " + to_string(result) + ": " + err);
+            sqlite3_free(zErrMsg);
+            sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr);
+            throw_with_trace( exception() );
+        }
+        sqlite3_exec(db_, "COMMIT;", NULL, NULL, NULL);
     }
 }
 
@@ -85,33 +71,24 @@ void DbManager::executeStatement( Statements::IStatement& statement ){
     if (!statementStr.empty()){
         logger_.Debug("Executing SQL statement: '" + statementStr + "'");
 
-        while(true){
-            char *zErrMsg = 0;
-            auto res1 = sqlite3_exec(db_, "BEGIN TRANSACTION;", NULL, NULL, NULL);
-            if (res1 == SQLITE_LOCKED || res1 == SQLITE_BUSY || res1 == SQLITE_CANTOPEN ){
-                std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                continue;
-            } 
-
-            auto result = sqlite3_exec(db_, statementStr.c_str(), NULL, NULL, &zErrMsg);
-    
-            if( result != SQLITE_OK ){
-                if (result == SQLITE_LOCKED || result == SQLITE_BUSY || result == SQLITE_CANTOPEN ){
-                    std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                    continue;
-                } 
-                std::string err;
-                if (zErrMsg != nullptr){
-                    err = string(zErrMsg);
-                }
-                logger_.Error("SQL error " + to_string(result) + ": " + err);
-                sqlite3_free(zErrMsg);
-                sqlite3_close(db_);
-                throw_with_trace( exception() );
-            }
-            sqlite3_exec(db_, "END TRANSACTION;", NULL, NULL, NULL);
-            break;
+        char *zErrMsg = 0;
+        auto res1 = sqlite3_exec(db_, "BEGIN IMMEDIATE;", NULL, NULL, NULL);
+        if (res1 != SQLITE_OK) {
+            throw_with_trace(exception());
         }
+        auto result = sqlite3_exec(db_, statementStr.c_str(), NULL, NULL, &zErrMsg);
+
+        if( result != SQLITE_OK ){
+            std::string err;
+            if (zErrMsg != nullptr){
+                err = string(zErrMsg);
+            }
+            logger_.Error("SQL error " + to_string(result) + ": " + err);
+            sqlite3_free(zErrMsg);
+            sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr);
+            throw_with_trace( exception() );
+        }
+        sqlite3_exec(db_, "COMMIT;", NULL, NULL, NULL);
     }
 }
 
@@ -124,33 +101,24 @@ void DbManager::executeStatementCallback(
     if (!statementStr.empty()){
         logger_.Debug("Executing SQL statement: '" + statementStr + "'");
 
-        while(true){
-            char *zErrMsg = 0;
-            auto res1 = sqlite3_exec(db_, "BEGIN TRANSACTION;", NULL, NULL, NULL);
-            if (res1 == SQLITE_LOCKED || res1 == SQLITE_BUSY || res1 == SQLITE_CANTOPEN ){
-                std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                continue;
-            } 
-
-            auto result = sqlite3_exec(db_, statementStr.c_str(), callback, &callbackReturn, &zErrMsg);
-    
-            if( result != SQLITE_OK ){
-                if (result == SQLITE_LOCKED || result == SQLITE_BUSY || result == SQLITE_CANTOPEN ){
-                    std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                    continue;
-                } 
-                std::string err;
-                if (zErrMsg != nullptr){
-                    err = string(zErrMsg);
-                }
-                logger_.Error("SQL error " + to_string(result) + ": " + err);
-                sqlite3_free(zErrMsg);
-                sqlite3_close(db_);
-                throw_with_trace( exception() );
-            }
-            sqlite3_exec(db_, "END TRANSACTION;", NULL, NULL, NULL);
-            break;
+        char *zErrMsg = 0;
+        auto res1 = sqlite3_exec(db_, "BEGIN IMMEDIATE;", NULL, NULL, NULL);
+        if (res1 != SQLITE_OK) {
+            throw_with_trace(exception());
         }
+        auto result = sqlite3_exec(db_, statementStr.c_str(), callback, &callbackReturn, &zErrMsg);
+
+        if( result != SQLITE_OK ){
+            std::string err;
+            if (zErrMsg != nullptr){
+                err = string(zErrMsg);
+            }
+            logger_.Error("SQL error " + to_string(result) + ": " + err);
+            sqlite3_free(zErrMsg);
+            sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr);
+            throw_with_trace( exception() );
+        }
+        sqlite3_exec(db_, "COMMIT;", NULL, NULL, NULL);
     }
 }
 
@@ -179,33 +147,24 @@ void DbManager::executeStatementDeque(
     if (!statementStr.empty()){
         logger_.Debug("Executing SQL statement: '" + statementStr + "'");
 
-        while( true ){
-            char *zErrMsg = 0;
-            auto res1 = sqlite3_exec(db_, "BEGIN TRANSACTION;", NULL, NULL, NULL);
-            if (res1 == SQLITE_LOCKED || res1 == SQLITE_BUSY || res1 == SQLITE_CANTOPEN ){
-                std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                continue;
-            } 
-
-            auto result = sqlite3_exec(db_, statementStr.c_str(), NULL, NULL, &zErrMsg);
-        
-            if( result != SQLITE_OK ){
-                if (result == SQLITE_LOCKED || result == SQLITE_BUSY || result == SQLITE_CANTOPEN ){
-                    std::this_thread::sleep_for(std::chrono::milliseconds(2));
-                    continue;
-                } 
-                std::string err;
-                if (zErrMsg != nullptr){
-                    err = string(zErrMsg);
-                }
-                logger_.Error("SQL error " + to_string(result) + ": " + err + "\n" + statementStr);
-                sqlite3_free(zErrMsg);
-                sqlite3_close(db_);
-                throw_with_trace( exception() );
-            }
-            sqlite3_exec(db_, "END TRANSACTION;", NULL, NULL, NULL);
-            break;
+        char *zErrMsg = 0;
+        auto res1 = sqlite3_exec(db_, "BEGIN IMMEDIATE;", NULL, NULL, NULL);
+        if (res1 != SQLITE_OK) {
+            throw_with_trace(exception());
         }
+        auto result = sqlite3_exec(db_, statementStr.c_str(), NULL, NULL, &zErrMsg);
+    
+        if( result != SQLITE_OK ){
+            std::string err;
+            if (zErrMsg != nullptr){
+                err = string(zErrMsg);
+            }
+            logger_.Error("SQL error " + to_string(result) + ": " + err + "\n" + statementStr);
+            sqlite3_free(zErrMsg);
+            sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr);
+            throw_with_trace( exception() );
+        }
+        sqlite3_exec(db_, "COMMIT;", NULL, NULL, NULL);
     }
 }
 
@@ -262,10 +221,11 @@ void DbManager::Configure(){
         }
         logger_.Error("SQL error " + to_string(result) + ": " + err);
         sqlite3_free(zErrMsg);
+        sqlite3_exec(db_, "ROLLBACK;", nullptr, nullptr, nullptr);
         throw_with_trace( exception() );
     }
     sqlite3_exec(db_, "PRAGMA synchronous = OFF", NULL, NULL, &zErrMsg );
-    sqlite3_exec(db_, "PRAGMA journal_mode = DELETE", NULL, NULL, &zErrMsg );
+    sqlite3_exec(db_, "PRAGMA journal_mode = WAL", NULL, NULL, &zErrMsg );
 }
 
 string DbManager::create_Input_table(){

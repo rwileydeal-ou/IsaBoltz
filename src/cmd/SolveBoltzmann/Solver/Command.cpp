@@ -198,7 +198,7 @@ void BoltzmannSolverCommand::Execute(){
 
 //    auto stepper = boost::numeric::odeint::make_dense_output( 1e-03, 1e-04, baseStepper );
     auto stepperType = boost::numeric::odeint::rosenbrock4< double >();
-    auto stepper = boost::numeric::odeint::make_dense_output(1.e-03, 1.e-03, 0.1, stepperType);
+    auto stepper = boost::numeric::odeint::make_dense_output(1.e-04, 1.e-04, 0.01, stepperType);
 //    auto stepper = boost::numeric::odeint::make_dense_output(1.e-04, 1.e-03, stepperType);
 
     GStarSpline::initialize(particleDefs, connection_);

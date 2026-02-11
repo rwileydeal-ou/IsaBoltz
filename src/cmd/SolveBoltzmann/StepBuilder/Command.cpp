@@ -13,8 +13,8 @@ BoltzmannStepBuilderCommand::BoltzmannStepBuilderCommand(
     std::map< std::string, Models::TotalWidth >& totalWidths, 
     std::unordered_map< boost::uuids::uuid, Models::Particle, boost::hash<boost::uuids::uuid> >& particleCache
 ) :
-    connection_(connection),
     db_(db),
+    connection_(connection),
     reheatPoint_(reheatPoint),
     particles_(particles),
     partialWidths_(partialWidths),
@@ -194,7 +194,6 @@ double BoltzmannStepBuilderCommand::tempRadiation(long double entropy, long doub
 
     double T0 = X * pow( 45. / ( 2. * gstarFit * pow(M_PI, 2.) ), 1./3. );
     double T1 = 0.;
-    double DT = 0.;
 
     static std::map<double, double> gstarCache;
     int maxIter = 10;
@@ -784,9 +783,15 @@ void BoltzmannStepBuilderCommand::Post(){
 void BoltzmannStepBuilderCommand::SetResult(){
     cleanScaleFactorData();
     cleanParticleData();
+    if ( ordinal_ % 10 > 0 && !forcePost_ ){
+        return;
+    }
 
     if ( sqlDataToPost_.ScaleFactors.size() == 1 ){
-        auto statement1 = Statements::ScaleFactor( sqlDataToPost_.ScaleFactors.front(), Statements::StatementType::Create );
+        auto statement1 = Statements::ScaleFactor( 
+            sqlDataToPost_.ScaleFactors.front(), 
+            Statements::StatementType::Create 
+        );
         scaleFactorStatements_.push_back( 
             std::make_shared< Statements::ScaleFactor >( statement1 ) 
         );

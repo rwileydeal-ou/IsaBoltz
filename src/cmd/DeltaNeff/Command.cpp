@@ -55,9 +55,9 @@ DeltaNeffCommand::DeltaNeffCommand(
     }
     finalScaleFactorPoint_ = cbScale.CallbackReturn.ScaleFactors[ 0 ];
 
-    if ( finalScaleFactorPoint_.Ordinal != cbScale.CallbackReturn.ScaleFactors.size() - 1){
-        throw_with_trace( logic_error("Error in Delta Neff - final scale factor not matching expected ordinal") );
-    }
+//    if ( finalScaleFactorPoint_.Ordinal != cbScale.CallbackReturn.ScaleFactors.size() - 1){
+//        throw_with_trace( logic_error("Error in Delta Neff - final scale factor not matching expected ordinal") );
+//    }
 
     // now we can pull the final particle evolution
     auto keyComponents = FileIO::Split(enabledKey, "_");

@@ -783,7 +783,7 @@ void BoltzmannStepBuilderCommand::Post(){
 void BoltzmannStepBuilderCommand::SetResult(){
     cleanScaleFactorData();
     cleanParticleData();
-    if ( ordinal_ % 3 > 0 && !forcePost_ ){
+    if ( ordinal_ % 1 > 0 && !forcePost_ ){
         return;
     }
 

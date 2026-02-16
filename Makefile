@@ -15,26 +15,26 @@ OBJ_FILES := $(shell find $(OBJ_DIR) \( -name "*.o" \))
 OBJ_FILES_LOCAL := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES_LOCAL))
 OBJ_FILES_CLUSTER := $(patsubst $(SRC_DIR)/%.cpp,$(OBJ_DIR)/%.o,$(SOURCES_CLUSTER))
 
-CXXFLAGS=-I$(INC) -I/usr/include -I/usr/include/boost -I/usr/include/sqlite3
+CXXFLAGS=-I$(INC) -I/usr/include -I/usr/include/boost -I/usr/include/sqlite3 -O3 -g
 LIBS=-lboost_system -lboost_filesystem -lboost_regex -lboost_log -lboost_thread -ldl -lstdc++ -pthread -std=c++14 -lsqlite3 -DBOOST_LOG_DYN_LINK -DBOOST_STACKTRACE_USE_ADDR2LINE
-FORTFLAGS=-shared -fPIC --no-gnu-unique
+FORTFLAGS=-shared -fPIC --no-gnu-unique -O3
 
 LIST=$(BIN_DIR)/fortLib.so $(BIN_DIR)/isaboltz $(BIN_DIR)/clusterboltz
 all: $(LIST)
 
 $(BIN_DIR)/isaboltz: $(OBJ_FILES_LOCAL)
-	$(CC) $(LDFLAGS) -Wall -Wpedantic  -g -o $@ $^ $(LIBS) -fsanitize=address,undefined 
+	$(CC) $(LDFLAGS) -Wall -Wpedantic -O3 -g -o $@ $^ $(LIBS)
 
 $(BIN_DIR)/clusterboltz: $(OBJ_FILES_CLUSTER)
-	$(CC) $(LDFLAGS) -Wall -Wpedantic  -g -o $@ $^ $(LIBS) -fsanitize=address,undefined 
+	$(CC) $(LDFLAGS) -Wall -Wpedantic -O3 -g -o $@ $^ $(LIBS)
 
 $(BIN_DIR)/fortLib.so:
-	$(CC) -fPIC $(LDFLAGS) -c $(SRC_DIR)/fort/BoostInterface.cpp -o $(SRC_DIR)/fort/BoostInterface.o $(LIBS)
+	$(CC) -fPIC $(LDFLAGS) -O3 -c $(SRC_DIR)/fort/BoostInterface.cpp -o $(SRC_DIR)/fort/BoostInterface.o $(LIBS)
 	$(FC) $(FORTFLAGS) -g -o $(BIN_DIR)/fortLib.so -Wl,--whole-archive $(SRC_DIR)/fort/libisared.a $(SRC_DIR)/fort/libisajet.a $(FORT_FILES) $(SRC_DIR)/fort/BoostInterface.o -Wl,--no-whole-archive
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
-	$(CC) $(CXXFLAGS) $(LDFLAGS) -Wall -Wpedantic  -g -c -o $@ $< $(LIBS) -fsanitize=address,undefined 
+	$(CC) $(CXXFLAGS) $(LDFLAGS) -Wall -Wpedantic -c -o $@ $< $(LIBS)
 
 .PHONY : clean 
 clean: 

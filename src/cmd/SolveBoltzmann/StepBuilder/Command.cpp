@@ -202,7 +202,7 @@ double BoltzmannStepBuilderCommand::tempRadiation(long double entropy, long doub
     while (abs(T0 - T1) / T0 > 0.01 && iter++ < maxIter) {
         double gstr;
         auto it = gstarCache.lower_bound(T0);
-        if (it != gstarCache.end() && abs(it->first - T0) < 1e-3)
+        if (it != gstarCache.end() && abs(it->first - T0) / T0 < 1e-2)
             gstr = it->second;
         else {
             gstr = GStarSpline::instance().gs(T0);
@@ -210,7 +210,6 @@ double BoltzmannStepBuilderCommand::tempRadiation(long double entropy, long doub
         }
 
         T1 = X * pow(45. / (2. * gstr * pow(M_PI, 2.)), 1./3.);
-        if (fabs(T0 - T1) < 1e-10) break; // prevent infinite loop
         T0 = (T0 + T1) / 2.;
     }
     if (std::isnan(T1)){

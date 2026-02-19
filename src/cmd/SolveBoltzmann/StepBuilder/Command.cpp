@@ -196,13 +196,13 @@ double BoltzmannStepBuilderCommand::tempRadiation(long double entropy, long doub
     double T1 = 0.;
 
     static std::map<double, double> gstarCache;
-    int maxIter = 10;
+    int maxIter = 100;
     int iter = 0;
 
     while (abs(T0 - T1) / T0 > 0.01 && iter++ < maxIter) {
         double gstr;
         auto it = gstarCache.lower_bound(T0);
-        if (it != gstarCache.end() && abs(it->first - T0) / T0 < 1e-2)
+        if (it != gstarCache.end() && abs(it->first - T0) / T0 < 1e-3)
             gstr = it->second;
         else {
             gstr = GStarSpline::instance().gs(T0);

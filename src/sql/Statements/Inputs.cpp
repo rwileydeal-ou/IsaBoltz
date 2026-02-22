@@ -60,6 +60,7 @@ void Inputs::writeNuhm3Params( boost::property_tree::ptree& pt ){
     pt.put("Model.Nuhm3Params.uR_GUT", boost::lexical_cast<std::string>( connection_.Model.Options.NonUniversalSugra.GenOneTwo.m_uR_GUT ) );
     pt.put("Model.Nuhm3Params.eL_GUT", boost::lexical_cast<std::string>( connection_.Model.Options.NonUniversalSugra.GenOneTwo.m_eL_GUT ) );
     pt.put("Model.Nuhm3Params.eR_GUT", boost::lexical_cast<std::string>( connection_.Model.Options.NonUniversalSugra.GenOneTwo.m_eR_GUT ) );
+    pt.put("Model.Nuhm3Params.LambdaRPV", boost::lexical_cast<std::string>( connection_.Model.Options.NonUniversalSugra.LambdaRPV ) );
 }
 
 void Inputs::writeDfszParams( boost::property_tree::ptree& pt ){

@@ -141,16 +141,21 @@ void CheckBBNReceiver::Calculate(){
 
     // Interpolated value (in log scale) for mZ1 = 1 TeV
     double logOmegaA = interpolatedOmega(bbnFile1, logLifetime);
-
     // Interpolated value (in log scale) for mZ1 = 100 GeV
     double logOmegaB = interpolatedOmega(bbnFile2, logLifetime);
 
-    // Now interpolate in the masses
-    checkBBN_.DensityConstraint = (
-        (logOmegaA - logOmegaB) * log10(particle_.Mass) 
-        + 
-        ( 3. * logOmegaB - 2. * logOmegaA ) 
-    );
+    if ( particle_.Mass >= 1000. ){
+        checkBBN_.DensityConstraint = logOmegaA;
+    } else if ( particle_.Mass <= 100. ){
+        checkBBN_.DensityConstraint = logOmegaB;
+    } else{
+        // interpolate in the masses
+        checkBBN_.DensityConstraint = (
+            (logOmegaA - logOmegaB) * log10(particle_.Mass) 
+            + 
+            ( 3. * logOmegaB - 2. * logOmegaA ) 
+        );
+    }
 
     // Check if BBN bound is satisfied
     checkBBN_.DensityCalculated = log10( relicDensityBeforeDecay() );

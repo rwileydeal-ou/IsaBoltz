@@ -117,9 +117,6 @@ std::vector< Models::Particle > BoltzmannSolverCommand::pullParticles(
         throw_with_trace( logic_error("Could not find particles!") );
     }
 
-    for (auto& part : cb.CallbackReturn.Particles){
-    }
-
     return cb.CallbackReturn.Particles;
 }
 
@@ -190,16 +187,11 @@ void BoltzmannSolverCommand::Execute(){
     xInit(0) = particleEvolutions[0].Y1; // radiation is always the first element, regardless of input ordering
     for (size_t i = 1; i < particleEvolutions.size(); ++i){
         xInit (2*i-1) = particleEvolutions[i].Y1;
-        xInit (2*i) = particleEvolutions[i].Y2;
+        xInit (2*i)   = particleEvolutions[i].Y2;
     }
 
-//    boost::numeric::odeint::radau5_dense_ext< double, boost::numeric::ublas::vector<double>, boost::numeric::ublas::matrix<double> >
-//    baseStepper( /* rtol */ 1e-03, /* atol */ 1e-06 );
-
-//    auto stepper = boost::numeric::odeint::make_dense_output( 1e-03, 1e-04, baseStepper );
     auto stepperType = boost::numeric::odeint::rosenbrock4< double >();
     auto stepper = boost::numeric::odeint::make_dense_output(1.e-07, 1.e-05, 0.1, stepperType);
-//    auto stepper = boost::numeric::odeint::make_dense_output(1.e-04, 1.e-03, stepperType);
 
     GStarSpline::initialize(particleDefs, connection_);
 

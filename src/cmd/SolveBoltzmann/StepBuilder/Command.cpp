@@ -595,25 +595,25 @@ void BoltzmannStepBuilderCommand::addComponents(){
     for( auto& p : currentParticleData_ ){
         // we already set radiation
         if ( p.ProductionMechanism == ParticleProductionMechanism::RADIATION ){
-            i++; // assumes radiation is always first in list (it is), but should enforce this...
+            i++; 
             continue;
         }
 
         auto builder = b.Build_Particle_Boltzmann_Eqs( t_, p, rad );
         dxdt_[ 2*i - 1 ] += builder.NumberDensityEquation;
-        dxdt_[ 2*i ] += builder.EnergyDensityEquation;
-        dxdt_[0] += builder.EntropyEquation;
-        jac_( 0, 0 ) += builder.EntropyJacobian[0];
-        jac_( 0, 2*i-1 ) = builder.EntropyJacobian[2*i];
-        jac_( 0, 2*i ) = builder.EntropyJacobian[ 2*i + 1 ];
+        dxdt_[ 2*i ]     += builder.EnergyDensityEquation;
+        dxdt_[ 0 ]       += builder.EntropyEquation;
+        jac_( 0, 0     ) += builder.EntropyJacobian[0];
+        jac_( 0, 2*i-1 ) =  builder.EntropyJacobian[2*i];
+        jac_( 0, 2*i   ) =  builder.EntropyJacobian[ 2*i + 1 ];
 
         // note: jacobian for (i, 0) is always 0
 
         for (size_t j = 1; j < currentParticleData_.size(); ++j){
             jac_( 2*i - 1, 2*j - 1 ) = builder.NumberDensityJacobian[ 2*j ];
-            jac_( 2*i - 1, 2*j ) = builder.NumberDensityJacobian[ 2*j + 1 ];
-            jac_( 2*i, 2*j - 1 ) = builder.EnergyDensityJacobian[ 2*j ];
-            jac_( 2*i, 2*j ) = builder.EnergyDensityJacobian[ 2*j + 1 ];
+            jac_( 2*i - 1, 2*j     ) = builder.NumberDensityJacobian[ 2*j + 1 ];
+            jac_( 2*i,     2*j - 1 ) = builder.EnergyDensityJacobian[ 2*j ];
+            jac_( 2*i,     2*j     ) = builder.EnergyDensityJacobian[ 2*j + 1 ];
         }
 
         i++;
@@ -627,7 +627,9 @@ void BoltzmannStepBuilderCommand::addComponents(){
 
 */
 
-void BoltzmannStepBuilderCommand::postCrossSection( const ParticleData& particle ){
+void BoltzmannStepBuilderCommand::postCrossSection( 
+    const ParticleData& particle 
+){
     SigmaV c;
     c.InputId = particle.InputId;
     c.ParticleId = particle.ParticleId;
@@ -745,7 +747,7 @@ void BoltzmannStepBuilderCommand::cleanParticleData(){
 }
 
 void BoltzmannStepBuilderCommand::Post(){
-    connection_.Log.Info("Posting data to database");
+    auto startTime = std::chrono::steady_clock::now();
     if ( evoStatements_.size() > 0 ){
         db_.Execute( evoStatements_ );
         evoStatements_.clear();
@@ -776,13 +778,17 @@ void BoltzmannStepBuilderCommand::Post(){
         db_.Execute( crossSectionStatements_ );
         crossSectionStatements_.clear();
     }
-    connection_.Log.Info("Finished posting data to database");
+    auto endTime = std::chrono::steady_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime);
+    connection_.Log.Info(
+        "Finished posting data to database in " + boost::lexical_cast<std::string>(duration.count()) + " ms"
+    );
 }
 
 void BoltzmannStepBuilderCommand::SetResult(){
     cleanScaleFactorData();
     cleanParticleData();
-    if ( ordinal_ % 1 > 0 && !forcePost_ ){
+    if ( ordinal_ % 4 > 0 && !forcePost_ ){
         return;
     }
 
@@ -862,7 +868,10 @@ void BoltzmannStepBuilderCommand::SetResult(){
     }
 }
 
-void BoltzmannStepBuilderCommand::UpdateData( const state_type& x, const double& t ){
+void BoltzmannStepBuilderCommand::UpdateData( 
+    const state_type& x, 
+    const double& t 
+){
     ordinal_ += 1;        // keep this if needed
     x_ = x;
     t_ = t;

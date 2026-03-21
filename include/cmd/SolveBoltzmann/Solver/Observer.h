@@ -32,8 +32,8 @@ struct BoltzmannObserver
                 command_.resetCurrentOrdinal( ordinal_ );
                 command_.UpdateScaleFactor();
             }
-            connection_.Log.Info("Current R/R_0: " + boost::lexical_cast<std::string>( std::exp( t ) ));
             if ( ordinal_ % 100 == 0 ){
+                connection_.Log.Info("Current R/R_0: " + boost::lexical_cast<std::string>( std::exp( t ) ));
                 command_.Post();
             }
             previousT = t;

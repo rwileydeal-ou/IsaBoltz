@@ -43,7 +43,12 @@ void ScriptRunnerParser::Parse(string script){
     }
 }
 
-void ScriptRunnerParser::cmdHandler(string cmd, string scriptLine, vector<ModelBase>& newParams, Overrides& paramOverrides){
+void ScriptRunnerParser::cmdHandler(
+    string cmd, 
+    string scriptLine, 
+    vector<ModelBase>& newParams, 
+    Overrides& paramOverrides
+){
     if (cmd == "set"){
         handleParameterOverride(scriptLine, paramOverrides);
     } else if (cmd == "scan"){
@@ -68,7 +73,10 @@ void ScriptRunnerParser::cmdHandler(string cmd, string scriptLine, vector<ModelB
     }
 }
 
-vector<vector<string>> ScriptRunnerParser::getDirectives( string script, int nFiles ){
+vector<vector<string>> ScriptRunnerParser::getDirectives( 
+    string script, 
+    int nFiles 
+){
     ifstream fileIn;
     fileIn.open(script);
 
@@ -79,53 +87,61 @@ vector<vector<string>> ScriptRunnerParser::getDirectives( string script, int nFi
     bool scanProcess = false;
     while(getline(fileIn, line)){
         string cmd = FileIO::Split(line, " ")[0];
+
         // don't process line if commented or blank
-        if (cmd.front() != '#' && cmd.front() != '\0'){
-            directive.push_back(line);
-            if (cmd == "scan"){ scanProcess = true; }
-            // if launched, we're at the end of the directive
-            // copy the launch line, and see if directive needs to be split
-            if(cmd == "launch"){
-                // can process immediately if not a scan directive
-                // otherwise need to divide up across requested cores/nodes
-                if (!scanProcess){
-                    directives.push_back(directive);
-                } else{
-                    // know nFiles, so split directive across them
-                    for (int i = 0; i < nFiles; ++i){
-                        vector<string> splitDirective;
-                        for (auto& line : directive){
-                            if (FileIO::Split(line, " ")[0] != "scan"){
-                                splitDirective.push_back(line);
-                            } else{
-                                auto a = FileIO::Split(line, ",");
-                                string reassembled;
-                                for (size_t j = 0; j < a.size() - 1; ++j){
-                                    reassembled += a[j] + ",";
-                                }
-                                // now process steps
-                                int nPointsOld = stoi(a[a.size()-1]);
-                                int nPointsNew = nPointsOld / nFiles;
-                                if (i == nFiles - 1){
-                                    nPointsNew += nPointsOld % nFiles;
-                                }
-                                reassembled += " " + to_string(nPointsNew) + "]";
-                                splitDirective.push_back(reassembled);
+        if (cmd.front() == '#' || cmd.front() == '\0'){
+            continue;
+        }
+
+        directive.push_back(line);
+        if (cmd == "scan"){ scanProcess = true; }
+        // if launched, we're at the end of the directive
+        // copy the launch line, and see if directive needs to be split
+        if(cmd == "launch"){
+            // can process immediately if not a scan directive
+            // otherwise need to divide up across requested cores/nodes
+            if (!scanProcess){
+                directives.push_back(directive);
+            } else{
+                // know nFiles, so split directive across them
+                for (int i = 0; i < nFiles; ++i){
+                    vector<string> splitDirective;
+                    for (auto& line : directive){
+                        if (FileIO::Split(line, " ")[0] != "scan"){
+                            splitDirective.push_back(line);
+                        } else{
+                            auto a = FileIO::Split(line, ",");
+                            string reassembled;
+                            for (size_t j = 0; j < a.size() - 1; ++j){
+                                reassembled += a[j] + ",";
                             }
+                            // now process steps
+                            int nPointsOld = stoi(a[a.size()-1]);
+                            int nPointsNew = nPointsOld / nFiles;
+                            if (i == nFiles - 1){
+                                nPointsNew += nPointsOld % nFiles;
+                            }
+                            reassembled += " " + to_string(nPointsNew) + "]";
+                            splitDirective.push_back(reassembled);
                         }
-                        directives.push_back(splitDirective);
                     }
+                    directives.push_back(splitDirective);
                 }
-                // now reset 
-                directive.clear();
-                scanProcess = false;
             }
+            // now reset 
+            directive.clear();
+            scanProcess = false;
         }
     }
     return directives;
 }
 
-void ScriptRunnerParser::DivideScriptRuns(string scriptInput, ClusterRunParams runParams, string outputDirectory, string namePrefix){
+void ScriptRunnerParser::DivideScriptRuns(
+    string scriptInput, 
+    ClusterRunParams runParams, 
+    string outputDirectory, 
+    string namePrefix
+){
     try{
         FileIO::ValidateFilePath(scriptInput, logger_);
         FileIO::CreateDirectory(outputDirectory, logger_);
@@ -135,14 +151,16 @@ void ScriptRunnerParser::DivideScriptRuns(string scriptInput, ClusterRunParams r
         
         auto directives = getDirectives(scriptInput, nFiles);
 
-        for (size_t i=0; i<nFiles; ++i){
-            fileOuts[i].open(outputDirectory + namePrefix + to_string(i) + ".dat");
-            if (i < directives.size()){
-                for (auto& line : directives[i]){
-                    fileOuts[i] << line << "\n";
-                }
+        for (size_t i=0; i<directives.size(); ++i){
+            int fileIndex = i % nFiles;
+            fileOuts[fileIndex].open(
+                outputDirectory + namePrefix + to_string(fileIndex) + ".dat", 
+                std::ios::app
+            );
+            for (auto& line : directives[i]){
+                fileOuts[fileIndex] << line << "\n";
             }
-            fileOuts[i].close();
+            fileOuts[fileIndex].close();
         }
     }
     catch(FileNotFoundException& e){
@@ -186,7 +204,10 @@ vector<string> ScriptRunnerParser::scanPredicate(string line){
     return predicates;
 }
 
-void ScriptRunnerParser::handleParameterScan(string line, Overrides& paramOverrides){
+void ScriptRunnerParser::handleParameterScan(
+    string line, 
+    Overrides& paramOverrides
+){
     try{
         ScanDetails endpoints = setScanDetails(line);
         vector<vector<string>> outerParamOverrides;
@@ -212,7 +233,10 @@ void ScriptRunnerParser::handleParameterScan(string line, Overrides& paramOverri
     }
 }
 
-void ScriptRunnerParser::handleParameterOverride(string line, Overrides& paramOverrides){
+void ScriptRunnerParser::handleParameterOverride(
+    string line, 
+    Overrides& paramOverrides
+){
     auto splitLine = FileIO::Split(line, " ");
     splitLine.erase(splitLine.begin());
     auto parsedLine = boost::algorithm::join(splitLine, "");
@@ -221,7 +245,9 @@ void ScriptRunnerParser::handleParameterOverride(string line, Overrides& paramOv
     logger_.Info("Override: " + line);
 }
 
-ScanDetails ScriptRunnerParser::setScanDetails(string line){
+ScanDetails ScriptRunnerParser::setScanDetails(
+    string line
+){
     ScanDetails allEndpoints;
     vector<ScanParamDetails> scanPoints;
     try{
@@ -250,7 +276,11 @@ ScanDetails ScriptRunnerParser::setScanDetails(string line){
     }
 }
 
-ScanParamDetails ScriptRunnerParser::handleImplicitBounds(vector<string> parsedScanBounds, string key, vector<ScanParamDetails> otherParams){
+ScanParamDetails ScriptRunnerParser::handleImplicitBounds(
+    vector<string> parsedScanBounds, 
+    string key, 
+    vector<ScanParamDetails> otherParams
+){
     ScanParamDetails scanParamDetails;
     // For now, just assume we're trying to match a key
     string keyToFind = parsedScanBounds[0];
@@ -264,7 +294,11 @@ ScanParamDetails ScriptRunnerParser::handleImplicitBounds(vector<string> parsedS
     return scanParamDetails;
 }
 
-ScanParamDetails ScriptRunnerParser::handleExplicitBounds(vector<string> parsedScanBounds, string key, int steps){
+ScanParamDetails ScriptRunnerParser::handleExplicitBounds(
+    vector<string> parsedScanBounds, 
+    string key, 
+    int steps
+){
     ScanParamDetails scanParamDetails;
     double scanStart = atof(parsedScanBounds[0].c_str());
     double scanEnd = atof(parsedScanBounds[1].c_str());

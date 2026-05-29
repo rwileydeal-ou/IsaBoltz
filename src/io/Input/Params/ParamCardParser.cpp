@@ -46,7 +46,10 @@ map<string, int&> ParamCardParser::modelIntMap(ModelBase& modelParams){
     return modInt;
 }
 
-void ParamCardParser::ReadLine(string line, ModelBase &model){
+void ParamCardParser::ReadLine(
+    string line, 
+    ModelBase &model
+){
     auto split = FileIO::Split(line, " =\t\0");
     if (split.size() > 1){
         string key = split[0];
@@ -91,7 +94,13 @@ void ParamCardParser::ReadLine(string line, ModelBase &model){
     }
 }
 
-void ParamCardParser::MatchKey(string key, string keyVal, ModelBase &model, map<string, double&> &mapDouble, map<string, int&> &mapInt){
+void ParamCardParser::MatchKey(
+    string key, 
+    string keyVal, 
+    ModelBase &model, 
+    map<string, double&> &mapDouble, 
+    map<string, int&> &mapInt
+){
     try{
         boost::to_lower(key);
         boost::to_lower(keyVal);
@@ -115,7 +124,10 @@ void ParamCardParser::MatchKey(string key, string keyVal, ModelBase &model, map<
     }
 }
 
-void ParamCardParser::Parse(string infile, ModelBase &model){
+void ParamCardParser::Parse(
+    string infile, 
+    ModelBase &model
+){
     try{
         logger_.Info("Parsing param_card: " + infile);
         FileIO::ValidateFilePath(infile, logger_);

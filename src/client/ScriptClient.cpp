@@ -2,7 +2,10 @@
 
 using namespace std;
 
-ScriptClient::ScriptClient(string outputPath, Logger& logger) :
+ScriptClient::ScriptClient(
+    string outputPath, 
+    Logger& logger
+) :
     logger_(logger)
 {
     outputPath_ = outputPath;
@@ -11,7 +14,9 @@ ScriptClient::ScriptClient(string outputPath, Logger& logger) :
 ScriptClient::~ScriptClient(){
 }
 
-vector< vector< CommandWithPayload > > ScriptClient::separateMacros( vector< CommandWithPayload > allMacros ){
+vector< vector< CommandWithPayload > > ScriptClient::separateMacros( 
+    vector< CommandWithPayload > allMacros 
+){
     vector< vector< CommandWithPayload > > dividedMacros;
     vector< CommandWithPayload > singleMacro;
 
@@ -26,7 +31,10 @@ vector< vector< CommandWithPayload > > ScriptClient::separateMacros( vector< Com
     return dividedMacros;
 }
 
-vector< CommandWithPayload > ScriptClient::handleScan(string line, vector< CommandWithPayload > baseCmds){
+vector< CommandWithPayload > ScriptClient::handleScan(
+    string line, 
+    vector< CommandWithPayload > baseCmds
+){
     vector< CommandWithPayload > scanCommands;
 
     try{
@@ -65,7 +73,10 @@ vector< CommandWithPayload > ScriptClient::handleScan(string line, vector< Comma
     return scanCommands;
 }
 
-vector< CommandWithPayload > ScriptClient::scriptInput(std::string script, std::vector<std::string> supportedOptions){
+vector< CommandWithPayload > ScriptClient::scriptInput(
+    std::string script, 
+    std::vector<std::string> supportedOptions
+){
     vector< CommandWithPayload > allCmds;
     vector< CommandWithPayload > macroContents;
     try{
@@ -117,18 +128,30 @@ vector< CommandWithPayload > ScriptClient::scriptInput(std::string script, std::
     return allCmds;
 }
 
-bool compareByEnum(const CommandWithPayload& cmd1, const CommandWithPayload& cmd2){
+bool compareByEnum(
+    const CommandWithPayload& cmd1, 
+    const CommandWithPayload& cmd2
+){
     return cmd1.Command > cmd2.Command;
 }
 
-void ScriptClient::HandleScript( string sqlConnectionString, vector< vector< CommandWithPayload > > setOfCmds, bool combineFiles ){
+void ScriptClient::HandleScript( 
+    string sqlConnectionString, 
+    vector< vector< CommandWithPayload > > setOfCmds, 
+    bool combineFiles 
+){
     boost::property_tree::ptree combinedResults;
 
     int i = 0;
     for(auto cmds = setOfCmds.begin(); cmds != setOfCmds.end(); ++cmds){
         // since we may have a ton of different scenarios, for now easier to just create a new processclient and dispose afterwards to sanitize the extensive number of parameters
         auto inputId = boost::uuids::random_generator()();
-        std::shared_ptr< ProcessClient > client = std::make_shared< ProcessClient >(false, logger_, sqlConnectionString, inputId);
+        std::shared_ptr< ProcessClient > client = std::make_shared< ProcessClient >(
+            false, 
+            logger_, 
+            sqlConnectionString, 
+            inputId
+        );
         sort( (*cmds).begin(), (*cmds).end(), compareByEnum);
 
         client->Handle(*cmds);

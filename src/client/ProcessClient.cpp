@@ -25,7 +25,10 @@ ProcessClient::ProcessClient(
 ProcessClient::~ProcessClient(){
 }
 
-CommandWithPayload ProcessClient::getCmdFromString(string cmd, string payload){
+CommandWithPayload ProcessClient::getCmdFromString(
+    string cmd, 
+    string payload
+){
     CommandWithPayload c;
     c.Payload = payload;
     if (cmd == "exit"){
@@ -56,7 +59,9 @@ CommandWithPayload ProcessClient::getCmdFromString(string cmd, string payload){
     return c;
 }
 
-vector<CommandWithPayload> ProcessClient::getCmdsFromString(vector<string> cmdsString){
+vector<CommandWithPayload> ProcessClient::getCmdsFromString(
+    vector<string> cmdsString
+){
     vector<CommandWithPayload> cmdsEnum;
     for(auto& cmd : cmdsString){
         cmdsEnum.push_back( getCmdFromString(cmd, "") );
@@ -205,7 +210,9 @@ void ProcessClient::handleCmd(
 }
 
 // This method processes the cmds and writes the results to the boost ptree 
-void ProcessClient::Handle(vector<CommandWithPayload> cmds){
+void ProcessClient::Handle(
+    vector<CommandWithPayload> cmds
+){
     try{
         DbManager db(connection_);
         std::shared_ptr< Sender > invoker = std::make_shared< Sender >();
